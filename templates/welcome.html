@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bienvenue - Pimmich</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
+
+    <h1>Bienvenue sur votre cadre Pimmich</h1>
+    <p>Aucune configuration détectée pour le moment.</p>
+    <p>Veuillez cliquer sur le bouton ci-dessous pour accéder à la page de configuration.</p>
+
+    <a href="{{ url_for('configure') }}" class="btn">Configurer le cadre</a>
+  </div>
+</body>
+</html>

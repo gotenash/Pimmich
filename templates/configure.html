@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Configuration - Pimmich</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Pimmich Logo" class="logo">
+
+    <h1>Configuration du cadre Pimmich</h1>
+
+    <form method="POST">
+      <fieldset>
+        <legend>Paramètres d'affichage</legend>
+
+        <label for="source">Source des images :</label>
+        <select name="source" id="source">
+          <option value="immich" {% if config.source == 'immich' %}selected{% endif %}>Album Immich</option>
+          <option value="usb" {% if config.source == 'usb' %}selected{% endif %}>Clé USB</option>
+        </select>
+
+        <label for="start_hour">Heure de début :</label>
+        <input type="number" name="start_hour" min="0" max="23" value="{{ config.start_hour or 8 }}">
+
+        <label for="end_hour">Heure de fin :</label>
+        <input type="number" name="end_hour" min="0" max="23" value="{{ config.end_hour or 22 }}">
+
+        <label>
+          <input type="checkbox" name="pan_zoom" {% if config.pan_zoom %}checked{% endif %}>
+          Activer effet Pan & Zoom
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Configuration de l'album Immich</legend>
+
+        <label for="immich_url">URL du serveur Immich :</label>
+        <input type="text" name="immich_url" value="{{ config.immich_url or '' }}">
+
+        <label for="immich_token">Token API Immich :</label>
+        <input type="text" name="immich_token" value="{{ config.immich_token or '' }}">
+
+        <label for="album_ids">Albums à afficher :</label>
+        <select name="album_ids" multiple size="4">
+          {% for album in config.available_albums or [] %}
+            <option value="{{ album.id }}" {% if album.id in config.album_ids %}selected{% endif %}>{{ album.name }}</option>
+          {% endfor %}
+        </select>
+        <p>(Maintenir Ctrl ou Cmd pour sélection multiple)</p>
+      </fieldset>
+
+      <div class="form-buttons">
+        <button type="submit">Enregistrer</button>
+        <a href="{{ url_for('slideshow') }}" class="btn">Lancer le slideshow</a>
+      </div>
+    </form>
+
+    <hr>
+    <form method="POST" action="/reboot">
+      <button type="submit" class="danger">Redémarrer le système</button>
+    </form>
+
+    <form method="POST" action="/shutdown">
+      <button type="submit" class="danger">Éteindre le système</button>
+    </form>
+
+    <a href="{{ url_for('logout') }}">Se déconnecter</a>
+  </div>
+</body>
+</html>

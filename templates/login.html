@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion - Pimmich</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="login-container">
+    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
+
+    <h1>Connexion à Pimmich</h1>
+
+    <form method="POST" action="/login">
+      <label for="username">Identifiant :</label>
+      <input type="text" name="username" required>
+
+      <label for="password">Mot de passe :</label>
+      <input type="password" name="password" required>
+
+      <button type="submit">Se connecter</button>
+    </form>
+  </div>
+</body>
+</html>

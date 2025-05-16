@@ -1,0 +1,116 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6fa;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+.container, .login-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  display: block;
+  margin: 0 auto 20px;
+  max-width: 250px;
+}
+
+h1 {
+  text-align: center;
+  color: #004080;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select {
+  margin-top: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1em;
+}
+
+select[multiple] {
+  height: 120px;
+}
+
+button,
+.btn {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover,
+.btn:hover {
+  background-color: #005fa3;
+}
+
+.btn {
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.danger {
+  background-color: #cc3344;
+}
+
+.danger:hover {
+  background-color: #aa2233;
+}
+
+fieldset {
+  border: 2px solid #ddd;
+  padding: 20px;
+  border-radius: 15px;
+  margin-top: 30px;
+}
+
+legend {
+  font-weight: bold;
+  color: #0077cc;
+  padding: 0 10px;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+a {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  color: #004080;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

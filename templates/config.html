@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Configuration - Pimmich</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+    <div class="flex items-center justify-between mb-6">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Pimmich" class="w-24">
+      <h1 class="text-2xl font-bold text-right">Paramètres de Pimmich</h1>
+    </div>
+
+    <form method="POST">
+      <!-- Section Immich -->
+      <fieldset class="border border-blue-200 p-4 mb-6 rounded-xl">
+        <legend class="text-lg font-semibold text-blue-600">Configuration de l'album Immich</legend>
+        <label class="block mt-4">URL du serveur Immich :
+          <input type="text" name="immich_url" value="{{ config.get('immich_url', '') }}" class="w-full p-2 border rounded mt-1">
+        </label>
+        <label class="block mt-4">Token Immich :
+          <input type="text" name="immich_token" value="{{ config.get('immich_token', '') }}" class="w-full p-2 border rounded mt-1">
+        </label>
+        <label class="block mt-4">Album :
+          <select name="album" class="w-full p-2 border rounded mt-1">
+            {% for album in albums %}
+              <option value="{{ album.id }}" {% if album.id == config.get('album') %}selected{% endif %}>
+                {{ album.albumName }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+      </fieldset>
+
+      <!-- Paramètres d'affichage -->
+      <fieldset class="border border-gray-200 p-4 mb-6 rounded-xl">
+        <legend class="text-lg font-semibold">Paramètres d'affichage</legend>
+        <label class="block mt-4">Source des images :
+          <select name="source" class="w-full p-2 border rounded mt-1">
+            <option value="immich" {% if config.get('source') == 'immich' %}selected{% endif %}>Album Immich</option>
+            <option value="usb" {% if config.get('source') == 'usb' %}selected{% endif %}>Clé USB</option>
+          </select>
+        </label>
+        <label class="block mt-4">Heure de début d'activité :
+          <input type="time" name="start_time" value="{{ config.get('start_time', '') }}" class="w-full p-2 border rounded mt-1">
+        </label>
+        <label class="block mt-4">Heure de fin d'activité :
+          <input type="time" name="end_time" value="{{ config.get('end_time', '') }}" class="w-full p-2 border rounded mt-1">
+        </label>
+      </fieldset>
+
+      <div class="flex justify-between">
+        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold">Enregistrer</button>
+        <div class="flex gap-2">
+          <button name="action" value="reboot" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">Reboot</button>
+          <button name="action" value="shutdown" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Éteindre</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
