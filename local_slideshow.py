@@ -20,6 +20,44 @@ def read_config():
         print(f"Erreur lecture config.json : {e}")
         return {}
 
+def show_configuration_missing_slide():
+    pygame.init()
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    screen.fill((255, 255, 255))  # fond blanc
+
+    font_large = pygame.font.SysFont("Arial", 60)
+    font_small = pygame.font.SysFont("Arial", 40)
+
+    # Affichage du logo
+    try:
+        logo = pygame.image.load("static/pimmich_logo.png")
+        logo = pygame.transform.smoothscale(logo, (200, 200))
+        screen.blit(logo, (screen.get_width() - 220, 20))
+    except Exception as e:
+        print(f"Erreur chargement logo : {e}")
+
+    # Textes
+    text1 = font_large.render("Configuration manquante", True, (200, 0, 0))
+    text2 = font_small.render("Connecte-toi à l'adresse suivante :", True, (0, 0, 0))
+
+    try:
+        ip = get_local_ip()
+        text3 = font_small.render(f"http://{ip}:5000/configure", True, (0, 102, 204))
+    except:
+        text3 = font_small.render("Adresse IP non trouvée", True, (128, 128, 128))
+
+    screen.blit(text1, text1.get_rect(center=(960, 300)))
+    screen.blit(text2, text2.get_rect(center=(960, 500)))
+    screen.blit(text3, text3.get_rect(center=(960, 580)))
+
+    pygame.display.flip()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+
+
 def is_within_active_hours(start, end):
     now = datetime.now().time()
     try:
