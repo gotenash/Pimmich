@@ -1,25 +1,43 @@
+<!-- templates/login.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Connexion - Pimmich</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Connexion Pimmich</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
-  <div class="login-container">
-    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
-    <h1>Connexion à Pimmich</h1>
+    <div class="container">
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
+        <h1>Connexion</h1>
 
-    <form method="POST" action="/login">
-      <label for="username">Identifiant :</label>
-      <input type="text" name="username" required>
-
-      <label for="password">Mot de passe :</label>
-      <input type="password" name="password" required>
-
-      <button type="submit">Se connecter</button>
-    </form>
+<form method="post" class="login-form">
+  <div class="form-row">
+    <label for="username">Identifiant :</label>
+    <input type="text" id="username" name="username" required>
   </div>
+  <div class="form-row">
+    <label for="password">Mot de passe :</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  <div class="form-submit">
+    <button type="submit">Connexion</button>
+  </div>
+</form>
+
+    </div>
 </body>
 </html>

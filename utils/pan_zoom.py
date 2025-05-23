@@ -1,72 +1,41 @@
-import time
-from PIL import Image, ImageTk
+from PIL import ImageTk
 
-import pygame
+def pan_and_zoom(canvas, image, screen_width, screen_height):
+    # Zoom à 1.2x
+    zoom_factor = 1.2
+    img_width, img_height = image.size
+    zoomed_width = int(img_width * zoom_factor)
+    zoomed_height = int(img_height * zoom_factor)
 
+    image_zoomed = image.resize((zoomed_width, zoomed_height), Image.LANCZOS)
 
-def pan_and_zoom_effect(screen, image_path, duration=8):
-    img = pygame.image.load(image_path).convert()
-    screen_rect = screen.get_rect()
-    img = pygame.transform.smoothscale(img, (screen_rect.width * 2, screen_rect.height * 2))
-    
-    start_time = time.time()
-    while time.time() - start_time < duration:
-        elapsed = time.time() - start_time
-        progress = elapsed / duration
-        x = int((1 - progress) * (img.get_width() - screen_rect.width))
-        y = int((1 - progress) * (img.get_height() - screen_rect.height))
-        screen.blit(img, (0, 0), (x, y, screen_rect.width, screen_rect.height))
-        pygame.display.flip()
-        pygame.time.delay(30)
+    dx = (zoomed_width - screen_width) // 20
+    dy = (zoomed_height - screen_height) // 20
 
-def animate_pan_zoom(image, label_widget, root, duration):
-    """
-    Anime un effet pan & zoom sur l'image affichée dans label_widget.
-    
-    Args:
-        image (PIL.Image): Image source.
-        label_widget (tkinter.Label): Label où afficher l'image.
-        root (tkinter.Tk): Fenêtre principale pour gérer le timer.
-        duration (int): Durée en secondes de l'animation.
-    """
-    width, height = root.winfo_screenwidth(), root.winfo_screenheight()
-    steps = duration * 30  # approx 30fps
-    zoom_start = 1.0
-    zoom_end = 1.2
+    frames = []
 
-    # Coordonnées de départ pour le pan (0 = coin haut gauche)
-    start_x = 0
-    start_y = 0
+    for step in range(20):
+        left = dx * step
+        top = dy * step
+        box = (left, top, left + screen_width, top + screen_height)
+        cropped = image_zoomed.crop(box)
+        tk_img = ImageTk.PhotoImage(cropped)
+        frames.append(tk_img)
 
-    # Coordonnées de fin pour le pan (par exemple un léger déplacement)
-    end_x = int(width * 0.1)
-    end_y = int(height * 0.1)
+    def animate(frame_idx=0):
+        if frame_idx < len(frames):
+            canvas.delete("all")
+            canvas.create_image(0, 0, image=frames[frame_idx], anchor="nw")
+            canvas.image = frames[frame_idx]
+            canvas.after(50, animate, frame_idx + 1)
 
-    for step in range(steps):
-        # Calcul de zoom progressif
-        zoom = zoom_start + (zoom_end - zoom_start) * (step / steps)
-        # Calcul du déplacement progressif
-        x = int(start_x + (end_x - start_x) * (step / steps))
-        y = int(start_y + (end_y - start_y) * (step / steps))
+    animate()
 
-        # Calcul de la taille à afficher
-        new_width = int(width * zoom)
-        new_height = int(height * zoom)
-
-        # Redimensionner l'image avec zoom
-        resized = image.resize((new_width, new_height), Image.LANCZOS)
-
-        # Découper la zone visible selon le pan
-        crop_box = (x, y, x + width, y + height)
-        cropped = resized.crop(crop_box)
-
-        # Convertir en image Tkinter
-        photo = ImageTk.PhotoImage(cropped)
-
-        # Mise à jour du label
-        label_widget.configure(image=photo)
-        label_widget.image = photo
-
-        root.update()
-        time.sleep(1 / 30)  # 30fps
-
+def display_static_image(canvas, image, screen_width, screen_height):
+    img_width, img_height = image.size
+    x = (screen_width - img_width) // 2
+    y = (screen_height - img_height) // 2
+    tk_img = ImageTk.PhotoImage(image)
+    canvas.delete("all")
+    canvas.create_image(x, y, image=tk_img, anchor="nw")
+    canvas.image = tk_img

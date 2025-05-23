@@ -1,32 +1,51 @@
+<!-- templates/slideshow.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Cadre Photo</title>
+    <title>Diaporama</title>
     <style>
-        body {
+        body, html {
             margin: 0;
-            background: black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 0;
+            overflow: hidden;
+            background-color: black;
         }
-        img {
-            max-width: 100vw;
-            max-height: 100vh;
+        #slideshow img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
+            animation: fade 2s ease-in-out infinite alternate;
+        }
+        @keyframes fade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
         }
     </style>
 </head>
 <body>
-    <img id="slideshow" src="/static/photos/{{ images[0] }}">
+    <div id="slideshow"></div>
     <script>
-        const images = {{ images|tojson }};
+        const imageList = [
+            {% for filename in filenames %}
+                "{{ url_for('static', filename='photos/' ~ filename) }}",
+            {% endfor %}
+        ];
+
         let index = 0;
-        setInterval(() => {
-            index = (index + 1) % images.length;
-            document.getElementById("slideshow").src = "/static/photos/" + images[index];
-        }, 5000);
+        const slideshow = document.getElementById('slideshow');
+
+        function showNextImage() {
+            slideshow.innerHTML = "";
+            const img = document.createElement("img");
+            img.src = imageList[index];
+            slideshow.appendChild(img);
+            index = (index + 1) % imageList.length;
+        }
+
+        setInterval(showNextImage, 5000);
+        window.onload = showNextImage;
     </script>
 </body>
 </html>
