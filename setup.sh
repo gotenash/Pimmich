@@ -5,11 +5,8 @@ set -e
 echo "=== Mise à jour du système ==="
 sudo apt update && sudo apt upgrade -y
 
-echo "=== Installation des dépendances ==="
-sudo apt install -y python3 python3-pip python3-pygame python3-pil python3-tk git
-
-echo "=== Installation des paquets Python ==="
-pip3 install --user requests
+echo "=== Installation des dépendances système ==="
+sudo apt install -y python3 python3-pip python3-venv python3-pygame python3-pil python3-tk git
 
 echo "=== Clonage ou mise à jour du projet Pimmich ==="
 cd /home/pi
@@ -21,11 +18,22 @@ else
   cd ..
 fi
 
+echo "=== Création de l'environnement virtuel Python ==="
+cd /home/pi/pimmich
+python3 -m venv venv
+
+echo "=== Activation et installation des paquets Python dans le venv ==="
+source venv/bin/activate
+pip install --upgrade pip
+pip install requests
+deactivate
+
 echo "=== Création du script de démarrage ==="
 cat > /home/pi/pimmich/start_pimmich.sh << 'EOF'
 #!/bin/bash
 cd /home/pi/pimmich
-python3 local_slideshow.py
+source venv/bin/activate
+python local_slideshow.py
 EOF
 
 chmod +x /home/pi/pimmich/start_pimmich.sh
