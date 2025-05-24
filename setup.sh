@@ -25,7 +25,7 @@ python3 -m venv venv
 echo "=== Activation et installation des paquets Python dans le venv ==="
 source venv/bin/activate
 pip install --upgrade pip
-pip install requests
+pip install flask pillow pygame requests
 deactivate
 
 echo "=== Création du script de démarrage ==="
