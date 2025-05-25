@@ -91,3 +91,19 @@ Clique sur l’icône de profil (en haut à droite) ou ton nom d'utilisateur.
 Sélectionne “Account settings” ou “Paramètres du compte”.
 
 ![Menu Clef API](https://drive.google.com/uc?id=1rofAi6HNhvJbBh2D_AUsedj3HwSrQHjP)
+
+
+🧪 3. Générer un nouveau token API
+Dans la section "API Key" ou "Clés API" :
+
+![Menu Clef API](https://drive.google.com/uc?id=1HrBVgvR4UXdkhLj-4KDohufr5nt57t2G)
+
+Clique sur “Generate new API Key” ou “Générer une nouvelle clé API”.
+![Menu Clef API](https://drive.google.com/uc?id=1dRBQMs0dsdM7vKlEuUzBnMmzzH3RNplc)
+
+
+
+Donne un nom à ta clé, par exemple :
+PimmichFrame
+
+✅ Une fois générée, une clé s'affiche. C’est le token à copier.
