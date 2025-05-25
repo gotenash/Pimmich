@@ -40,12 +40,26 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 - Python 
 - Clavier + écran pour la première configuration, ou SSH
 
+### Création du fichier credentials.json
+
+```json
+{
+  "username": "votre_nom_utilisateur",
+  "password": "votre_mot_de_passe"
+}
+```
+
 
 ### Installation à partir du dépôt
 
 #### Installation de GIT
 
 #### Clonage du dépôt
+
+```bash
+git clone https://github.com/gotenash/pimmich.git
+cd pimmich
+````
 
 #### Lancement du Setup.sh
 
