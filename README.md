@@ -101,7 +101,10 @@ Dans la section "API Key" ou "Clés API" :
 Clique sur “Generate new API Key” ou “Générer une nouvelle clé API”.
 ![Menu Clef API](https://drive.google.com/uc?id=1dRBQMs0dsdM7vKlEuUzBnMmzzH3RNplc)
 
+### Se connecter à Pimmich
 
+
+### Page de configuration
 
 Donne un nom à ta clé, par exemple :
 PimmichFrame
