@@ -119,4 +119,6 @@ Tu ne pourras plus voir cette clé après avoir quitté la page. Si tu la perds,
 
 Ne partage jamais ce token publiquement. Il donne un accès total à tes albums Immich.
 
+Le mieux est de créer un compte Immich réservé au cadre photo avec accès à un seul album que tu pourras alimenter à partir d'un autre compte.
+
 
