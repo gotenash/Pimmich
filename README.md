@@ -14,7 +14,6 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 - 📂 Support de la clé USB comme source alternative d’images (en développement)
 - 🕒 Horaires configurables pour l’affichage automatique
 - 💡 Interface web locale pour la configuration (http://IP-du-Pi:5000)
-- ⚙️ Multi-albums sélectionnables
 - 🔌 Boutons de redémarrage et extinction du système
 
 ---
