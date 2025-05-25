@@ -41,3 +41,11 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 - Clavier + écran pour la première configuration, ou SSH
 
 
+
+
+⚙️ 2. Accéder à la page "Paramètres du compte"
+Une fois connecté :
+
+Clique sur l’icône de profil (en haut à droite) ou ton nom d'utilisateur.
+
+Sélectionne “Account settings” ou “Paramètres du compte”.
