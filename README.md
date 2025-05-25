@@ -113,3 +113,10 @@ PimmichFrame
 
 ![Menu Clef API](https://drive.google.com/uc?id=1hyt14hFPN3XEBu_0rh9XYIgLdXJau22y)
 
+⚠️ Attention
+
+Tu ne pourras plus voir cette clé après avoir quitté la page. Si tu la perds, il faudra en générer une nouvelle.
+
+Ne partage jamais ce token publiquement. Il donne un accès total à tes albums Immich.
+
+
