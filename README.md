@@ -58,4 +58,9 @@ Une fois connecté :
 
 Clique sur l’icône de profil (en haut à droite) ou ton nom d'utilisateur.
 
+![Paramètre du compte](https://drive.google.com/uc?id=1_c12UZ7g8IwsL99xP55eB4qqacGAY8Kc)
+
+
 Sélectionne “Account settings” ou “Paramètres du compte”.
+
+![Menu Clef API](https://drive.google.com/uc?id=1rofAi6HNhvJbBh2D_AUsedj3HwSrQHjP)
