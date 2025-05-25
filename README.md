@@ -49,6 +49,9 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 
 #### Lancement du Setup.sh
 
+### Récupérer la Clef API (Token Immich)
+
+🧭 1. Se connecter à l'interface web d’Immich
 
 ⚙️ 2. Accéder à la page "Paramètres du compte"
 Une fois connecté :
