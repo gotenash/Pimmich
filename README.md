@@ -107,3 +107,6 @@ Donne un nom à ta clé, par exemple :
 PimmichFrame
 
 ✅ Une fois générée, une clé s'affiche. C’est le token à copier.
+
+![Menu Clef API](https://drive.google.com/uc?id=1hyt14hFPN3XEBu_0rh9XYIgLdXJau22y)
+
