@@ -42,6 +42,8 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 
 ### Création du fichier credentials.json
 
+À la racine de la carte SD, crée un fichier credentials.json contenant les identifiants pour accéder à la page de configuration :
+
 ```json
 {
   "username": "votre_nom_utilisateur",
