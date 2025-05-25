@@ -37,7 +37,7 @@ A terme il y aura deux possibilités d'installer Pimmich une img prêt à l'empl
 
 ### ✅ Pré-requis
 
-- Raspberry Pi avec Raspberry Pi OS Lite ou Desktop (32-bit ou 64-bit)
+- Raspberry Pi avec Raspberry Pi OS Desktop (64-bit)
 - Connexion Internet
 - Python 
 - Clavier + écran pour la première configuration, ou SSH
