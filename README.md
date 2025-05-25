@@ -2,7 +2,7 @@
 
 Pimmich est une application Python conçue pour transformer un Raspberry Pi en cadre photo numérique intelligent, capable d'afficher des albums hébergés sur un serveur Immich ou sur une clé USB.
 
-![Pimmich Logo](static/pimmich_logo.png)
+<img src="static/pimmich_logo.png" alt="Pimmich Logo" width="300">
 
 ---
 
