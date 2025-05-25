@@ -54,6 +54,10 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 
 #### Installation de GIT
 
+```bash
+sudo apt-get install git
+```
+
 #### Clonage du dépôt
 
 ```bash
@@ -62,6 +66,13 @@ cd pimmich
 ````
 
 #### Lancement du Setup.sh
+
+Ces commandes permettre de rendre le fgichier setup.sh exécutable et lance le setup
+```bash
+chmod +x setup.sh
+sudo ./setup.sh
+```
+Ce script installe les dépendances système et Python, configure l’environnement, et prépare le démarrage automatique du diaporama.
 
 ### Récupérer la Clef API (Token Immich)
 
