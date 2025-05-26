@@ -121,6 +121,10 @@ Le mieux est de créer un compte Immich réservé au cadre photo avec accès à 
 
 ### Se connecter à Pimmich
 
+Dans un navigateur taper l'adresse ip du raspberry : http://xxx.xxx.xxx.xxx:5000
+
+![Menu Clef API](https://drive.google.com/uc?id=1VynC6umiYqPaln_kAb_DDd990YUkbT88)
+
 
 ### Page de configuration
 
