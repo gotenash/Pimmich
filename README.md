@@ -136,4 +136,6 @@ Dans ce cadre vous pourrez régler le temps d'affichage de chaque photo (pour l'
 
 ## configuration de l'import des photos
 
+![Menu Clef API](https://drive.google.com/uc?id=1AwUgYbzGcdskt99q32VlaOc7jM303Tbd)
+
 
