@@ -102,10 +102,7 @@ Dans la section "API Key" ou "Clés API" :
 Clique sur “Generate new API Key” ou “Générer une nouvelle clé API”.
 ![Menu Clef API](https://drive.google.com/uc?id=1dRBQMs0dsdM7vKlEuUzBnMmzzH3RNplc)
 
-### Se connecter à Pimmich
 
-
-### Page de configuration
 
 Donne un nom à ta clé, par exemple :
 PimmichFrame
@@ -122,4 +119,8 @@ Ne partage jamais ce token publiquement. Il donne un accès total à tes albums 
 
 Le mieux est de créer un compte Immich réservé au cadre photo avec accès à un seul album que tu pourras alimenter à partir d'un autre compte.
 
+### Se connecter à Pimmich
+
+
+### Page de configuration
 
