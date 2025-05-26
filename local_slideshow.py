@@ -10,6 +10,7 @@ import subprocess
 
 CONFIG_PATH = os.path.join("config", "config.json")
 PHOTOS_PATH = os.path.join("static", "photos")
+DISPLAY_DURATION = 10  # secondes
 
 def read_config():
     try:
@@ -22,11 +23,12 @@ def read_config():
 def show_configuration_missing_slide():
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    screen.fill((255, 255, 255))
+    screen.fill((255, 255, 255))  # fond blanc
 
     font_large = pygame.font.SysFont("Arial", 60)
     font_small = pygame.font.SysFont("Arial", 40)
 
+    # Affichage du logo
     try:
         logo = pygame.image.load("static/pimmich_logo.png")
         logo = pygame.transform.smoothscale(logo, (200, 200))
@@ -34,6 +36,7 @@ def show_configuration_missing_slide():
     except Exception as e:
         print(f"Erreur chargement logo : {e}")
 
+    # Textes
     text1 = font_large.render("Configuration manquante", True, (200, 0, 0))
     text2 = font_small.render("Connecte-toi à l'adresse suivante :", True, (0, 0, 0))
 
@@ -54,6 +57,7 @@ def show_configuration_missing_slide():
                 pygame.quit()
                 return
 
+
 def is_within_active_hours(start, end):
     now = datetime.now().time()
     try:
@@ -61,7 +65,7 @@ def is_within_active_hours(start, end):
         end_time = datetime.strptime(end, "%H:%M").time()
     except Exception as e:
         print(f"Erreur de format d'heure : {e}")
-        return True
+        return True  # par défaut on reste actif
 
     if start_time <= end_time:
         return start_time <= now <= end_time
@@ -83,6 +87,7 @@ def prepare_image(img_path, screen_size):
             aspect_screen = screen_w / screen_h
 
             if aspect_img < aspect_screen:
+                # portrait : fond flou centré
                 blurred = img.resize(screen_size, Image.LANCZOS).filter(ImageFilter.GaussianBlur(20))
                 result = blurred.copy()
                 img.thumbnail(screen_size, Image.LANCZOS)
@@ -90,6 +95,7 @@ def prepare_image(img_path, screen_size):
                 result.paste(img, offset)
                 return result
             else:
+                # paysage : redimensionner
                 img.thumbnail(screen_size, Image.LANCZOS)
                 background = Image.new("RGB", screen_size, (0, 0, 0))
                 offset = ((screen_w - img.width) // 2, (screen_h - img.height) // 2)
@@ -103,14 +109,12 @@ def display_photos():
     config = read_config()
     start_time = config.get("active_start", "00:00")
     end_time = config.get("active_end", "23:59")
-    duration = int(config.get("display_duration", 10))  # valeur par défaut = 10 secondes
 
     pygame.init()
     pygame.mouse.set_visible(False)
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     screen_size = screen.get_size()
     print(f"[Init] Taille écran détectée : {screen_size}")
-    print(f"[Config] Durée d'affichage = {duration} sec")
 
     clock = pygame.time.Clock()
 
@@ -153,10 +157,10 @@ def display_photos():
                 pygame.display.flip()
                 print("[Erreur] Image non affichée, fond neutre utilisé.")
 
-            # Pause en prenant en compte la durée de config.json
-            for _ in range(duration * 10):  # 0.1s * 10 = 1s
+            # Attente avec interruption possible si fin horaire atteinte
+            for _ in range(DISPLAY_DURATION * 10):  # vérifie toutes les 0.1s
                 if not is_within_active_hours(start_time, end_time):
-                    print("[Info] Interruption pendant l'affichage (fin d'heure).")
+                    print("[Info] Interruption du diaporama pendant l'affichage (fin d'heure).")
                     screen.fill((0, 0, 0))
                     pygame.display.flip()
                     break
