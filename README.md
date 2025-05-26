@@ -128,3 +128,12 @@ Dans un navigateur taper l'adresse ip du raspberry : http://xxx.xxx.xxx.xxx:5000
 
 ### Page de configuration
 
+## configuration du diaporama
+
+Dans ce cadre vous pourrez régler le temps d'affichage de chaque photo (pour l'instant on ne peut descendre en dessous de 10 secondes surement du temps de traitement des photos porttrait pour générer le fond flou). Vous pouvez aussi défoinir les heures où le diaporama fonctionnera.
+
+![Menu Clef API](https://drive.google.com/uc?id=1t_7MCKNNfHfTi5Pjc7_hDxbDzU18UvO7)
+
+## configuration de l'import des photos
+
+
