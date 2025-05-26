@@ -22,22 +22,22 @@
 
     <div class="container">
         <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
-        <h1>Connexion</h1>
+        <center><h2 class="title">Connexion à Pimmich</h2></center>
 
-<form method="post" class="login-form">
-  <div class="form-row">
-    <label for="username">Identifiant :</label>
-    <input type="text" id="username" name="username" required>
-  </div>
-  <div class="form-row">
-    <label for="password">Mot de passe :</label>
-    <input type="password" id="password" name="password" required>
-  </div>
-  <div class="form-submit">
-    <button type="submit">Connexion</button>
-  </div>
-</form>
-
+        <form method="post" class="login-form">
+            <div class="form-row">
+                <label for="username">Identifiant :</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <br>
+            <div class="form-row">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-submit">
+                <button type="submit" class="btn">Connexion</button>
+            </div>
+        </form>
     </div>
 </body>
 </html>
