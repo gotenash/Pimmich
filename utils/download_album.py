@@ -2,6 +2,8 @@ import os
 import requests
 from utils.config import get_album_id_by_name
 from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
+from utils.prepare_all_photos import prepare_all_photos
+
 
 def download_and_extract_album(config):
     server_url = config.get("immich_url")
@@ -53,3 +55,13 @@ def download_and_extract_album(config):
 
     unzip_archive(zip_path, photos_folder)
     clean_archive(zip_path)
+    
+    
+    # Préparation des photos (centrage, fond flou, redimensionnement)
+    try:
+        from prepare_all_photos import prepare_all_photos
+        print("[Préparation] Lancement de la préparation des photos…")
+        prepare_all_photos()
+        print("[Préparation] Terminé.")
+    except Exception as e:
+        print(f"[Erreur] lors de la préparation des photos : {e}")
