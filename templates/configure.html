@@ -5,6 +5,9 @@
     <title>Configuration - Pimmich</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!-- GLightbox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+
 </head>
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -123,23 +126,37 @@
             <div class="photo-grid">
                 {% for photo in photos %}
                 <div class="photo-tile">
-                    <img src="{{ url_for('static', filename='prepared/' + photo) }}" alt="{{ photo }}" class="w-full h-auto rounded thumbnail" />
+                    <a href="{{ url_for('static', filename='prepared/' + photo) }}" class="glightbox" data-gallery="gallery1">
+                      <img src="{{ url_for('static', filename='prepared/' + photo) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition">
+                    </a>
                     <button class="delete-button" data-photo="{{ photo }}" title="Supprimer">✖</button>
+
                 </div>
+              
                 {% endfor %}
             </div>
+            
         </fieldset>
         {% endif %}
-                  </div>
-                </fieldset>
+        
 
-
-
-
-    </div>
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+  const lightbox = GLightbox({ selector: '.glightbox' });
+</script>
 
 <script>
 
+function openLightbox(src) {
+  const lightbox = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  img.src = src;
+  lightbox.classList.remove('hidden');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const downloadButton = document.getElementById("download-button");
@@ -333,6 +350,7 @@ document.getElementById("usb-import-btn").addEventListener("click", function () 
             readChunk();
         });
 });
+     
 </script>
 
 </body>
