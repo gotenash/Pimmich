@@ -1,17 +1,19 @@
+
 import os
-import sys
-import time
-import json
 import random
-from datetime import datetime
-from PIL import Image, ImageFilter
+import time
 import pygame
+from PIL import Image
 import subprocess
+from datetime import datetime
+import json
 
-CONFIG_PATH = os.path.join("config", "config.json")
-PHOTOS_PATH = os.path.join("static", "photos")
-DISPLAY_DURATION = 10  # secondes
+# Définition des chemins
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PHOTO_DIR = os.path.join(BASE_DIR, 'static', 'prepared')
+CONFIG_PATH = os.path.join(BASE_DIR, 'config', 'config.json')
 
+# Charger la configuration
 def read_config():
     try:
         with open(CONFIG_PATH, "r") as f:
@@ -20,159 +22,85 @@ def read_config():
         print(f"Erreur lecture config.json : {e}")
         return {}
 
-def show_configuration_missing_slide():
-    pygame.init()
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    screen.fill((255, 255, 255))  # fond blanc
-
-    font_large = pygame.font.SysFont("Arial", 60)
-    font_small = pygame.font.SysFont("Arial", 40)
-
-    # Affichage du logo
-    try:
-        logo = pygame.image.load("static/pimmich_logo.png")
-        logo = pygame.transform.smoothscale(logo, (200, 200))
-        screen.blit(logo, (screen.get_width() - 220, 20))
-    except Exception as e:
-        print(f"Erreur chargement logo : {e}")
-
-    # Textes
-    text1 = font_large.render("Configuration manquante", True, (200, 0, 0))
-    text2 = font_small.render("Connecte-toi à l'adresse suivante :", True, (0, 0, 0))
-
-    try:
-        ip = get_local_ip()
-        text3 = font_small.render(f"http://{ip}:5000/configure", True, (0, 102, 204))
-    except:
-        text3 = font_small.render("Adresse IP non trouvée", True, (128, 128, 128))
-
-    screen.blit(text1, text1.get_rect(center=(960, 300)))
-    screen.blit(text2, text2.get_rect(center=(960, 500)))
-    screen.blit(text3, text3.get_rect(center=(960, 580)))
-
-    pygame.display.flip()
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return
-
-
+# Vérifie si on est dans les heures actives
 def is_within_active_hours(start, end):
     now = datetime.now().time()
     try:
         start_time = datetime.strptime(start, "%H:%M").time()
         end_time = datetime.strptime(end, "%H:%M").time()
     except Exception as e:
-        print(f"Erreur de format d'heure : {e}")
-        return True  # par défaut on reste actif
+        print(f"Erreur format horaire : {e}")
+        return True
 
     if start_time <= end_time:
         return start_time <= now <= end_time
     else:
         return now >= start_time or now <= end_time
 
-def set_display_power(state):
-    value = "1" if state else "0"
-    subprocess.run(["vcgencmd", "display_power", value])
-    print(f"[Power] Écran {'activé' if state else 'éteint'} (display_power={value})")
-
-def prepare_image(img_path, screen_size):
+# Gestion de l'alimentation de l'écran
+def set_display_power(on: bool):
     try:
-        with Image.open(img_path) as img:
-            img = img.convert("RGB")
-            screen_w, screen_h = screen_size
-            img_w, img_h = img.size
-            aspect_img = img_w / img_h
-            aspect_screen = screen_w / screen_h
-
-            if aspect_img < aspect_screen:
-                # portrait : fond flou centré
-                blurred = img.resize(screen_size, Image.LANCZOS).filter(ImageFilter.GaussianBlur(20))
-                result = blurred.copy()
-                img.thumbnail(screen_size, Image.LANCZOS)
-                offset = ((screen_w - img.width) // 2, (screen_h - img.height) // 2)
-                result.paste(img, offset)
-                return result
-            else:
-                # paysage : redimensionner
-                img.thumbnail(screen_size, Image.LANCZOS)
-                background = Image.new("RGB", screen_size, (0, 0, 0))
-                offset = ((screen_w - img.width) // 2, (screen_h - img.height) // 2)
-                background.paste(img, offset)
-                return background
+        value = '1' if on else '0'
+        subprocess.run(['vcgencmd', 'display_power', value], check=True)
+        print(f"Écran {'allumé' if on else 'éteint'} avec vcgencmd")
     except Exception as e:
-        print(f"Erreur préparation image {img_path} : {e}")
-        return None
+        print(f"Erreur changement état écran : {e}")
 
-def display_photos():
+# Fonction pour afficher une image
+def show_image(image_path, screen, screen_width, screen_height):
+    try:
+        image = Image.open(image_path)
+        image = image.convert("RGB")
+        image = image.resize((screen_width, screen_height))
+        mode = image.mode
+        data = image.tobytes()
+        pygame_image = pygame.image.fromstring(data, (screen_width, screen_height), mode)
+        screen.blit(pygame_image, (0, 0))
+        pygame.display.flip()
+    except Exception as e:
+        print(f"Erreur affichage {image_path} : {e}")
+
+# Boucle principale du diaporama
+def start_slideshow():
     config = read_config()
-    start_time = config.get("active_start", "00:00")
-    end_time = config.get("active_end", "23:59")
+    start_time = config.get("active_start", "06:00")
+    end_time = config.get("active_end", "20:00")
+    duration = config.get("display_duration", 10)
 
     pygame.init()
+    info = pygame.display.Info()
+    SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
     pygame.mouse.set_visible(False)
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    screen_size = screen.get_size()
-    print(f"[Init] Taille écran détectée : {screen_size}")
 
-    clock = pygame.time.Clock()
+    try:
+        while True:
+            photos = [f for f in os.listdir(PHOTO_DIR) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            if not photos:
+                print("Aucune photo trouvée.")
+                time.sleep(60)
+                continue
 
-    while True:
-        within_hours = is_within_active_hours(start_time, end_time)
-        set_display_power(within_hours)
-
-        if not within_hours:
-            print("[Info] Hors heures d'activité, fond noir.")
-            screen.fill((0, 0, 0))
-            pygame.display.flip()
-            time.sleep(60)
-            continue
-
-        files = [f for f in os.listdir(PHOTOS_PATH) if f.lower().endswith((".jpg", ".jpeg", ".png"))]
-        if not files:
-            print("[Alerte] Aucun fichier image trouvé.")
-            time.sleep(30)
-            continue
-
-        random.shuffle(files)
-
-        for filename in files:
-            if not is_within_active_hours(start_time, end_time):
-                print("[Info] Fin de la période active détectée.")
-                screen.fill((0, 0, 0))
-                pygame.display.flip()
-                break
-
-            img_path = os.path.join(PHOTOS_PATH, filename)
-            print(f"[Affichage] {img_path}")
-
-            image = prepare_image(img_path, screen_size)
-            if image:
-                pygame_image = pygame.image.frombuffer(image.tobytes(), image.size, image.mode)
-                screen.blit(pygame_image, (0, 0))
-                pygame.display.flip()
-            else:
-                screen.fill((60, 60, 60))
-                pygame.display.flip()
-                print("[Erreur] Image non affichée, fond neutre utilisé.")
-
-            # Attente avec interruption possible si fin horaire atteinte
-            for _ in range(DISPLAY_DURATION * 10):  # vérifie toutes les 0.1s
+            random.shuffle(photos)
+            for photo in photos:
                 if not is_within_active_hours(start_time, end_time):
-                    print("[Info] Interruption du diaporama pendant l'affichage (fin d'heure).")
+                    print("[Info] Hors période active, écran en veille.")
                     screen.fill((0, 0, 0))
                     pygame.display.flip()
+                    set_display_power(False)
+                    time.sleep(60)
                     break
-                time.sleep(0.1)
 
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    print("[Interruption] ESC pressé. Fermeture.")
-                    pygame.quit()
-                    sys.exit()
+                set_display_power(True)
+                path = os.path.join(PHOTO_DIR, photo)
+                show_image(path, screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+                time.sleep(duration)
 
-            clock.tick(1)
+    except KeyboardInterrupt:
+        print("Arrêt manuel du diaporama.")
+    finally:
+        set_display_power(False)
+        pygame.quit()
 
 if __name__ == "__main__":
-    display_photos()
+    start_slideshow()
