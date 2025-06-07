@@ -1,51 +1,46 @@
-<!-- templates/slideshow.html -->
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Diaporama</title>
+    <title>Diaporama - Pimmich</title>
     <style>
-        body, html {
+        html, body {
             margin: 0;
             padding: 0;
-            overflow: hidden;
             background-color: black;
+            overflow: hidden;
+            height: 100%;
         }
-        #slideshow img {
+        img {
             position: absolute;
             width: 100%;
             height: 100%;
             object-fit: contain;
-            animation: fade 2s ease-in-out infinite alternate;
-        }
-        @keyframes fade {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
+            transition: opacity 1s ease-in-out;
         }
     </style>
 </head>
 <body>
-    <div id="slideshow"></div>
+    <img id="slideshow" src="" alt="Diaporama">
     <script>
-        const imageList = [
-            {% for filename in filenames %}
-                "{{ url_for('static', filename='photos/' ~ filename) }}",
-            {% endfor %}
-        ];
-
+        const photos = {{ photo_previews | tojson }};
         let index = 0;
-        const slideshow = document.getElementById('slideshow');
+        const img = document.getElementById('slideshow');
 
-        function showNextImage() {
-            slideshow.innerHTML = "";
-            const img = document.createElement("img");
-            img.src = imageList[index];
-            slideshow.appendChild(img);
-            index = (index + 1) % imageList.length;
+        function showNext() {
+            img.style.opacity = 0;
+            setTimeout(() => {
+                img.src = "/static/photos/" + photos[index];
+                img.style.opacity = 1;
+                index = (index + 1) % photos.length;
+            }, 1000);
         }
 
-        setInterval(showNextImage, 5000);
-        window.onload = showNextImage;
+        if (photos.length > 0) {
+            img.src = "/static/photos/" + photos[0];
+            setInterval(showNext, 5000); // 5 secondes entre les photos
+        } else {
+            document.body.innerHTML = "<p style='color:white;text-align:center;margin-top:20%'>Aucune photo à afficher.</p>";
+        }
     </script>
 </body>
 </html>
