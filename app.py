@@ -87,7 +87,7 @@ def configure():
 
     if request.method == 'POST':
         # On ne remet pas à zéro, on garde les champs existants
-        for key in ['immich_url', 'immich_token', 'album_name', 'album_title', 'display_duration', 'active_start', 'active_end', 'source']:
+        for key in ['immich_url', 'immich_token', 'album_name', 'album_title', 'display_duration', 'active_start', 'active_end', 'source', 'screen_height_percent']:
             if key in request.form:
                 value = request.form.get(key)
                 config[key] = int(value) if key == 'display_duration' else value
