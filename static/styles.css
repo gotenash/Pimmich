@@ -1,3 +1,112 @@
+.config-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.config-left, .config-right {
+    flex: 1;
+}
+
+.photo-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    padding-top: 10px;
+}
+.photo-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.thumbnail {
+  transition: transform 0.3s ease;
+}
+
+.thumbnail:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.thumbnail {
+  position: relative;
+  width: 150px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+  background: #f0f0f0;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.delete-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  width: 22px;
+  height: 22px;
+  line-height: 20px;
+  text-align: center;
+  padding: 0;
+}
+
+.eye-button {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: blue;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  width: 22px;
+  height: 22px;
+  line-height: 20px;
+  text-align: center;
+  padding: 0;
+  z-index: 10;
+}
+
+.thumbnail {
+    width: 150px;     /* largeur fixe */
+    height: 100px;    /* hauteur fixe pour garder une grille régulière */
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 3px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+fieldset {
+    margin-bottom: 20px;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+legend h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -146,4 +255,245 @@ button:hover {
 .logout-link a:hover {
     text-decoration: underline;
     color: #333;
+}
+
+.thumbnail {
+  width: 120px;
+  height: auto;
+  margin: 5px;
+  border-radius: 8px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+.photo-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.full-width {
+    grid-column: 1 / -1; /* Prend toute la largeur si grille */
+    margin-top: 30px;
+}
+
+fieldset {
+    margin-bottom: 25px;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+legend h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.credits {
+    text-align: center;
+    background-color: #eef;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.credits img {
+    margin: 10px auto;
+    display: block;
+    max-width: 100%;
+}
+
+.credits p {
+    margin: 5px 0;
+}
+.thumbnail-wrapper {
+    position: relative;
+    width: 150px;
+    height: 100px;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+.photo-thumbnail {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+.photo-box {
+  height: 160px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  position: relative;
+}
+.thumbnail:hover {
+    transform: scale(1.05);
+}
+
+.delete-icon {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: #ff4444;
+    color: white;
+    border-radius: 50%;
+    padding: 4px 7px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 12px;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    transition: background-color 0.2s ease;
+}
+
+.delete-icon:hover {
+    background-color: #cc0000;
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    margin-top: 40px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    height: 80px;
+    display: block;
+    margin: 0 auto 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #444;
+    margin-bottom: 30px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+fieldset {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+legend {
+    font-weight: bold;
+    padding: 0 10px;
+    color: #333;
+}
+
+input, select, button {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.photo-preview-section {
+    margin-top: 30px;
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.photo-tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-tile img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.delete-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #e53935;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+#modal-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+}
+#modal {
+  z-index: 9999;
+}
+#modal .close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    font-size: 28px;
+    color: white;
+    background: rgba(0, 0, 0, 0.4);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
 }
