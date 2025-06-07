@@ -12,4 +12,5 @@
     "pan_zoom": false,
     "immich_album": "",
     "resolution": "auto"
+    "screen_height_percent": ""
 }
