@@ -2,6 +2,7 @@ import os
 from PIL import Image, ImageFilter
 import pygame
 from PIL import ExifTags
+import json
 
 # Détection de la taille de l'écran
 pygame.init()
@@ -12,6 +13,18 @@ pygame.quit()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE_DIR = os.path.join(BASE_DIR, 'static', 'photos')
 PREPARED_DIR = os.path.join(BASE_DIR, 'static', 'prepared')
+
+CONFIG_PATH = os.path.join(BASE_DIR, 'config', 'config.json')
+
+def get_screen_height_percent():
+    try:
+        with open(CONFIG_PATH, 'r') as f:
+            config = json.load(f)
+        percent = int(config.get('screen_height_percent', 70))
+        return max(10, min(100, percent)) / 100  # sécurité : entre 10% et 100%
+    except Exception as e:
+        print(f"[Erreur lecture config.json] : {e}")
+        return 0.7  # fallback
 
 def prepare_photo(image_path, output_path):
     with Image.open(image_path) as img:
@@ -35,7 +48,7 @@ def prepare_photo(image_path, output_path):
         img = img.convert("RGB")
 
         # Marges en haut et en bas (ex : 5% en haut et en bas)
-        usable_height = int(SCREEN_HEIGHT * 0.7)
+        usable_height = int(SCREEN_HEIGHT * get_screen_height_percent())
         margin_top_bottom = (SCREEN_HEIGHT - usable_height) // 2
 
         w, h = img.size
