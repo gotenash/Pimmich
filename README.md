@@ -8,10 +8,10 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 
 ## ✨ Fonctionnalités
 
-- 🔒 Interface sécurisée avec login
-- 🖼️ Slideshow dynamique avec effet Pan & Zoom (en développement)
+- 🔒 Interface sécurisée avec login avec affichage de l'aperçu des photos
+- 🖼️ Slideshow avec gestion des photos portraits (fond flou)
 - 🌐 Intégration avec l’API Immich (récupération automatique d’albums)
-- 📂 Support de la clé USB comme source alternative d’images (en développement)
+- 📂 Support de la clé USB comme source alternative d’images 
 - 🕒 Horaires configurables pour l’affichage automatique
 - 💡 Interface web locale pour la configuration (http://IP-du-Pi:5000)
 - 🔌 Boutons de redémarrage et extinction du système
@@ -27,6 +27,7 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en c
 - Pillow
 - Tkinter (interface du slideshow)
 - Immich API
+- GLightbox CSS
 
 ---
 
@@ -55,11 +56,6 @@ A terme il y aura deux possibilités d'installer Pimmich une img prêt à l'empl
 
 ### Installation à partir du dépôt
 
-#### Installation de GIT
-
-```bash
-sudo apt-get install git
-```
 
 #### Clonage du dépôt
 
