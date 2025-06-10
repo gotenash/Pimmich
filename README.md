@@ -1,3 +1,11 @@
+📣 Announcement - (June 10, 2025)
+- bientôt une nouvelle realese en utilisant sway donc très certainement  en Lite et plus en Desktop, mais je dois procéder à pas mal de test
+- en prime il y aura les aperçus des photos avec possibilité de supprimer des photos
+- et une vrai mise en veille de l'écran pas juste un écran noir
+
+  Wait and see
+
+
 # 🖼️ Pimmich – Cadre photo connecté intelligent
 
 Pimmich est une application Python conçue pour transformer un Raspberry Pi en cadre photo numérique intelligent, capable d'afficher des albums hébergés sur un serveur Immich ou sur une clé USB. Toutes suggestions  d'évolution du système seront prises en compte.
