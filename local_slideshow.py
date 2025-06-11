@@ -1,4 +1,3 @@
-
 import os
 import random
 import time
@@ -37,14 +36,36 @@ def is_within_active_hours(start, end):
     else:
         return now >= start_time or now <= end_time
 
-# Gestion de l'alimentation de l'écran
-def set_display_power(on: bool):
+# Détecter automatiquement la sortie HDMI active via swaymsg
+def get_hdmi_output_name():
     try:
-        value = '1' if on else '0'
-        subprocess.run(['vcgencmd', 'display_power', value], check=True)
-        print(f"Écran {'allumé' if on else 'éteint'} avec vcgencmd")
+        result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True)
+        outputs = json.loads(result.stdout)
+        for output in outputs:
+            if output.get('name', '').startswith('HDMI') and output.get('active', False):
+                return output['name']
+        for output in outputs:
+            if output.get('name', '').startswith('HDMI'):
+                return output['name']
     except Exception as e:
-        print(f"Erreur changement état écran : {e}")
+        print(f"Erreur détection sortie HDMI : {e}")
+    return "HDMI-A-1"  # fallback
+
+_hdmi_output = get_hdmi_output_name()
+_hdmi_state = None  # variable pour éviter les appels répétitifs
+
+# Gestion de l'alimentation de l'écran via swaymsg
+def set_display_power(on: bool):
+    global _hdmi_state
+    if _hdmi_state == on:
+        return
+    cmd = ['swaymsg', 'output', _hdmi_output, 'enable' if on else 'disable']
+    try:
+        subprocess.run(cmd, check=True)
+        _hdmi_state = on
+        print(f"Écran {'activé' if on else 'désactivé'} via swaymsg ({_hdmi_output})")
+    except Exception as e:
+        print(f"Erreur changement état écran via swaymsg : {e}")
 
 # Fonction pour afficher une image
 def show_image(image_path, screen, screen_width, screen_height):
