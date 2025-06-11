@@ -28,12 +28,15 @@ SWAY_CONFIG_DIR="/home/pi/.config/sway"
 SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
 mkdir -p "$SWAY_CONFIG_DIR"
 
-# Ajoute le lancement de start_pimmich.sh si pas déjà présent
+# Rendre exécutable
+chmod +x /home/pi/pimmich/start_pimmich.sh
+
+# Ajout de l'exec_always si absent
 if ! grep -q 'start_pimmich.sh' "$SWAY_CONFIG_FILE" 2>/dev/null; then
-    echo 'exec xterm -e bash ~/pimmich/start_pimmich.sh' >> "$SWAY_CONFIG_FILE"
+    echo 'exec_always --no-startup-id /home/pi/pimmich/start_pimmich.sh' >> "$SWAY_CONFIG_FILE"
     echo "Ajout de start_pimmich.sh dans la config sway"
 else
     echo "✅ start_pimmich.sh déjà présent dans la config sway"
 fi
 
-echo "✅ Installation terminée. Tu peux redémarrer le Raspberry Pi pour lancer automatiquement Pimmich."
+echo "✅ Installation terminée. Redémarre pour lancer automatiquement Sway + Pimmich."
