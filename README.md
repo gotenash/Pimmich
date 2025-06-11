@@ -1,5 +1,5 @@
 📣 Announcement - (June 10, 2025)
-- bientôt une nouvelle realese en utilisant sway donc très certainement  en Lite et plus en Desktop, mais je dois procéder à pas mal de test
+- bientôt une nouvelle realese en utilisant sway 
 - en prime il y aura les aperçus des photos avec possibilité de supprimer des photos
 - et une vrai mise en veille de l'écran pas juste un écran noir
 
