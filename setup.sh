@@ -6,7 +6,7 @@ echo "=== Mise à jour du système ==="
 sudo apt update && sudo apt upgrade -y
 
 echo "=== Installation des dépendances système ==="
-sudo apt install -y python3 python3-pip python3-venv python3-pygame python3-pil python3-tk git
+sudo apt install -y python3 python3-pip python3-venv python3-pygame python3-pil python3-tk git sway
 
 echo "=== Clonage ou mise à jour du projet Pimmich ==="
 cd /home/pi
