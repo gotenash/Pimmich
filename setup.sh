@@ -57,15 +57,17 @@ EOF
 
 chmod +x /home/pi/pimmich/start_pimmich.sh
 
-echo "=== Création du fichier autostart ==="
-mkdir -p /home/pi/.config/autostart
+echo "=== Configuration de l'autostart via sway ==="
+mkdir -p /home/pi/.config/sway
 
-cat > /home/pi/.config/autostart/pimmich.desktop << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=Pimmich Diaporama
-Exec=/home/pi/pimmich/start_pimmich.sh
-X-GNOME-Autostart-enabled=true
-EOF
+# Ajouter le lancement automatique si non déjà présent
+CONFIG_FILE="/home/pi/.config/sway/config"
+START_CMD="exec_always /home/pi/pimmich/start_pimmich.sh"
+if ! grep -Fxq "$START_CMD" "$CONFIG_FILE"; then
+  echo "$START_CMD" >> "$CONFIG_FILE"
+  echo "Ajout de l'autostart dans sway/config."
+else
+  echo "Autostart déjà présent dans sway/config."
+fi
 
 echo "=== Installation terminée. Redémarre le Raspberry Pi pour tester. ==="
