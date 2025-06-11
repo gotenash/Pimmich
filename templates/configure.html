@@ -60,8 +60,8 @@
                         <label for="album_name">Nom technique de l'album Immich :</label>
                         <input type="text" id="album_name" name="album_name" value="{{ config.album_name }}">
 
-                        <label for="album_title">Titre affiché dans le diaporama :</label>
-                        <input type="text" id="album_title" name="album_title" value="{{ config.album_title }}">
+                       <!-- <label for="album_title">Titre affiché dans le diaporama :</label>
+                        <input type="text" id="album_title" name="album_title" value="{{ config.album_title }}">-->
 
                         <label for="immich_url">URL du serveur Immich :</label>
                         <input type="url" id="immich_url" name="immich_url" value="{{ config.immich_url }}">
@@ -158,82 +158,9 @@ function closeLightbox() {
   document.getElementById('lightbox').classList.add('hidden');
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const downloadButton = document.getElementById("download-button");
-    const alertBox = document.getElementById("download-alert");
-
-    downloadButton.addEventListener("click", async () => {
-        alertBox.style.display = "block";
-        alertBox.className = "alert alert-info";
-        alertBox.textContent = "Initialisation du téléchargement... (0%)";
-
-        try {
-            const response = await fetch("/progress");
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-
-            let received = "";
-            let done = false;
-            let stepCount = 0;
-            const totalSteps = 5;
-
-            while (!done) {
-                const { value, done: readerDone } = await reader.read();
-                done = readerDone;
-
-                const chunk = decoder.decode(value || new Uint8Array(), { stream: true });
-                received += chunk;
-
-                const lines = received.split("\n");
-                received = lines.pop(); // ligne potentiellement incomplète
-
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    stepCount++;
-                    const percent = Math.min(100, Math.round((stepCount / totalSteps) * 100));
-                    alertBox.textContent = `${line} (${percent}%)`;
-
-                    if (line.toLowerCase().includes("terminé")) {
-                        alertBox.className = "alert alert-success";
-                    }
-                }
-            }
-        } catch (error) {
-            console.error(error);
-            alertBox.className = "alert alert-danger";
-            alertBox.textContent = "Une erreur est survenue pendant le téléchargement.";
-        }
-    });
-});
 
 </script>
-<script>
-document.getElementById("usb-import-button").addEventListener("click", function () {
-    const alertDiv = document.getElementById("usb-import-alert");
-    alertDiv.style.display = "block";
-    alertDiv.textContent = "Import en cours...";
-    fetch("/import_usb_progress")
-        .then(response => {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            function readChunk() {
-                reader.read().then(({ done, value }) => {
-                    if (done) {
-                        alertDiv.textContent += "\nImport terminé.";
-                        return;
-                    }
-                    const chunk = decoder.decode(value, { stream: true });
-                    alertDiv.textContent += chunk;
-                    readChunk();
-                });
-            }
-            readChunk();
-        })
-        .catch(error => {
-            alertDiv.textContent = "Erreur lors de l'import.";
-        });
-});
-</script>
+
 
 <script>
   document.querySelectorAll('.delete-button').forEach(button => {
@@ -253,34 +180,6 @@ document.getElementById("usb-import-button").addEventListener("click", function 
 </script>
 
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".delete-button").forEach(button => {
-        button.addEventListener("click", function () {
-            const photoName = this.dataset.photo;
-            const thumbnail = this.closest(".photo-container");
-            const thumbnail = this.closest(".thumbnail");
-            fetch("/delete_photo", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ photo: photoName })
-            })
-            .then(response => {
-                if (response.ok) {
-                    thumbnail.remove(); // Supprime l'élément du DOM
-                } else {
-                    alert("Échec de la suppression.");
-                }
-            })
-            .catch(error => {
-                console.error("Erreur :", error);
-            });
-        });
-    });
-});
-</script>
 
 
 <script>
