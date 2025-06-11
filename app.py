@@ -23,6 +23,34 @@ CREDENTIALS_PATH = '/boot/firmware/credentials.json'
 
 # --- Fonctions utilitaires ---
 
+def check_and_start_slideshow_on_boot():
+    from datetime import datetime
+
+    print("== Vérification du créneau horaire au démarrage ==")
+
+    config = load_config()
+    try:
+        # Extraire l'heure entière depuis "HH:MM"
+        start_str = config.get("active_start", "0:00")
+        end_str = config.get("active_end", "24:00")
+        start = int(start_str.split(":")[0])
+        end = int(end_str.split(":")[0])
+    except (ValueError, AttributeError, IndexError) as e:
+        print(f"Erreur de parsing des horaires : {e}")
+        return
+
+    now = datetime.now().hour
+    print(f"Heure actuelle : {now} / Créneau actif : {start}-{end}")
+
+    if start <= now < end:
+        print("Dans la plage horaire, on démarre le slideshow.")
+        if not is_slideshow_running():
+            start_slideshow()
+    else:
+        print("Hors plage horaire, on ne démarre pas le slideshow.")
+
+
+
 def get_photo_previews():
     photo_dir = Path("static/photos")
     return sorted([f.name for f in photo_dir.glob("*") if f.suffix.lower() in [".jpg", ".jpeg", ".png", ".gif"]])
@@ -93,8 +121,8 @@ def configure():
                 config[key] = int(value) if key == 'display_duration' else value
         save_config(config)
 
-        os.system("pkill -f local_slideshow.py")
-        subprocess.Popen(["python3", "local_slideshow.py"])
+        stop_slideshow()
+        start_slideshow()
 
         flash("Configuration enregistrée et diaporama relancé", "success")
         return redirect(url_for('configure'))
@@ -185,11 +213,23 @@ def slideshow_view():
 @app.route('/toggle_slideshow', methods=['POST'])
 @login_required
 def toggle_slideshow():
-    if is_slideshow_running():
+    config = load_config()
+
+    # On lit l'état actuel du slideshow
+    running = is_slideshow_running()
+
+    # Si le slideshow est lancé, on l'arrête, sinon on le démarre
+    if running:
         stop_slideshow()
+        config['manual_override'] = True  # Forcer l'arrêt manuel
     else:
         start_slideshow()
+        config['manual_override'] = True  # Forcer le démarrage manuel
+
+    save_config(config)
+
     return redirect(url_for('configure'))
+    
 # --- Suppression photo ---
 @app.route('/delete_photo/<photo>', methods=['DELETE'])
 @login_required
@@ -219,4 +259,5 @@ def reboot():
 
 # --- Lancement de l'application ---
 if __name__ == '__main__':
+    check_and_start_slideshow_on_boot()
     app.run(host='0.0.0.0', port=5000)
