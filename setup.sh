@@ -11,7 +11,7 @@ sudo apt install -y python3 python3-pip python3-venv python3-pygame python3-pil 
 echo "=== Clonage ou mise à jour du projet Pimmich ==="
 cd /home/pi
 if [ ! -d "pimmich" ]; then
-  git clone https://github.com/tonrepo/pimmich.git
+  git clone https://github.com/gotenash/pimmich.git
 else
   cd pimmich
   git pull
