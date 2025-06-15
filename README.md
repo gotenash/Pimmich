@@ -5,33 +5,58 @@
 
  J'essaierai de publier un release par mois avec des avancées significatives
 
- 📅 Feuille de route Pimmich – Roadmap (à partir de juin 2025)
-✅ Juin 2025 – Release actuelle
-✅ Aperçus des photos avec suppression possible
+# 🗺️ Pimmich Roadmap
 
-✅ Véritable mise en veille de l’écran (gestion via wlr-randr)
+> 📆 Starting June 2025 — One major release per month
 
-✅ Paramètre de hauteur utile de l’écran (% d’écran utilisé)
+## ✅ June 2025 – Current Release
 
-✅ Correction de l’orientation via EXIF et préparation des images
+- ✅ Photo previews with delete option  
+- ✅ Real screen sleep mode (using `wlr-randr`)  
+- ✅ Screen height percentage setting (usable screen area)  
+- ✅ EXIF-based orientation fix and photo preparation  
 
-🛠️ Juillet 2025 – Prochaine release
-🧭 Ajout de la configuration Wi-Fi depuis l’interface Web
+## 🛠️ July 2025 – Next Release
 
-🗂️ Réorganisation de la page de configuration en onglets
+- 🧭 Wi-Fi setup directly from the web interface  
+- 🗂️ Tabbed configuration page layout  
+- 🔁 Automatic periodic update of Immich album  
+- 📁 SMB protocol support to access photos shared over the network  
 
-🔁 Mise à jour automatique périodique de l’album Immich
+## 💡 Ideas for Future Releases
 
-📁 Support du protocole SMB pour accéder à des photos partagées en réseau
+- 📱 Android APK to control the frame  
+- ⏰🌤️ Display of time and weather on screen  
+- 🧑‍🤝‍🧑 Multi-user support (multiple Immich accounts)  
+- 🌍 Interface translations (multi-language support)  
 
-💡 Idées pour les prochaines versions
-📱 Création d’une APK Android pour contrôler le cadre
+---
 
-⏰🌤️ Affichage de l’heure et de la météo sur l’écran
+# 🗺️ Feuille de route Pimmich
 
-🧑‍🤝‍🧑 Partage multi-utilisateur (plusieurs comptes Immich)
+> 📆 À partir de juin 2025 — Une version majeure chaque mois
 
-🌍 Traductions de l’interface (multi-langues)
+## ✅ Juin 2025 – Version actuelle
+
+- ✅ Aperçus des photos avec suppression possible  
+- ✅ Véritable mise en veille de l’écran (gestion via `wlr-randr`)  
+- ✅ Paramètre de hauteur utile de l’écran (% d’écran utilisé)  
+- ✅ Correction de l’orientation via EXIF et préparation des images  
+
+## 🛠️ Juillet 2025 – Prochaine version
+
+- 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web  
+- 🗂️ Réorganisation de la page de configuration en onglets  
+- 🔁 Mise à jour automatique périodique de l’album Immich  
+- 📁 Support du protocole SMB pour accéder à des photos partagées en réseau  
+
+## 💡 Idées pour les versions suivantes
+
+- 📱 Création d’une APK Android pour contrôler le cadre  
+- ⏰🌤️ Affichage de l’heure et de la météo sur l’écran  
+- 🧑‍🤝‍🧑 Partage multi-utilisateur (plusieurs comptes Immich)  
+- 🌍 Traductions de l’interface (multi-langues)  
+
 
 
 # 🖼️ Pimmich – Cadre photo connecté intelligent
