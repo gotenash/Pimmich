@@ -5,32 +5,7 @@
 
  J'essaierai de publier un release par mois avec des avancées significatives
 
-# 🗺️ Pimmich Roadmap
 
-> 📆 Starting June 2025 — One major release per month
-
-## ✅ June 2025 – Current Release
-
-- ✅ Photo previews with delete option  
-- ✅ Real screen sleep mode (using `wlr-randr`)  
-- ✅ Screen height percentage setting (usable screen area)  
-- ✅ EXIF-based orientation fix and photo preparation  
-
-## 🛠️ July 2025 – Next Release
-
-- 🧭 Wi-Fi setup directly from the web interface  
-- 🗂️ Tabbed configuration page layout  
-- 🔁 Automatic periodic update of Immich album  
-- 📁 SMB protocol support to access photos shared over the network  
-
-## 💡 Ideas for Future Releases
-
-- 📱 Android APK to control the frame  
-- ⏰🌤️ Display of time and weather on screen  
-- 🧑‍🤝‍🧑 Multi-user support (multiple Immich accounts)  
-- 🌍 Interface translations (multi-language support)  
-
----
 
 # 🗺️ Feuille de route Pimmich
 
