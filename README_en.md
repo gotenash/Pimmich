@@ -1,3 +1,11 @@
+📣 Announcement – (June 14, 2025): New release available
+
+Photo previews with the ability to delete photos
+
+Real screen sleep mode, not just a black screen
+
+I'll try to publish one release per month with meaningful improvements.
+
 # 🖼️ Pimmich – Smart Digital Photo Frame
 
 **Pimmich** is a Python application that turns a Raspberry Pi into a smart digital photo frame. It displays photo albums hosted on an **Immich server** or from a **USB stick**. All suggestions for improvement are welcome!
