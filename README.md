@@ -1,9 +1,9 @@
-📣 Announcement - (June 10, 2025)
-- bientôt une nouvelle realese en utilisant sway 
-- en prime il y aura les aperçus des photos avec possibilité de supprimer des photos
-- et une vrai mise en veille de l'écran pas juste un écran noir
+📣 Announcement - (June 14, 2025) : Nouvelle release en ligne
 
-  Wait and see
+-  aperçus des photos avec possibilité de supprimer des photos
+-  une vrai mise en veille de l'écran pas juste un écran noir
+
+ J'essaierai de publier un release par mois avec des avancées significatives
 
 
 # 🖼️ Pimmich – Cadre photo connecté intelligent
