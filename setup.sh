@@ -1,7 +1,10 @@
 #!/bin/bash
 
-echo "=== [1/6] Mise à jour des paquets ==="
-sudo apt update && sudo apt upgrade -y
+# === [1/6] Mise à jour des paquets ===
+# ⚠️ Étape facultative. Si nécessaire, faire manuellement :
+# sudo apt update && sudo apt upgrade -y
+# echo "Mise à jour sautée pour une installation plus rapide."
+
 
 echo "=== [2/6] Installation des dépendances ==="
 sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git
