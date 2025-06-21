@@ -497,3 +497,46 @@ button:hover {
     height: 36px;
     cursor: pointer;
 }
+
+.tabs {
+  display: flex;             /* Affiche les boutons sur une ligne */
+  gap: 10px;                 /* Espacement entre les onglets */
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ccc;
+  flex-wrap: nowrap;         /* Pour empêcher le passage à la ligne */
+}
+
+.tablink {
+  background-color: #0078d7;   /* bleu plus vif */
+  color: white;                /* texte blanc */
+  border: 1px solid #005a9e;   /* bord plus foncé */
+  border-bottom: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 10px 10px 0 0;
+  outline: none;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.tablink:hover {
+  background-color: #005a9e;   /* bleu encore plus foncé au survol */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.tablink.active {
+  background-color: #ffffff;   /* fond blanc pour actif */
+  color: #0078d7;              /* texte bleu pour actif */
+  border-bottom: 2px solid white;
+  box-shadow: none;
+}
+
+  
+.tabcontent {
+  display: none;             /* Masqué par défaut */
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 0 8px 8px 8px;
+  background-color: white;
+}
