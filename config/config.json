@@ -14,5 +14,14 @@
     "resolution": "auto",
     "screen_height_percent": "70",
     "diaporama_active": true,
-    "manual_override": true
+    "manual_override": true,
+    "show_clock": true,
+    "clock_font_size": 36,
+    "clock_offset_x": 460,
+    "clock_offset_y": 330,
+    "clock_color": "#FFFFFF",
+    "clock_outline_color": "#000000",
+    "clock_font_path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "clock_position": "center",
+    "clock_format": "%H:%M"
 }
