@@ -27,29 +27,105 @@
         <div class="logout-link">
             <a href="/logout">&#128682; Se déconnecter</a>
         </div>
+        
 
-        <div class="config-container">
-            <!-- Colonne gauche -->
-            <div class="config-left">
-                <form method="POST" action="/configure">
-                    <fieldset>
-                        <legend><h3>Paramètres d'affichage</h3></legend>
+<div class="tabs">
+  <button class="tablink active" onclick="openTab(event, 'tab-affichage')">Affichage</button>
+  <button class="tablink" onclick="openTab(event, 'tab-heure')">Heure</button>
+  <button class="tablink" onclick="openTab(event, 'tab-sources')">Sources des photos</button>
+  <button class="tablink" onclick="openTab(event, 'tab-apercu')">Aperçu</button>
+  <button class="tablink" onclick="openTab(event, 'tab-actions')">Actions</button>
+</div>
 
-                        <label for="display_duration">Durée d'affichage (en secondes) :</label>
-                        <input type="number" id="display_duration" name="display_duration" value="{{ config.display_duration }}" required>
+<form method="POST" action="/configure">
 
-                        <label for="active_start">Heure de début d'activité (HH:MM) :</label>
-                        <input type="time" id="active_start" name="active_start" value="{{ config.active_start }}">
+<div id="tab-affichage" class="tabcontent" style="display:block">
+    <fieldset>
+        <legend><h3>Paramètres d'affichage</h3></legend>
 
-                        <label for="active_end">Heure de fin d'activité (HH:MM) :</label>
-                        <input type="time" id="active_end" name="active_end" value="{{ config.active_end }}">
+        <label for="display_duration">Durée d'affichage (en secondes) :</label>
+        <input type="number" id="display_duration" name="display_duration" value="{{ config.display_duration }}" required>
 
-                        <label for="screen_height_percent">Hauteur utile de l'écran (% affiché) :</label>
-                        <input type="number" id="screen_height_percent" name="screen_height_percent" min="10" max="100" value="{{ config.screen_height_percent }}">
-                    </fieldset>
+        <label for="active_start">Heure de début d'activité (HH:MM) :</label>
+        <input type="time" id="active_start" name="active_start" value="{{ config.active_start }}">
 
-                    <fieldset>
-                        <legend><h3>Configuration de l'album photo Immich</h3></legend>
+        <label for="active_end">Heure de fin d'activité (HH:MM) :</label>
+        <input type="time" id="active_end" name="active_end" value="{{ config.active_end }}">
+
+        <label for="screen_height_percent">Hauteur utile de l'écran (% affiché) :</label>
+        <input type="number" id="screen_height_percent" name="screen_height_percent" min="10" max="100" value="{{ config.screen_height_percent }}">
+    </fieldset>
+</div>
+
+ 
+                    
+<div id="tab-heure" class="tabcontent">
+    <fieldset>
+        <legend><strong>Affichage de l'heure</strong></legend>
+
+                    
+                      <div style="margin-bottom: 8px;">
+                        <label>
+                          <input type="checkbox" name="show_clock" {% if config.get('show_clock', False) %}checked{% endif %}>
+                          Afficher l'heure
+                        </label>
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_font_size" style="min-width: 200px;">Taille de la police :</label>
+                        <input type="number" name="clock_font_size" value="{{ config.get('clock_font_size', 48) }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_offset_x" style="min-width: 200px;">Décalage horizontal (px) :</label>
+                        <input type="number" name="clock_offset_x" value="{{ config.get('clock_offset_x', 30) }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_offset_y" style="min-width: 200px;">Décalage vertical (px) :</label>
+                        <input type="number" name="clock_offset_y" value="{{ config.get('clock_offset_y', 30) }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_color" style="min-width: 200px;">Couleur du texte (hex) :</label>
+                        <input type="text" name="clock_color" value="{{ config.get('clock_color', '#FFFFFF') }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_outline_color" style="min-width: 200px;">Couleur du contour (hex) :</label>
+                        <input type="text" name="clock_outline_color" value="{{ config.get('clock_outline_color', '#000000') }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_position" style="min-width: 200px;">Position de l'heure :</label>
+                        <select name="clock_position">
+                          <option value="left" {% if config.get('clock_position') == 'left' %}selected{% endif %}>Gauche</option>
+                          <option value="center" {% if config.get('clock_position') == 'center' %}selected{% endif %}>Centre</option>
+                          <option value="right" {% if config.get('clock_position') == 'right' %}selected{% endif %}>Droite</option>
+                        </select>
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_font_path" style="min-width: 200px;">Police :</label>
+                        <select name="clock_font_path">
+                          {% set fonts = [
+                              ('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 'DejaVu Sans Bold'),
+                              ('/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', 'Liberation Sans'),
+                              ('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 'FreeSans')
+                          ] %}
+                          {% for path, label in fonts %}
+                            <option value="{{ path }}" {% if config.get('clock_font_path') == path %}selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+           </fieldset>
+</div>
+
+
+<div id="tab-sources" class="tabcontent">
+    <fieldset>
+        <legend><h3>Configuration de l'album photo Immich</h3></legend>
+                   
 
                         <label for="source">Source des photos :</label>
                         <select id="source" name="source">
@@ -60,25 +136,27 @@
                         <label for="album_name">Nom technique de l'album Immich :</label>
                         <input type="text" id="album_name" name="album_name" value="{{ config.album_name }}">
 
-                       <!-- <label for="album_title">Titre affiché dans le diaporama :</label>
-                        <input type="text" id="album_title" name="album_title" value="{{ config.album_title }}">-->
 
                         <label for="immich_url">URL du serveur Immich :</label>
                         <input type="url" id="immich_url" name="immich_url" value="{{ config.immich_url }}">
 
                         <label for="immich_token">Token d'accès Immich :</label>
                         <input type="text" id="immich_token" name="immich_token" value="{{ config.immich_token }}">
-                    </fieldset>
 
-                    <button type="submit" class="save-button">Enregistrer</button>
-                </form>
-            </div>
 
-            <!-- Colonne droite -->
-            <div class="config-right">
-                <fieldset>
-                    <legend><h3>Actions</h3></legend>
 
+
+     </fieldset>
+</div>
+
+   
+    <button type="submit" class="save-button">Enregistrer</button>
+
+</form> 
+
+<div id="tab-actions" class="tabcontent">
+    <fieldset>
+        <legend><h3>Actions</h3></legend>
                     <form method="POST" action="/toggle_slideshow">
                         <button type="submit">
                             {% if slideshow_running %} Arrêter{% else %} Démarrer{% endif %} le diaporama
@@ -104,9 +182,10 @@
                     <form method="POST" action="/shutdown">
                         <button type="submit">Éteindre le système</button>
                     </form>
-                </fieldset>
+  </fieldset>
 
-                <fieldset>
+
+  <fieldset>
                     <legend><h3>Crédits</h3></legend>
                     <div class="credits">
                         <img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120">
@@ -116,13 +195,17 @@
                         </a>
                         <p>Projet réalisé dans le cadre du Gadgetaulab</p>
                     </div>
-                </fieldset>
-            </div>
-        </div>
+    </fieldset>
+</div>
+            
+            
+            
+<div id="tab-apercu" class="tabcontent">
+    {% if photos %}
+    <fieldset class="photo-preview-section">
+        <legend>Aperçu des photos préparées</legend>
         
-                       {% if photos %}
-        <fieldset class="photo-preview-section">
-            <legend>Aperçu des photos préparées</legend>
+
             <div class="photo-grid">
                 {% for photo in photos %}
                 <div class="photo-tile">
@@ -136,13 +219,36 @@
                 {% endfor %}
             </div>
             
-        </fieldset>
+  </fieldset>
         {% endif %}
-        
+</div>  
 
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>
-  const lightbox = GLightbox({ selector: '.glightbox' });
+  const lightbox = GLightbox({
+    selector: '.glightbox'
+  });
+</script>
+<script>
+function openTab(evt, tabId) {
+  const tabcontent = document.getElementsByClassName("tabcontent");
+  const tablinks = document.getElementsByClassName("tablink");
+
+
+  for (let i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+
+  for (let i = 0; i < tablinks.length; i++) {
+    tablinks[i].classList.remove("active");
+  }
+
+
+  document.getElementById(tabId).style.display = "block";
+
+  evt.currentTarget.classList.add("active");
+}
 </script>
 
 <script>
