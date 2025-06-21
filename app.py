@@ -109,28 +109,36 @@ def logout():
 # --- Configuration & gestion diaporama ---
 
 @app.route('/configure', methods=['GET', 'POST'])
-@login_required
 def configure():
     config = load_config()
 
     if request.method == 'POST':
-        # On ne remet pas à zéro, on garde les champs existants
-        for key in ['immich_url', 'immich_token', 'album_name', 'album_title', 'display_duration', 'active_start', 'active_end', 'source', 'screen_height_percent']:
+        for key in [
+            'immich_url', 'immich_token', 'album_name', 'album_title',
+            'display_duration', 'active_start', 'active_end', 'source',
+            'screen_height_percent', 'clock_font_size', 'clock_position',
+            'clock_color', 'clock_format', 'clock_offset_x',
+            'clock_offset_y', 'clock_outline_color', 'clock_font_path'
+        ]:
             if key in request.form:
                 value = request.form.get(key)
-                config[key] = int(value) if key == 'display_duration' else value
-        save_config(config)
+                if key == 'display_duration' or key in ['clock_offset_x', 'clock_offset_y', 'clock_font_size']:
+                    config[key] = int(value)
+                else:
+                    config[key] = value
 
+        #  Traitement spécial pour la checkbox
+        config["show_clock"] = 'show_clock' in request.form
+
+        save_config(config)
         stop_slideshow()
         start_slideshow()
-
         flash("Configuration enregistrée et diaporama relancé", "success")
         return redirect(url_for('configure'))
 
     slideshow_running = any(
         'local_slideshow.py' in (p.info['cmdline'] or []) for p in psutil.process_iter(attrs=['cmdline'])
     )
-
     prepared_photos = get_prepared_photos()
 
     return render_template(
@@ -139,7 +147,6 @@ def configure():
         photos=prepared_photos,
         slideshow_running=slideshow_running
     )
-
 
 # --- Téléchargement Immich et Préparation photos ---
 
