@@ -67,20 +67,52 @@ def set_display_power(on: bool):
     except Exception as e:
         print(f"Erreur changement état écran via swaymsg : {e}")
 
-# Fonction pour afficher une image
-def show_image(image_path, screen, screen_width, screen_height):
+# Affiche un texte avec contour pour meilleure lisibilité
+def draw_text_with_outline(screen, text, font, text_color, outline_color, pos):
+    offsets = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+    for ox, oy in offsets:
+        outline_surface = font.render(text, True, outline_color)
+        outline_rect = outline_surface.get_rect(topright=(pos[0] + ox, pos[1] + oy))
+        screen.blit(outline_surface, outline_rect)
+
+    text_surface = font.render(text, True, text_color)
+    text_rect = text_surface.get_rect(topright=pos)
+    screen.blit(text_surface, text_rect)
+
+# Fonction pour afficher une image et l'heure
+def show_image(image_path, screen, screen_width, screen_height, config, font):
     try:
-        image = Image.open(image_path)
-        image = image.convert("RGB")
+        image = Image.open(image_path).convert("RGB")
         image = image.resize((screen_width, screen_height))
         mode = image.mode
         data = image.tobytes()
         pygame_image = pygame.image.fromstring(data, (screen_width, screen_height), mode)
         screen.blit(pygame_image, (0, 0))
+
+        if config.get("show_clock", False):
+            now = datetime.now().strftime(config.get("clock_format", "%H:%M"))
+            text_color = pygame.Color(*Image.new("RGB", (1, 1), config.get("clock_color", "#FFFFFF")).getpixel((0, 0)))
+            outline_color = pygame.Color(*Image.new("RGB", (1, 1), config.get("clock_outline_color", "#000000")).getpixel((0, 0)))
+            offset_x = config.get("clock_offset_x", 0)
+            offset_y = config.get("clock_offset_y", 0)
+
+            # Dessiner l'ombre (contour)
+            for dx, dy in [(-2, -2), (-2, 2), (2, -2), (2, 2)]:
+                rect = font.render(now, True, outline_color).get_rect(
+                    center=(screen_width // 2 + offset_x + dx, screen_height // 2 + offset_y + dy)
+                )
+                screen.blit(font.render(now, True, outline_color), rect)
+
+            # Dessiner l'heure par-dessus
+            rect = font.render(now, True, text_color).get_rect(
+                center=(screen_width // 2 + offset_x, screen_height // 2 + offset_y)
+            )
+            screen.blit(font.render(now, True, text_color), rect)
+
         pygame.display.flip()
+
     except Exception as e:
         print(f"Erreur affichage {image_path} : {e}")
-
 # Boucle principale du diaporama
 def start_slideshow():
     config = read_config()
@@ -93,6 +125,15 @@ def start_slideshow():
     SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
     pygame.mouse.set_visible(False)
+
+    # Chargement police personnalisée
+    font_path = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+    font_size = config.get("clock_font_size", 48)
+    try:
+        font = pygame.font.Font(font_path, font_size)
+    except Exception as e:
+        print(f"Erreur chargement police : {e}")
+        font = pygame.font.SysFont("Arial", font_size)
 
     try:
         while True:
@@ -114,7 +155,7 @@ def start_slideshow():
 
                 set_display_power(True)
                 path = os.path.join(PHOTO_DIR, photo)
-                show_image(path, screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+                show_image(path, screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, font)
                 time.sleep(duration)
 
     except KeyboardInterrupt:
