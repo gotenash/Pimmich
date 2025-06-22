@@ -3,29 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <title>Configuration - Pimmich</title>
+     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <!-- GLightbox CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
-
 </head>
-<body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
+<body class="relative min-h-screen">
+
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-container" class="relative z-10 max-w-xl mx-auto mt-4 space-y-2">
+      {% for category, message in messages %}
+        <div class="
+          flash-message
+          px-4 py-3 rounded-md text-white shadow-md transition-opacity duration-700 ease-in-out
+          {% if category == 'success' %}
+            bg-green-500
+          {% elif category == 'error' %}
+            bg-red-500
+          {% elif category == 'warning' %}
+            bg-yellow-400 text-black
+          {% else %}
+            bg-gray-500
+          {% endif %}
+        ">
+          {{ message }}
         </div>
-      {% endif %}
-    {% endwith %}
+      {% endfor %}
+    </div>
+    
+        <script>
+      // Disparition automatique après 4 secondes
+      setTimeout(() => {
+        const messages = document.querySelectorAll('.flash-message');
+        messages.forEach(msg => {
+          msg.classList.add('opacity-0');
+          setTimeout(() => msg.remove(), 700); // attendre que l'effet se termine
+        });
+      }, 4000);
+    </script>
+  {% endif %}
+{% endwith %}
 
-    <div class="container">
-        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
-        <h2>Configuration du cadre photo connecté</h2>
-
+  <!-- Contenu principal -->
+  <div class="relative z-10 container mx-auto p-4 bg-white/80 backdrop-blur-md rounded-xl shadow-xl mt-8">
+    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo mx-auto mb-4">
+    <h2 class="text-center text-2xl font-semibold mb-4">Configuration du cadre photo connecté</h2>
         <div class="logout-link">
-            <a href="/logout">&#128682; Se déconnecter</a>
+            <a href="/logout">Se déconnecter</a>
         </div>
         
 
@@ -127,12 +154,7 @@
         <legend><h3>Configuration de l'album photo Immich</h3></legend>
                    
 
-                        <label for="source">Source des photos :</label>
-                        <select id="source" name="source">
-                            <option value="immich" {% if config.source == 'immich' %}selected{% endif %}>Album Immich</option>
-                            <option value="usb" {% if config.source == 'usb' %}selected{% endif %}>Clé USB</option>
-                        </select>
-
+                        
                         <label for="album_name">Nom technique de l'album Immich :</label>
                         <input type="text" id="album_name" name="album_name" value="{{ config.album_name }}">
 
@@ -163,17 +185,34 @@
                         </button>
                     </form>
 
-                    <button id="usb-import-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded mt-4">
-                        Importer les photos depuis la clé USB
-                    </button>
-                    <div id="usb-import-status" class="mt-4 space-y-1 text-sm font-medium"></div>
+                                       <button id="usb-import-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-lg mt-6 shadow-lg transition duration-300 ease-in-out">Importer les photos depuis la clé USB
+                                        </button>
+                                        
+                                        <div id="usb-progress-container" class="w-full bg-gray-300 rounded mt-4 h-6 overflow-hidden shadow-inner border border-gray-400 hidden">
+                                            <div id="usb-progress-bar" 
+                                                 class="h-full text-white text-center whitespace-nowrap transition-all duration-500 ease-in-out"
+                                                 style="width: 0%; background: linear-gradient(90deg, #e11d48, #be123c); box-shadow: 0 0 10px #e11d48;">
+                                              0%
+                                            </div>
+                                          </div>
+                                        
+                                        <div id="usb-import-status" class="mt-4 space-y-1 text-sm font-medium text-gray-700 max-h-48 overflow-y-auto"></div>
 
 
 
-                    <button id="immich-download-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
-                        Télécharger et préparer les photos
-                    </button>
-                    <div id="import-status" class="mt-4 space-y-1 text-sm font-medium"></div>
+                                   <button id="immich-import-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded mt-4"> Importer les photos depuis Immich
+                                    </button>
+                                    
+                                    <div id="immich-progress-container" class="w-full bg-gray-300 rounded mt-4 h-6 overflow-hidden shadow-inner border border-gray-400 hidden">
+                                      <div id="immich-progress-bar"
+                                           class="h-full text-white text-center whitespace-nowrap transition-all duration-500 ease-in-out"
+                                           style="width: 0%; background: linear-gradient(90deg, #e11d48, #be123c); box-shadow: 0 0 10px #e11d48;">
+                                        0%
+                                      </div>
+                                    </div>
+                                    
+                                    <div id="immich-import-status" class="mt-4 space-y-1 text-sm font-medium"></div>
+
 
                     <form method="POST" action="/reboot">
                         <button type="submit">Redémarrer le système</button>
@@ -230,132 +269,421 @@
   });
 </script>
 <script>
+
 function openTab(evt, tabId) {
   const tabcontent = document.getElementsByClassName("tabcontent");
   const tablinks = document.getElementsByClassName("tablink");
-
 
   for (let i = 0; i < tabcontent.length; i++) {
     tabcontent[i].style.display = "none";
   }
 
-
   for (let i = 0; i < tablinks.length; i++) {
     tablinks[i].classList.remove("active");
   }
 
-
   document.getElementById(tabId).style.display = "block";
-
   evt.currentTarget.classList.add("active");
-}
-</script>
-
-<script>
-
-function openLightbox(src) {
-  const lightbox = document.getElementById('lightbox');
-  const img = document.getElementById('lightbox-img');
-  img.src = src;
-  lightbox.classList.remove('hidden');
+  
+  // Sauvegarder l'onglet actuel dans le localStorage
+  localStorage.setItem('activeTab', tabId);
 }
 
-function closeLightbox() {
-  document.getElementById('lightbox').classList.add('hidden');
-}
+// Restaurer l'onglet actif au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+  const activeTab = localStorage.getItem('activeTab');
+  if (activeTab) {
+    // Masquer tous les onglets
+    const tabcontent = document.getElementsByClassName("tabcontent");
+    const tablinks = document.getElementsByClassName("tablink");
+    
+    for (let i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    
+    for (let i = 0; i < tablinks.length; i++) {
+      tablinks[i].classList.remove("active");
+    }
+    
+    // Afficher l'onglet sauvegardé
+    const tabElement = document.getElementById(activeTab);
+    const buttonElement = document.querySelector(`[onclick="openTab(event, '${activeTab}')"]`);
+    
+    if (tabElement && buttonElement) {
+      tabElement.style.display = "block";
+      buttonElement.classList.add("active");
+    } else {
+      // Fallback sur l'onglet par défaut si problème
+      document.getElementById('tab-affichage').style.display = "block";
+      document.querySelector('[onclick="openTab(event, \'tab-affichage\')"]').classList.add("active");
+    }
+  }
+});
 
+// Script de suppression amélioré
+document.querySelectorAll('.delete-button').forEach(button => {
+  button.addEventListener('click', async () => {
+    const photo = button.dataset.photo;
+    const confirmDelete = confirm(`Supprimer la photo ${photo} ?`);
+    if (!confirmDelete) return;
 
-</script>
-
-
-<script>
-  document.querySelectorAll('.delete-button').forEach(button => {
-    button.addEventListener('click', async () => {
-      const photo = button.dataset.photo;
-      const confirmDelete = confirm(`Supprimer la photo ${photo} ?`);
-      if (!confirmDelete) return;
-
+    try {
       const response = await fetch(`/delete_photo/${photo}`, { method: 'DELETE' });
+      
       if (response.ok) {
+        // Suppression réussie - recharger la page
+        // L'onglet actif sera automatiquement restauré grâce au localStorage
         location.reload();
       } else {
         alert("Erreur lors de la suppression.");
       }
-    });
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert("Erreur lors de la suppression.");
+    }
+  });
+});
+</script>
+
+<script>
+
+const lightbox = GLightbox({
+    selector: '.glightbox',
+    // Configuration pour forcer le centrage dans la zone visible
+    onOpen: () => {
+      // Scroll vers le haut de la zone d'aperçu quand la lightbox s'ouvre
+      const tabApercu = document.getElementById('tab-apercu');
+      if (tabApercu && tabApercu.style.display !== 'none') {
+        // Calculer la position du tab aperçu
+        const tabRect = tabApercu.getBoundingClientRect();
+        const scrollOffset = window.pageYOffset + tabRect.top;
+        
+        // Scroll fluide vers le début de la zone aperçu
+        window.scrollTo({
+          top: Math.max(0, scrollOffset - 100), // -100px pour un peu d'espace
+          behavior: 'smooth'
+        });
+      }
+    },
+    // Options de centrage
+    plyr: {
+      config: {
+        youtube: { noCookie: true, rel: 0, showinfo: 0, iv_load_policy: 3 }
+      }
+    },
+    // Centrage forcé
+    beforeSlideLoad: (slide, data) => {
+      // S'assurer que la lightbox apparaît dans la zone visible
+      setTimeout(() => {
+        const glightboxContainer = document.querySelector('.glightbox-container');
+        if (glightboxContainer) {
+          // Forcer le positionnement au centre de la zone visible actuelle
+          glightboxContainer.style.position = 'fixed';
+          glightboxContainer.style.top = '50%';
+          glightboxContainer.style.left = '50%';
+          glightboxContainer.style.transform = 'translate(-50%, -50%)';
+          glightboxContainer.style.zIndex = '9999';
+        }
+      }, 10);
+    }
   });
 </script>
 
-
-
-
-<script>
-function displayStyledLine(container, line) {
-    const p = document.createElement('p');
-    p.textContent = line;
-
-    if (line.includes("Erreur")) {
-        p.className = "text-red-600";
-    } else if (line.includes("Terminé")) {
-        p.className = "text-green-600";
-        setTimeout(() => {
-            container.innerHTML = "";
-        }, 5000);
-    } else {
-        p.className = "text-gray-700";
-    }
-
-    container.appendChild(p);
-    container.scrollTop = container.scrollHeight;
+<!-- CSS additionnel pour améliorer le comportement -->
+<style>
+/* S'assurer que GLightbox reste centré dans la zone visible */
+.glightbox-container {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
 }
 
-document.getElementById("immich-download-btn").addEventListener("click", function () {
-    const statusDiv = document.getElementById("import-status");
-    statusDiv.innerHTML = "";
-    fetch("/progress")
-        .then(response => {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
+/* Ajuster la grille pour une meilleure expérience */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  max-height: 60vh; /* Limiter la hauteur de la grille */
+  overflow-y: auto; /* Scroll si nécessaire */
+}
 
-            function readChunk() {
-                reader.read().then(({ done, value }) => {
-                    if (done) return;
-                    const lines = decoder.decode(value, { stream: true }).split("\n");
-                    lines.forEach(line => {
-                        if (line.trim() !== "") {
-                            displayStyledLine(statusDiv, line.trim());
-                        }
-                    });
-                    readChunk();
-                });
+.photo-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Améliorer l'apparence du conteneur d'aperçu */
+.photo-preview-section {
+  max-height: 70vh;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+/* Styles pour les messages de statut */
+.status-message {
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-success {
+  background-color: #dcfce7;
+  color: #166534;
+  border-left: 4px solid #22c55e;
+}
+
+.status-error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-left: 4px solid #ef4444;
+}
+
+.status-warning {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-left: 4px solid #f59e0b;
+}
+
+.status-info {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border-left: 4px solid #3b82f6;
+}
+</style>
+
+<script>
+// Scripts d'import améliorés avec feedback détaillé
+document.addEventListener("DOMContentLoaded", () => {
+    
+    function createStyledMessage(message, type = 'info') {
+        const div = document.createElement('div');
+        div.className = `status-message status-${type}`;
+        div.textContent = message;
+        return div;
+    }
+
+    function displayMessage(container, message) {
+        let messageType = 'info';
+        
+        // Déterminer le type de message basé sur le contenu
+        if (message.includes('Erreur') || message.toLowerCase().includes('error')) {
+            messageType = 'error';
+        } else if (message.includes('Terminé') || message.includes('Succès') || message.toLowerCase().includes('success')) {
+            messageType = 'success';
+        } else if (message.includes('Attention') || message.toLowerCase().includes('warning')) {
+            messageType = 'warning';
+        } else if (message.includes('Recherche') || message.includes('Téléchargement') || message.includes('Traitement')) {
+            messageType = 'info';
+        }
+        
+        const messageElement = createStyledMessage(message, messageType);
+        container.appendChild(messageElement);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // ----- IMPORT USB AMÉLIORÉ -----
+    document.getElementById("usb-import-btn").addEventListener("click", () => {
+        const btn = document.getElementById("usb-import-btn");
+        const progressBar = document.getElementById("usb-progress-bar");
+        const progressContainer = document.getElementById("usb-progress-container");
+        const statusDiv = document.getElementById("usb-import-status");
+
+        // Désactiver le bouton pendant l'import
+        btn.disabled = true;
+        btn.textContent = "Import en cours...";
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+
+        // Reset de l'interface
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        progressContainer.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+        
+        let importTermine = false;
+        let timeoutId = null;
+
+        const eventSource = new EventSource('/import-usb');
+
+        eventSource.onmessage = (event) => {
+            const line = event.data.trim();
+            if (!line) return;
+
+            // Annuler le timeout précédent
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
             }
-            readChunk();
-        });
-});
 
-document.getElementById("usb-import-btn").addEventListener("click", function () {
-    const statusDiv = document.getElementById("usb-import-status");
-    statusDiv.innerHTML = "";
-    fetch("/import_usb_progress")
-        .then(response => {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
+            // Recherche du pourcentage dans le message
+            const match = line.match(/^(\d+)%\s+(.*)/);
+            if (match) {
+                const percent = parseInt(match[1], 10);
+                const message = match[2];
 
-            function readChunk() {
-                reader.read().then(({ done, value }) => {
-                    if (done) return;
-                    const lines = decoder.decode(value, { stream: true }).split("\n");
-                    lines.forEach(line => {
-                        if (line.trim() !== "") {
-                            displayStyledLine(statusDiv, line.trim());
-                        }
-                    });
-                    readChunk();
-                });
+                progressBar.style.width = `${percent}%`;
+                progressBar.textContent = `${percent}%`;
+                
+                displayMessage(statusDiv, line);
+
+                if (percent >= 100 || message.includes("terminé") || message.includes("Terminé")) {
+                    importTermine = true;
+                    eventSource.close();
+                    
+                    // Réactiver le bouton après succès
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer les photos depuis la clé USB";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
+            } else {
+                displayMessage(statusDiv, line);
+                
+                // Vérifier les messages de fin sans pourcentage
+                if (line.includes("terminé") || line.includes("Terminé")) {
+                    importTermine = true;
+                    eventSource.close();
+                    
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer les photos depuis la clé USB";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
             }
-            readChunk();
-        });
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            
+            if (!importTermine) {
+                displayMessage(statusDiv, "Erreur de connexion au serveur");
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Importer les photos depuis la clé USB";
+                    btn.classList.remove("opacity-50", "cursor-not-allowed");
+                    
+                    progressContainer.classList.add("hidden");
+                    statusDiv.innerHTML = "";
+                }, 5000);
+            }
+        };
+    });
+
+    // ----- IMPORT IMMICH AMÉLIORÉ -----
+    document.getElementById("immich-import-btn").addEventListener("click", () => {
+        const btn = document.getElementById("immich-import-btn");
+        const progressBar = document.getElementById("immich-progress-bar");
+        const progressContainer = document.getElementById("immich-progress-container");
+        const statusDiv = document.getElementById("immich-import-status");
+
+        // Désactiver le bouton pendant l'import
+        btn.disabled = true;
+        btn.textContent = "Import en cours...";
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+
+        // Reset de l'interface
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        progressContainer.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+        
+        let importTermine = false;
+        let timeoutId = null;
+
+        const eventSource = new EventSource('/import-immich');
+
+        eventSource.onmessage = (event) => {
+            const line = event.data.trim();
+            if (!line) return;
+
+            // Annuler le timeout précédent
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+
+            // Recherche du pourcentage dans le message
+            const match = line.match(/^(\d+)%\s+(.*)/);
+            if (match) {
+                const percent = parseInt(match[1], 10);
+                const message = match[2];
+
+                progressBar.style.width = `${percent}%`;
+                progressBar.textContent = `${percent}%`;
+                
+                displayMessage(statusDiv, line);
+
+                if (percent >= 100 || message.includes("terminé") || message.includes("Terminé")) {
+                    importTermine = true;
+                    eventSource.close();
+                    
+                    // Réactiver le bouton après succès
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer les photos depuis Immich";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
+            } else {
+                displayMessage(statusDiv, line);
+                
+                // Vérifier les messages de fin sans pourcentage
+                if (line.includes("terminé") || line.includes("Terminé")) {
+                    importTermine = true;
+                    eventSource.close();
+                    
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer les photos depuis Immich";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
+            }
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            
+            if (!importTermine) {
+                displayMessage(statusDiv, "Erreur de connexion au serveur");
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Importer les photos depuis Immich";
+                    btn.classList.remove("opacity-50", "cursor-not-allowed");
+                    
+                    progressContainer.classList.add("hidden");
+                    statusDiv.innerHTML = "";
+                }, 5000);
+            }
+        };
+    });
 });
-     
 </script>
 
 </body>
