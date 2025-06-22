@@ -1,17 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify
 import os
 import json
+import re
 import subprocess
 import psutil
 import time
+import requests
 from pathlib import Path
 
 # Modules internes
 from utils.download_album import download_and_extract_album
 from utils.auth import login_required
 from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow
-from utils.prepare_all_photos import prepare_all_photos
-from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils/
+from utils.prepare_all_photos import prepare_all_photos_with_progress
+from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -26,7 +28,7 @@ CREDENTIALS_PATH = '/boot/firmware/credentials.json'
 def check_and_start_slideshow_on_boot():
     from datetime import datetime
 
-    print("== Vérification du créneau horaire au démarrage ==")
+    print("== Verification du créneau horaire au demarrage ==")
 
     config = load_config()
     try:
@@ -40,14 +42,14 @@ def check_and_start_slideshow_on_boot():
         return
 
     now = datetime.now().hour
-    print(f"Heure actuelle : {now} / Créneau actif : {start}-{end}")
+    print(f"Heure actuelle : {now} / CrÃ©neau actif : {start}-{end}")
 
     if start <= now < end:
-        print("Dans la plage horaire, on démarre le slideshow.")
+        print("Dans la plage horaire, on dÃ©marre le slideshow.")
         if not is_slideshow_running():
             start_slideshow()
     else:
-        print("Hors plage horaire, on ne démarre pas le slideshow.")
+        print("Hors plage horaire, on ne dÃ©marre pas le slideshow.")
 
 
 
@@ -82,6 +84,8 @@ def get_prepared_photos():
     return sorted([f.name for f in folder.glob("*") if f.suffix.lower() in [".jpg", ".jpeg", ".png", ".gif"]])
 
 
+
+
 # --- Routes principales ---
 
 @app.route('/')
@@ -93,7 +97,7 @@ def login():
     if request.method == 'POST':
         if check_credentials(request.form['username'], request.form['password']):
             session['logged_in'] = True
-            flash("Connexion réussie", "success")
+            flash("Connexion rÃ©ussie", "success")
             return redirect(url_for('configure'))
         else:
             flash("Identifiants invalides", "danger")
@@ -102,7 +106,7 @@ def login():
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.pop('logged_in', None)
-    flash("Déconnexion réussie", "success")
+    flash("DÃ©connexion rÃ©ussie", "success")
     return redirect(url_for('login'))
 
 
@@ -127,13 +131,13 @@ def configure():
                 else:
                     config[key] = value
 
-        #  Traitement spécial pour la checkbox
+        #  Traitement spÃ©cial pour la checkbox
         config["show_clock"] = 'show_clock' in request.form
 
         save_config(config)
         stop_slideshow()
         start_slideshow()
-        flash("Configuration enregistrée et diaporama relancé", "success")
+        flash("Configuration enregistrÃ©e et diaporama relancÃ©", "success")
         return redirect(url_for('configure'))
 
     slideshow_running = any(
@@ -148,31 +152,153 @@ def configure():
         slideshow_running=slideshow_running
     )
 
-# --- Téléchargement Immich et Préparation photos ---
-
-@app.route("/progress")
+@app.route("/import-usb")
 @login_required
 def progress():
     @stream_with_context
     def generate():
         try:
-            yield "Démarrage de la récupération des photos...\n"
-            config = load_config()
+            yield "data: 0% [RECHERCHE] Recherche de la clé USB...\n\n"
+            time.sleep(0.5)
+            
+            total_photos = 0
+            imported_count = 0
+            
+            # Étape 1 : import USB avec comptage
+            for message in import_usb_photos():
+                message = message.strip()
+                
+                # Détecter les messages de comptage
+                if "photos importées" in message and "INFO" in message:
+                    # Extraire le nombre de photos
+                    match = re.search(r'(\d+) photos importées', message)
+                    if match:
+                        total_photos = int(match.group(1))
+                
+                # Formater les messages avec des indicateurs texte
+                if "Clé USB détectée" in message:
+                    yield f"data: 10% [DETECTE] {message}\n\n"
+                elif "Import en cours" in message:
+                    # Extraire le pourcentage si présent
+                    match = re.search(r'(\d+)%', message)
+                    if match:
+                        percent = min(int(match.group(1)), 75)  # Limiter à 75% pour l'import
+                        yield f"data: {percent}% [COPIE] Copie des photos en cours... {message.split('(')[-1] if '(' in message else ''}\n\n"
+                    else:
+                        yield f"data: 50% [COPIE] {message}\n\n"
+                elif "STATS" in message and "images trouvées" in message:
+                    # Extraire le nombre d'images
+                    match = re.search(r'(\d+) images trouvées', message)
+                    if match:
+                        total_photos = int(match.group(1))
+                        yield f"data: 20% [STATS] {total_photos} photos trouvées, import en cours...\n\n"
+                elif "Erreur" in message or "ERREUR" in message:
+                    yield f"data: [ERREUR] {message}\n\n"
+                    return
+                elif "ALERTE" in message:
+                    yield f"data: [ALERTE] {message}\n\n"
+                elif message.strip():  # Éviter les messages vides
+                    yield f"data: {message}\n\n"
 
-            if config.get("source", "immich") == "immich":
-                yield "Téléchargement de l'album Immich...\n"
-                download_and_extract_album(config)
+            if total_photos > 0:
+                yield f"data: 80% [SUCCES] {total_photos} photos importées avec succès\n\n"
+                yield "data: 85% [PREPARATION] Préparation des photos pour l'affichage...\n\n"
+                
+                # Étape 2 : préparation avec feedback amélioré
+                prepare_count = 0
+                for message in prepare_all_photos_with_progress():
+                    if "Préparé" in message or "SUCCES" in message:
+                        prepare_count += 1
+                        progress = 85 + int((prepare_count / total_photos) * 15)
+                        yield f"data: {progress}% [PHOTO] Préparation: {prepare_count}/{total_photos} photos\n\n"
+                    elif "Erreur" in message or "ERREUR" in message:
+                        yield f"data: [ALERTE] {message}\n\n"
+                
+                yield "data: 100% [TERMINE] Import terminé ! Toutes les photos sont prêtes pour le diaporama.\n\n"
             else:
-                yield "Import depuis la clé USB...\n"
-                import_usb_photos()
+                yield "data: [ERREUR] Aucune photo trouvée ou importée\n\n"
 
-            yield "Préparation des photos...\n"
-            prepare_all_photos()
-            yield "Terminé. (100%)\n"
         except Exception as e:
-            yield f"Erreur : {str(e)}\n"
+            yield f"data: [ERREUR] Erreur critique : {str(e)}\n\n"
 
-    return Response(generate(), mimetype="text/plain")
+    return Response(generate(), mimetype="text/event-stream", headers={
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive"
+    })
+
+
+@app.route("/import-immich")
+@login_required
+def import_immich():
+    config = load_config()
+    
+    def generate():
+        try:
+            yield "data: 0% [CONNEXION] Connexion au serveur Immich...\n\n"
+            time.sleep(0.5)
+            
+            nb_photos = 0
+            messages_buffer = []
+
+            def enhanced_status_callback(message):
+                messages_buffer.append(message)
+
+            # 1) Téléchargement + extraction avec feedback amélioré
+            try:
+                nb_photos = download_and_extract_album(config, status_callback=enhanced_status_callback)
+                
+                # Traiter les messages du buffer
+                for msg in messages_buffer:
+                    if "Connexion à Immich" in msg:
+                        yield "data: 5% [ETABLI] Connexion établie avec Immich\n\n"
+                    elif "Récupération de la liste" in msg:
+                        yield "data: 15% [ANALYSE] Analyse de l'album en cours...\n\n"
+                    elif "Téléchargement de l'archive" in msg:
+                        if nb_photos > 0:
+                            yield f"data: 25% [DOWNLOAD] Téléchargement de {nb_photos} photos...\n\n"
+                        else:
+                            yield "data: 25% [DOWNLOAD] Téléchargement de l'archive...\n\n"
+                    elif "Extraction des photos" in msg:
+                        yield "data: 60% [EXTRACTION] Extraction de l'archive en cours...\n\n"
+                    elif "%" in msg:
+                        yield f"data: {msg}\n\n"
+                
+                messages_buffer.clear()
+                
+                yield f"data: 80% [SUCCES] {nb_photos} photos téléchargées depuis Immich\n\n"
+                
+            except Exception as e:
+                yield f"data: [ERREUR] Erreur lors du téléchargement : {str(e)}\n\n"
+                return
+
+            # 2) Préparation des photos
+            if nb_photos > 0:
+                yield "data: 85% [PREPARATION] Préparation des photos pour l'affichage...\n\n"
+                
+                prepare_count = 0
+                for message in prepare_all_photos_with_progress():
+                    if "Préparé" in message or "SUCCES" in message:
+                        prepare_count += 1
+                        progress = 85 + int((prepare_count / nb_photos) * 15)
+                        yield f"data: {progress}% [PHOTO] Préparation: {prepare_count}/{nb_photos} photos\n\n"
+                    elif "Erreur" in message or "ERREUR" in message:
+                        yield f"data: [ALERTE] {message}\n\n"
+
+                yield "data: 100% [TERMINE] Import Immich terminé ! Toutes les photos sont prêtes.\n\n"
+            else:
+                yield "data: [ERREUR] Aucune photo récupérée depuis Immich\n\n"
+
+        except Exception as e:
+            yield f"data: [ERREUR] Erreur critique : {str(e)}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream', headers={
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive"
+    })
+
+
+
+# --- Téléchargement Immich et Préparation photos ---
 
 
 @app.route("/download", methods=["POST"])
@@ -181,9 +307,9 @@ def download_photos():
     try:
         config = load_config()
         download_and_extract_album(config)
-        flash("Photos téléchargées avec succès", "success")
+        flash("Photos tÃ©lÃ©chargÃ©es avec succÃ¨s", "success")
     except Exception as e:
-        flash(f"Erreur téléchargement : {e}", "danger")
+        flash(f"Erreur tÃ©lÃ©chargement : {e}", "danger")
     return redirect(url_for("configure"))
 
 
@@ -195,11 +321,11 @@ def import_usb_progress():
     @stream_with_context
     def generate():
         try:
-            yield "Import depuis la clé USB...\n"
+            yield "Import depuis la clÃ© USB...\n"
             import_usb_photos()
-            yield "Préparation des photos...\n"
+            yield "PrÃ©paration des photos...\n"
             prepare_all_photos()
-            yield "Terminé. (100%)\n"
+            yield "TerminÃ©. (100%)\n"
         except Exception as e:
             yield f"Erreur : {str(e)}\n"
     return Response(generate(), mimetype="text/plain")
@@ -225,13 +351,13 @@ def toggle_slideshow():
     # On lit l'état actuel du slideshow
     running = is_slideshow_running()
 
-    # Si le slideshow est lancé, on l'arrête, sinon on le démarre
+    # Si le slideshow est lancÃ©, on l'arrète, sinon on le dÃ©marre
     if running:
         stop_slideshow()
         config['manual_override'] = True  # Forcer l'arrêt manuel
     else:
         start_slideshow()
-        config['manual_override'] = True  # Forcer le démarrage manuel
+        config['manual_override'] = True  # Forcer le demarrage manuel
 
     save_config(config)
 
