@@ -5,15 +5,20 @@
 # sudo apt update && sudo apt upgrade -y
 # echo "Mise à jour sautée pour une installation plus rapide."
 
-
 echo "=== [2/6] Installation des dépendances ==="
-sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git
+sudo apt install -y sway xterm python3 python3-venv python3-pip \
+  libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev \
+  libheif-dev libde265-dev ffmpeg git
 
 echo "=== [3/6] Création de l’environnement Python ==="
 cd "$(dirname "$0")"
 python3 -m venv venv
 source venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
+
+echo "=== [3b/6] Installation de pillow-heif (support HEIC/HEIF) ==="
+pip install pillow-heif
 
 echo "=== [4/6] Configuration du lancement automatique de Sway ==="
 BASH_PROFILE="/home/pi/.bash_profile"
@@ -31,10 +36,8 @@ SWAY_CONFIG_DIR="/home/pi/.config/sway"
 SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
 mkdir -p "$SWAY_CONFIG_DIR"
 
-# Rendre exécutable
 chmod +x /home/pi/pimmich/start_pimmich.sh
 
-# Ajout de l'exec_always si absent
 if ! grep -q 'start_pimmich.sh' "$SWAY_CONFIG_FILE" 2>/dev/null; then
     echo 'exec_always --no-startup-id /home/pi/pimmich/start_pimmich.sh' >> "$SWAY_CONFIG_FILE"
     echo "Ajout de start_pimmich.sh dans la config sway"
