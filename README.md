@@ -20,16 +20,19 @@
 
 ## 🛠️ Juillet 2025 – Prochaine version
 
-- 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web  
-- 🗂️ Réorganisation de la page de configuration en onglets  
-- 🔁 Mise à jour automatique périodique de l’album Immich  
+- 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web
+- ✅📂 Support de la clé USB 
+- ✅⏰Affichage de l’heure 
+- ✅🗂️ Réorganisation de la page de configuration en onglets  
+- 🔁 Mise à jour automatique périodique de l’album Immich
+- ✅📱 Interface de configuration en onglets
+- ✅📱 Support du format HEIC photo Apple
 - 📁 Support du protocole SMB pour accéder à des photos partagées en réseau  
 
 ## 💡 Idées pour les versions suivantes
 
 - 📱 Création d’une APK Android pour contrôler le cadre  
-- ⏰🌤️ Affichage de l’heure et de la météo sur l’écran  
-- 🧑‍🤝‍🧑 Partage multi-utilisateur (plusieurs comptes Immich)  
+- 🌤️ Affichage de la météo sur l’écran  
 - 🌍 Traductions de l’interface (multi-langues)  
 
 
