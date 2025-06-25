@@ -1,137 +1,81 @@
-.config-container {
-  display: flex;
-  gap: 40px;
-  margin-top: 20px;
-}
-.config-left,
-.config-right {
-  flex: 1;
-}
-.photo-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-start;
-  padding-top: 10px;
-}
-.photo-gallery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 20px;
-}
-.delete-button {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: red;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 14px;
-  width: 22px;
-  height: 22px;
-  line-height: 20px;
-  text-align: center;
-  padding: 0;
-}
-fieldset {
-  margin-bottom: 20px;
-  border: 1px solid #aaa;
-  border-radius: 8px;
-  padding: 15px;
-}
-legend h3 {
-  margin: 0;
-  font-size: 1.2em;
-}
+/* styles.css - Version nettoyée */
+
+/* --- Styles Généraux --- */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
   margin: 0;
   padding: 0;
+  background: url('/static/background.png') no-repeat center center fixed;
+  background-size: cover;
 }
+
 .container {
-  max-width: 900px;
+  max-width: 1200px; /* Largeur max pour desktop */
   margin: 40px auto;
-  background-color: #fff;
-  padding: 20px 40px 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  position: relative;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative; /* Pour le positionnement du lien de déconnexion */
 }
+
 .logo {
   display: block;
   margin: 0 auto 20px;
   height: 80px;
 }
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* --- Formulaires --- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 20px;
+  background-color: #f9f9f9;
+}
+
+legend {
+  font-weight: 700;
+  padding: 0 10px;
+  color: #333;
+}
+
 input[type="number"],
 input[type="password"],
 input[type="text"],
 input[type="time"],
 input[type="url"],
 select {
-  width: 100%;
   padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 100%;
   margin-top: 5px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 6px;
   font-size: 1rem;
   height: 40px;
 }
-h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #333;
-}
-.config-container {
-  display: flex;
-  justify-content: space-between;
-  gap: 40px;
-}
-.config-left,
-.config-right {
-  flex: 1;
-}
-.config-left input,
-.config-left label,
-.config-left select {
-  display: block;
-  width: 100%;
-  margin-bottom: 15px;
-}
-.config-left input,
-.config-left select {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1em;
-}
-.config-right form {
-  margin-bottom: 15px;
-}
-.config-right button {
-  width: 100%;
-  padding: 12px;
-  font-size: 1em;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #007bff;
-  color: #fff;
-  transition: background-color 0.3s;
-}
-.config-right button:hover {
-  background-color: #0056b3;
-}
+
 button {
   margin-top: 15px;
   padding: 10px 15px;
   background-color: #2b2e83;
   color: #fff;
+  font-weight: 700;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -139,188 +83,37 @@ button {
   font-size: 1rem;
   transition: background-color 0.3s ease;
 }
+
 button:hover {
   background-color: #1c1f5e;
 }
+
 .save-button {
   background-color: #c73680;
 }
+
 .save-button:hover {
   background-color: #a62864;
 }
-.alert {
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  font-weight: 700;
-}
+
 .logout-link {
   position: absolute;
   top: 20px;
   right: 30px;
   font-size: 0.9em;
 }
+
 .logout-link a {
   color: #888;
   text-decoration: none;
 }
+
 .logout-link a:hover {
   text-decoration: underline;
   color: #333;
 }
-.photo-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 10px;
-}
-fieldset {
-  margin-bottom: 25px;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-}
-legend h3 {
-  margin: 0;
-  font-size: 1.2em;
-  color: #333;
-}
-.credits {
-  text-align: center;
-  background-color: #eef;
-  padding: 10px;
-  border-radius: 8px;
-}
-.credits img {
-  margin: 10px auto;
-  display: block;
-  max-width: 100%;
-}
-.credits p {
-  margin: 5px 0;
-}
-.delete-icon {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background-color: #f44;
-  color: #fff;
-  border-radius: 50%;
-  padding: 4px 7px;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 12px;
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-  transition: background-color 0.2s ease;
-}
-.delete-icon:hover {
-  background-color: #c00;
-}
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background: url('/static/background.png') no-repeat center center fixed;
-  background-size: cover;
-  backdrop-filter: blur(8px); /* Optionnel, car ça agit sur les enfants en général */
-}
-.container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.7); /* fond semi-transparent */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-.logo {
-  height: 80px;
-  display: block;
-  margin: 0 auto 20px;
-}
-h1 {
-  text-align: center;
-  color: #444;
-  margin-bottom: 30px;
-}
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-fieldset {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 15px;
-  margin-top: 20px;
-}
-legend {
-  font-weight: 700;
-  padding: 0 10px;
-  color: #333;
-}
-button,
-input,
-select {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-button {
-  background-color: #007bff;
-  color: #fff;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-button:hover {
-  background-color: #0056b3;
-}
-.photo-preview-section {
-  margin-top: 30px;
-}
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-top: 10px;
-}
-.photo-tile {
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.photo-tile img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 6px;
-}
-.delete-button {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: #e53935;
-  border: none;
-  color: #fff;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 14px;
-  line-height: 24px;
-  text-align: center;
-  cursor: pointer;
-  z-index: 10;
-}
+
+/* --- Système d'onglets --- */
 .tabs {
   display: flex;
   gap: 10px;
@@ -328,6 +121,7 @@ button:hover {
   border-bottom: 2px solid #ccc;
   flex-wrap: nowrap;
 }
+
 .tablink {
   background-color: #0078d7;
   color: #fff;
@@ -341,16 +135,19 @@ button:hover {
   transition: background-color 0.3s, box-shadow 0.3s;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .tablink:hover {
   background-color: #005a9e;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
+
 .tablink.active {
   background-color: #fff;
   color: #0078d7;
   border-bottom: 2px solid #fff;
   box-shadow: none;
 }
+
 .tabcontent {
   display: none;
   padding: 15px;
@@ -358,113 +155,33 @@ button:hover {
   border-radius: 0 8px 8px 8px;
   background-color: #fff;
 }
-/* Container principal - largeur normale pour les formulaires */
-.container {
-  max-width: 1200px;
+
+/* --- Aperçu des photos --- */
+.photo-preview-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
 }
 
-/* Onglet aperçu - largeur étendue et responsive */
-#tab-apercu.tabcontent {
-  max-width: 95vw;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Grille photos responsive */
 .photo-grid {
   display: grid;
   gap: 1rem;
   padding: 1rem;
   max-height: 70vh;
   overflow-y: auto;
-  
-  /* Responsive grid columns */
-  grid-template-columns: 
-    repeat(auto-fill, minmax(120px, 1fr)); /* Mobile par défaut */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
 
-/* Responsive breakpoints */
-@media (min-width: 640px) {
-  /* Tablettes */
-  .photo-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  #tab-apercu.tabcontent {
-    max-width: 90vw;
-  }
+.photo-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-@media (min-width: 768px) {
-  /* Desktop petit */
-  .photo-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 2rem;
-  }
-  
-  #tab-apercu.tabcontent {
-    max-width: 85vw;
-  }
-}
-
-@media (min-width: 1024px) {
-  /* Desktop moyen */
-  .photo-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 2rem;
-  }
-  
-  #tab-apercu.tabcontent {
-    max-width: 90vw;
-  }
-}
-
-@media (min-width: 1280px) {
-  /* Desktop large */
-  .photo-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 2.5rem;
-  }
-  
-  #tab-apercu.tabcontent {
-    max-width: 95vw;
-  }
-}
-
-/* Améliorer l'expérience mobile pour les autres onglets aussi */
-@media (max-width: 639px) {
-  .container {
-    max-width: 95vw;
-    padding: 1rem;
-  }
-  
-  /* Améliorer les formulaires sur mobile */
-  fieldset {
-    padding: 1rem;
-  }
-  
-  input, select, button {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-  
-  /* Tabs responsive */
-  .tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-  
-  .tablink {
-    flex: 1;
-    min-width: calc(50% - 0.125rem);
-    font-size: 0.875rem;
-    padding: 0.5rem 0.25rem;
-  }
-}
-
-/* Optimisation des images dans la grille */
 .photo-tile img {
   width: 100%;
   height: auto;
@@ -478,16 +195,78 @@ button:hover {
   transform: scale(1.05);
 }
 
-/* Améliorer le conteneur principal responsive */
-.photo-preview-section {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+/* --- Messages de statut (pour les imports) --- */
+.status-message {
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
+.status-success {
+  background-color: #dcfce7;
+  color: #166534;
+  border-left: 4px solid #22c55e;
+}
+
+.status-error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-left: 4px solid #ef4444;
+}
+
+.status-warning {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-left: 4px solid #f59e0b;
+}
+
+.status-info {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border-left: 4px solid #3b82f6;
+}
+
+/* --- GLightbox (visionneuse) --- */
+.glightbox-container {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+}
+
+/* --- Responsive --- */
 @media (max-width: 639px) {
+  .container {
+    max-width: 95vw;
+    padding: 1rem;
+  }
+  
+  fieldset {
+    padding: 1rem;
+  }
+  
+  input, select, button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .tabs {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .tablink {
+    flex: 1;
+    min-width: calc(50% - 0.125rem);
+    font-size: 0.875rem;
+    padding: 0.5rem 0.25rem;
+  }
+
   .photo-preview-section {
     padding: 0.5rem;
     max-height: 60vh;
@@ -496,5 +275,6 @@ button:hover {
   .photo-grid {
     padding: 0.5rem;
     gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
