@@ -20,58 +20,49 @@ def find_usb_mount_point():
     for base_path in possible_paths:
         if base_path.exists():
             for mount in base_path.rglob("*"):
-                if mount.is_dir() and any(f.is_file() and is_image_file(f.name) for f in mount.iterdir() if f.is_file()):
-                    return mount
+                try:
+                    if mount.is_dir() and any(f.is_file() and is_image_file(f.name) for f in mount.iterdir() if f.is_file()):
+                        return mount
+                except (OSError, PermissionError):
+                    # Ignorer les dossiers inaccessibles
+                    continue
     return None
 
 def import_usb_photos():
-    """Version améliorée avec meilleur feedback"""
-    yield "[RECHERCHE] Recherche de clés USB connectées...\n"
-    time.sleep(1)  # Simuler le temps de recherche
+    """Importe les photos depuis une clé USB et retourne des objets structurés (dict) pour le suivi."""
+    yield {"type": "progress", "stage": "SEARCHING", "percent": 5, "message": "Recherche de clés USB connectées..."}
+    time.sleep(1)
     
     usb_path = find_usb_mount_point()
     if not usb_path:
-        yield "[ERREUR] Aucune clé USB avec des images détectée.\n"
-        yield "[INFO] Vérifiez que la clé USB est bien connectée et contient des fichiers image.\n"
+        yield {"type": "error", "message": "Aucune clé USB avec des images détectée. Vérifiez la connexion."}
         return
 
-    yield f"[DETECTE] Clé USB détectée : {usb_path}\n"
-    yield "[NETTOYAGE] Nettoyage du dossier de destination...\n"
+    yield {"type": "progress", "stage": "DETECTED", "percent": 10, "message": f"Clé USB détectée : {usb_path}"}
 
-    # Nettoyage du dossier cible
+    yield {"type": "progress", "stage": "CLEANING", "percent": 15, "message": "Nettoyage du dossier de destination..."}
     if TARGET_DIR.exists():
         shutil.rmtree(TARGET_DIR)
     TARGET_DIR.mkdir(parents=True, exist_ok=True)
 
-    yield "[SCAN] Scan des images sur la clé USB...\n"
+    yield {"type": "progress", "stage": "SCANNING", "percent": 20, "message": "Analyse des images sur la clé USB..."}
     
-    # Récupération des fichiers image avec feedback
     image_files = []
-    scanned_dirs = 0
-    
     for root, dirs, files in os.walk(usb_path):
-        scanned_dirs += 1
-        if scanned_dirs % 10 == 0:  # Feedback tous les 10 dossiers
-            yield f"[SCAN] Scan en cours... {scanned_dirs} dossiers analysés\n"
-        
         for filename in files:
             if is_image_file(filename):
                 image_files.append(Path(root) / filename)
 
     total = len(image_files)
     if total == 0:
-        yield "[ERREUR] Aucune image compatible trouvée sur la clé USB.\n"
-        yield "[INFO] Formats supportés : JPG, JPEG, PNG, GIF\n"
+        yield {"type": "error", "message": "Aucune image compatible trouvée sur la clé USB (formats supportés : JPG, JPEG, PNG, GIF)."}
         return
 
-    yield f"[STATS] {total} images trouvées, début de l'import...\n"
+    yield {"type": "stats", "stage": "STATS", "percent": 25, "message": f"{total} images trouvées, début de l'import...", "total": total}
 
-    # Copie avec progression améliorée
     for i, file_path in enumerate(image_files):
         try:
             dest_file = TARGET_DIR / file_path.name
-            
-            # Éviter les doublons en renommant si nécessaire
             counter = 1
             original_dest = dest_file
             while dest_file.exists():
@@ -82,13 +73,14 @@ def import_usb_photos():
             
             shutil.copy2(file_path, dest_file)
             
-            progress = int((i + 1) / total * 80)  # 80% max pour l'import
-            
-            # Messages de progression plus détaillés
-            if (i + 1) % max(1, total // 10) == 0 or i == total - 1:
-                yield f"[IMPORT] Import en cours... {progress}% ({i + 1}/{total} photos)\n"
-            
+            # La copie représente la phase de 25% à 80%
+            percent = 25 + int(((i + 1) / total) * 55)
+            yield {
+                "type": "progress", "stage": "COPYING", "percent": percent,
+                "message": f"Copie en cours... ({i + 1}/{total})",
+                "current": i + 1, "total": total
+            }
         except Exception as e:
-            yield f"[ALERTE] Impossible de copier {file_path.name} : {str(e)}\n"
+            yield {"type": "warning", "message": f"Impossible de copier {file_path.name} : {str(e)}"}
 
-    yield f"[INFO] {total} photos importées depuis la clé USB.\n"
+    yield {"type": "done", "stage": "IMPORT_COMPLETE", "percent": 80, "message": f"{total} photos importées.", "total_imported": total}
