@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import signal
 import psutil
 
@@ -40,11 +41,19 @@ def start_slideshow():
     env["XDG_RUNTIME_DIR"] = env.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
     env["WAYLAND_DISPLAY"] = env.get("WAYLAND_DISPLAY", "wayland-1")
 
+    # Créer le dossier de logs et rediriger la sortie du diaporama pour le débogage
+    os.makedirs("logs", exist_ok=True)
+    stdout_log = open("logs/slideshow_stdout.log", "a")
+    stderr_log = open("logs/slideshow_stderr.log", "a")
+
+    # Utiliser le même exécutable python que celui qui lance l'application web
+    # pour garantir que le diaporama s'exécute dans le même environnement (venv).
+    python_executable = sys.executable
     # Lance le diaporama
     proc = subprocess.Popen(
-        ["python3", "local_slideshow.py"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        [python_executable, "local_slideshow.py"],
+        stdout=stdout_log,
+        stderr=stderr_log,
         env=env
     )
 
@@ -77,3 +86,4 @@ def stop_slideshow():
 
     # 3. Éteindre l’écran proprement
     subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "disable"])
+
