@@ -58,7 +58,7 @@
 
 <div class="tabs">
   <button class="tablink active" onclick="openTab(event, 'tab-affichage')">Affichage</button>
-  <button class="tablink" onclick="openTab(event, 'tab-heure')">Heure</button>
+  <button class="tablink" onclick="openTab(event, 'tab-heure')">Heure & Météo</button>
   <button class="tablink" onclick="openTab(event, 'tab-sources')">Sources des photos</button>
   <button class="tablink" onclick="openTab(event, 'tab-apercu')">Aperçu</button>
   <button class="tablink" onclick="openTab(event, 'tab-actions')">Actions</button>
@@ -81,10 +81,20 @@
 
         <label for="screen_height_percent">Hauteur utile de l'écran (% affiché) :</label>
         <input type="number" id="screen_height_percent" name="screen_height_percent" min="10" max="100" value="{{ config.screen_height_percent }}">
+
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False) %}checked{% endif %}>
+                Activer l'effet Pan/Zoom sur les photos
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="pan_zoom_factor" style="min-width: 200px;">Amplitude du zoom (ex: 1.15 pour 15% de zoom) :</label>
+            <input type="number" step="0.01" id="pan_zoom_factor" name="pan_zoom_factor" value="{{ config.get('pan_zoom_factor', 1.15) }}">
+        </div>
     </fieldset>
 </div>
 
- 
                     
 <div id="tab-heure" class="tabcontent">
     <fieldset>
@@ -145,7 +155,70 @@
                           {% endfor %}
                         </select>
                       </div>
-           </fieldset>
+                      <div style="margin-bottom: 8px;">
+                        <label>
+                          <input type="checkbox" name="clock_background_enabled" {% if config.get('clock_background_enabled', False) %}checked{% endif %}>
+                          Afficher un fond derrière l'heure/date/météo
+                        </label>
+                      </div>
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_background_color" style="min-width: 200px;">Couleur du fond (hex RGBA) :</label>
+                        <input type="text" name="clock_background_color" value="{{ config.get('clock_background_color', '#00000080') }}">
+                      </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><strong>Affichage de la date</strong></legend>
+        <div style="margin-bottom: 8px;">
+            <label>
+                <input type="checkbox" name="show_date" {% if config.get('show_date', False) %}checked{% endif %}>
+                Afficher la date (sous l'heure)
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="date_format" style="min-width: 200px;">Format de la date :</label>
+            <input type="text" name="date_format" value="{{ config.get('date_format', '%A %d %B %Y') }}">
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><strong>Affichage de la météo (OpenWeatherMap)</strong></legend>
+
+        <div style="margin-bottom: 8px;">
+            <label>
+                <input type="checkbox" name="show_weather" {% if config.get('show_weather', False) %}checked{% endif %}>
+                Afficher la météo
+            </label>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_city" style="min-width: 200px;">Ville :</label>
+            <input type="text" id="weather_city" name="weather_city" value="{{ config.get('weather_city', 'Paris') }}">
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_api_key" style="min-width: 200px;">Clé API :</label>
+            <input type="text" id="weather_api_key" name="weather_api_key" value="{{ config.get('weather_api_key', '') }}">
+        </div>
+        
+        <div class="mt-2 mb-4">
+            <button type="button" id="testWeatherApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm">Tester la clé API et la ville</button>
+            <span id="weatherApiTestResult" class="ml-4 font-medium"></span>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_units" style="min-width: 200px;">Unités :</label>
+            <select name="weather_units">
+                <option value="metric" {% if config.get('weather_units') == 'metric' %}selected{% endif %}>Celsius</option>
+                <option value="imperial" {% if config.get('weather_units') == 'imperial' %}selected{% endif %}>Fahrenheit</option>
+            </select>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_update_interval_minutes" style="min-width: 200px;">Intervalle de MàJ (min) :</label>
+            <input type="number" name="weather_update_interval_minutes" value="{{ config.get('weather_update_interval_minutes', 30) }}">
+        </div>
+    </fieldset>
 </div>
 
 
@@ -165,16 +238,85 @@
                         <label for="immich_token">Token d'accès Immich :</label>
                         <input type="text" id="immich_token" name="immich_token" value="{{ config.immich_token }}">
 
+                        <hr class="my-4">
+                        <h5 class="text-lg font-semibold mt-2">Mise à jour automatique (Immich)</h5>
+                        <div class="form-check form-switch my-3">
+                            <input class="form-check-input" type="checkbox" id="immich_auto_update" name="immich_auto_update" {% if config.get('immich_auto_update') %}checked{% endif %}>
+                            <label class="form-check-label" for="immich_auto_update">Activer la mise à jour automatique</label>
+                        </div>
+                        <label for="immich_update_interval_hours">Intervalle de mise à jour (heures):</label>
+                        <input type="number" id="immich_update_interval_hours" name="immich_update_interval_hours" value="{{ config.get('immich_update_interval_hours', 24) }}" min="1">
+
+                        <div id="immich-worker-status-container" class="mt-4 p-3 bg-gray-100 rounded-lg border">
+                            <p><strong>État du service :</strong> <span id="immich-worker-status-message" class="font-mono">...</span></p>
+                            <p><strong>Dernière mise à jour :</strong> <span id="immich-last-update-time" class="font-mono">...</span></p>
+                            <p><strong>Prochaine mise à jour :</strong> <span id="immich-next-update-time" class="font-mono">...</span></p>
+                        </div>
 
 
+    </fieldset>
 
-     </fieldset>
+    <fieldset class="mt-4">
+        <legend><h3>Sources à afficher dans le diaporama</h3></legend>
+        <p class="mb-3 text-gray-700">Sélectionnez les sources de photos à inclure dans le diaporama. Les photos seront mélangées entre les sources sélectionnées.</p>
+
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_immich" name="display_sources" value="immich" {% if 'immich' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_immich">Photos Immich</label>
+        </div>
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_usb" name="display_sources" value="usb" {% if 'usb' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_usb">Photos USB</label>
+        </div>
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_samba" name="display_sources" value="samba" {% if 'samba' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_samba">Photos Samba</label>
+        </div>
+    </fieldset>
+    <fieldset class="mt-4">
+        <legend><h3>Configuration du partage Samba (Windows)</h3></legend>
+        <label for="smb_host">Serveur :</label>
+        <input type="text" id="smb_host" name="smb_host" value="{{ config.get('smb_host', '') }}" placeholder="ex: 192.168.1.50 ou MON-NAS">
+
+        <label for="smb_share">Nom du partage :</label>
+        <input type="text" id="smb_share" name="smb_share" value="{{ config.get('smb_share', '') }}" placeholder="ex: Photos">
+
+        <label for="smb_path">Chemin dans le partage (optionnel) :</label>
+        <input type="text" id="smb_path" name="smb_path" value="{{ config.get('smb_path', '') }}" placeholder="ex: Famille/2024">
+
+        <label for="smb_user">Nom d'utilisateur (optionnel) :</label>
+        <input type="text" id="smb_user" name="smb_user" value="{{ config.get('smb_user', '') }}">
+
+        <label for="smb_password">Mot de passe (optionnel) :</label>
+        <input type="password" id="smb_password" name="smb_password" value="{{ config.get('smb_password', '') }}">
+
+        <div class="mt-4">
+            <button type="button" id="samba-test-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Tester la connexion</button>
+            <span id="samba-test-status" class="ml-4 font-medium"></span>
+        </div>
+
+        <hr class="my-4">
+        <h5 class="text-lg font-semibold mt-2">Mise à jour automatique (Samba)</h5>
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="smb_auto_update" name="smb_auto_update" {% if config.get('smb_auto_update') %}checked{% endif %}>
+            <label class="form-check-label" for="smb_auto_update">Activer la mise à jour automatique</label>
+        </div>
+        <label for="smb_update_interval_hours">Intervalle de mise à jour (heures):</label>
+        <input type="number" id="smb_update_interval_hours" name="smb_update_interval_hours" value="{{ config.get('smb_update_interval_hours', 24) }}" min="1">
+
+        <div id="samba-worker-status-container" class="mt-4 p-3 bg-gray-100 rounded-lg border">
+            <p><strong>État du service :</strong> <span id="samba-worker-status-message" class="font-mono">...</span></p>
+            <p><strong>Dernière mise à jour :</strong> <span id="samba-last-update-time" class="font-mono">...</span></p>
+            <p><strong>Prochaine mise à jour :</strong> <span id="samba-next-update-time" class="font-mono">...</span></p>
+        </div>
+
+    </fieldset>
 </div>
 
    
-    <button type="submit" class="save-button">Enregistrer</button>
+    <button type="submit" class="save-button">Enregistrer les modifications</button>
 
-</form> 
+</form>
 
 <div id="tab-actions" class="tabcontent">
     <fieldset>
@@ -211,7 +353,20 @@
                                       </div>
                                     </div>
                                     
-                                    <div id="immich-import-status" class="mt-4 space-y-1 text-sm font-medium"></div>
+                                    <div id="immich-import-status" class="mt-4 space-y-1 text-sm font-medium text-gray-700 max-h-48 overflow-y-auto"></div>
+
+                                   <button id="samba-import-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded mt-4">Importer depuis Samba</button>
+
+                                    <div id="samba-progress-container" class="w-full bg-gray-300 rounded mt-4 h-6 overflow-hidden shadow-inner border border-gray-400 hidden">
+                                      <div id="samba-progress-bar"
+                                           class="h-full text-white text-center whitespace-nowrap transition-all duration-500 ease-in-out"
+                                           style="width: 0%; background: linear-gradient(90deg, #e11d48, #be123c); box-shadow: 0 0 10px #e11d48;">
+                                        0%
+                                      </div>
+                                    </div>
+                                    
+                                    <div id="samba-import-status" class="mt-4 space-y-1 text-sm font-medium text-gray-700 max-h-48 overflow-y-auto"></div>
+
 
 
                     <form method="POST" action="/reboot">
@@ -240,27 +395,33 @@
             
             
 <div id="tab-apercu" class="tabcontent">
-    {% if photos %}
-    <fieldset class="photo-preview-section">
-        <legend>Aperçu des photos préparées</legend>
-        
+    <fieldset>
+        <legend><h3>Aperçu des photos préparées</h3></legend>
+        <p class="text-gray-600 mb-4">Voici les photos qui sont prêtes à être affichées par le diaporama, classées par source. Cliquez sur une photo pour l'agrandir.</p>
 
-            <div class="photo-grid">
-                {% for photo in photos %}
-                <div class="photo-tile">
-                    <a href="{{ url_for('static', filename='prepared/' + photo) }}" class="glightbox" data-gallery="gallery1">
-                      <img src="{{ url_for('static', filename='prepared/' + photo) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition">
-                    </a>
-                    <button class="delete-button" data-photo="{{ photo }}" title="Supprimer">✖</button>
-
-                </div>
-              
-                {% endfor %}
-            </div>
-            
-  </fieldset>
+        {% if prepared_photos_by_source and prepared_photos_by_source.values()|map('count')|sum > 0 %}
+            {% for source_name, photos in prepared_photos_by_source.items() %}
+                {% if photos %}
+                <fieldset class="mb-6 p-4 border rounded-lg bg-gray-50/50">
+                    <legend class="text-xl font-semibold px-2 text-gray-800">{{ source_name.capitalize() }}</legend>
+                        <div class="photo-grid">
+                            {% for photo in photos %}
+                            <div class="photo-tile">
+                                <a href="{{ url_for('static', filename='prepared/' + photo) }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ photo }}">
+                                  <img src="{{ url_for('static', filename='prepared/' + photo) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition" alt="Photo from {{ source_name }}">
+                                </a>
+                                <button class="delete-button" data-photo="{{ photo }}" title="Supprimer cette photo">✖</button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                </fieldset>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-gray-500 italic mt-4">Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet "Actions".</p>
         {% endif %}
-</div>  
+    </fieldset>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>
@@ -389,79 +550,6 @@ const lightbox = GLightbox({
   });
 </script>
 
-<!-- CSS additionnel pour améliorer le comportement -->
-<style>
-/* S'assurer que GLightbox reste centré dans la zone visible */
-.glightbox-container {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 9999 !important;
-}
-
-/* Ajuster la grille pour une meilleure expérience */
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-  max-height: 60vh; /* Limiter la hauteur de la grille */
-  overflow-y: auto; /* Scroll si nécessaire */
-}
-
-.photo-tile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Améliorer l'apparence du conteneur d'aperçu */
-.photo-preview-section {
-  max-height: 70vh;
-  overflow-y: auto;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-}
-
-/* Styles pour les messages de statut */
-.status-message {
-  padding: 0.5rem;
-  margin: 0.25rem 0;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-success {
-  background-color: #dcfce7;
-  color: #166534;
-  border-left: 4px solid #22c55e;
-}
-
-.status-error {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border-left: 4px solid #ef4444;
-}
-
-.status-warning {
-  background-color: #fef3c7;
-  color: #d97706;
-  border-left: 4px solid #f59e0b;
-}
-
-.status-info {
-  background-color: #eff6ff;
-  color: #2563eb;
-  border-left: 4px solid #3b82f6;
-}
-</style>
-
 <script>
 // Scripts d'import améliorés avec feedback détaillé
 document.addEventListener("DOMContentLoaded", () => {
@@ -473,21 +561,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return div;
     }
 
-    function displayMessage(container, message) {
-        let messageType = 'info';
-        
-        // Déterminer le type de message basé sur le contenu
-        if (message.includes('Erreur') || message.toLowerCase().includes('error')) {
-            messageType = 'error';
-        } else if (message.includes('Terminé') || message.includes('Succès') || message.toLowerCase().includes('success')) {
-            messageType = 'success';
-        } else if (message.includes('Attention') || message.toLowerCase().includes('warning')) {
-            messageType = 'warning';
-        } else if (message.includes('Recherche') || message.includes('Téléchargement') || message.includes('Traitement')) {
-            messageType = 'info';
-        }
-        
-        const messageElement = createStyledMessage(message, messageType);
+    function displayMessage(container, message, type = 'info') {
+        // Utilise le type fourni par le serveur ('info', 'success', 'warning', 'error')
+        // pour choisir la bonne couleur de message.
+        const messageElement = createStyledMessage(message, type);
         container.appendChild(messageElement);
         container.scrollTop = container.scrollHeight;
     }
@@ -516,75 +593,39 @@ document.addEventListener("DOMContentLoaded", () => {
         const eventSource = new EventSource('/import-usb');
 
         eventSource.onmessage = (event) => {
-            const line = event.data.trim();
-            if (!line) return;
-
-            // Annuler le timeout précédent
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-                timeoutId = null;
-            }
-
-            // Recherche du pourcentage dans le message
-            const match = line.match(/^(\d+)%\s+(.*)/);
-            if (match) {
-                const percent = parseInt(match[1], 10);
-                const message = match[2];
-
-                progressBar.style.width = `${percent}%`;
-                progressBar.textContent = `${percent}%`;
+            try {
+                const data = JSON.parse(event.data);
                 
-                displayMessage(statusDiv, line);
+                progressBar.style.width = `${data.percent || 0}%`;
+                progressBar.textContent = `${data.percent || 0}%`;
+                
+                displayMessage(statusDiv, data.message, data.type);
 
-                if (percent >= 100 || message.includes("terminé") || message.includes("Terminé")) {
-                    importTermine = true;
+                if (data.type === 'done' || data.type === 'error') {
                     eventSource.close();
-                    
-                    // Réactiver le bouton après succès
                     setTimeout(() => {
                         btn.disabled = false;
                         btn.textContent = "Importer les photos depuis la clé USB";
                         btn.classList.remove("opacity-50", "cursor-not-allowed");
-                        
                         progressContainer.classList.add("hidden");
                         statusDiv.innerHTML = "";
                     }, 5000);
                 }
-            } else {
-                displayMessage(statusDiv, line);
-                
-                // Vérifier les messages de fin sans pourcentage
-                if (line.includes("terminé") || line.includes("Terminé")) {
-                    importTermine = true;
-                    eventSource.close();
-                    
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.textContent = "Importer les photos depuis la clé USB";
-                        btn.classList.remove("opacity-50", "cursor-not-allowed");
-                        
-                        progressContainer.classList.add("hidden");
-                        statusDiv.innerHTML = "";
-                    }, 5000);
-                }
+            } catch (e) {
+                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
             }
         };
 
         eventSource.onerror = () => {
             eventSource.close();
-            
-            if (!importTermine) {
-                displayMessage(statusDiv, "Erreur de connexion au serveur");
-                
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.textContent = "Importer les photos depuis la clé USB";
-                    btn.classList.remove("opacity-50", "cursor-not-allowed");
-                    
-                    progressContainer.classList.add("hidden");
-                    statusDiv.innerHTML = "";
-                }, 5000);
-            }
+            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import USB.", 'error');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "Importer les photos depuis la clé USB";
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                progressContainer.classList.add("hidden");
+                statusDiv.innerHTML = "";
+            }, 5000);
         };
     });
 
@@ -594,95 +635,189 @@ document.addEventListener("DOMContentLoaded", () => {
         const progressBar = document.getElementById("immich-progress-bar");
         const progressContainer = document.getElementById("immich-progress-container");
         const statusDiv = document.getElementById("immich-import-status");
-
         // Désactiver le bouton pendant l'import
         btn.disabled = true;
         btn.textContent = "Import en cours...";
         btn.classList.add("opacity-50", "cursor-not-allowed");
-
         // Reset de l'interface
         progressBar.style.width = "0%";
         progressBar.textContent = "0%";
         progressContainer.classList.remove("hidden");
         statusDiv.innerHTML = "";
         
-        let importTermine = false;
-        let timeoutId = null;
-
         const eventSource = new EventSource('/import-immich');
 
         eventSource.onmessage = (event) => {
-            const line = event.data.trim();
-            if (!line) return;
-
-            // Annuler le timeout précédent
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-                timeoutId = null;
-            }
-
-            // Recherche du pourcentage dans le message
-            const match = line.match(/^(\d+)%\s+(.*)/);
-            if (match) {
-                const percent = parseInt(match[1], 10);
-                const message = match[2];
-
-                progressBar.style.width = `${percent}%`;
-                progressBar.textContent = `${percent}%`;
+            try {
+                const data = JSON.parse(event.data);
                 
-                displayMessage(statusDiv, line);
+                progressBar.style.width = `${data.percent || 0}%`;
+                progressBar.textContent = `${data.percent || 0}%`;
+                
+                displayMessage(statusDiv, data.message, data.type);
 
-                if (percent >= 100 || message.includes("terminé") || message.includes("Terminé")) {
-                    importTermine = true;
+                if (data.type === 'done' || data.type === 'error') {
                     eventSource.close();
-                    
-                    // Réactiver le bouton après succès
                     setTimeout(() => {
                         btn.disabled = false;
                         btn.textContent = "Importer les photos depuis Immich";
                         btn.classList.remove("opacity-50", "cursor-not-allowed");
-                        
                         progressContainer.classList.add("hidden");
                         statusDiv.innerHTML = "";
                     }, 5000);
                 }
-            } else {
-                displayMessage(statusDiv, line);
-                
-                // Vérifier les messages de fin sans pourcentage
-                if (line.includes("terminé") || line.includes("Terminé")) {
-                    importTermine = true;
-                    eventSource.close();
-                    
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.textContent = "Importer les photos depuis Immich";
-                        btn.classList.remove("opacity-50", "cursor-not-allowed");
-                        
-                        progressContainer.classList.add("hidden");
-                        statusDiv.innerHTML = "";
-                    }, 5000);
-                }
+            } catch (e) {
+                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
             }
         };
 
         eventSource.onerror = () => {
             eventSource.close();
-            
-            if (!importTermine) {
-                displayMessage(statusDiv, "Erreur de connexion au serveur");
-                
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.textContent = "Importer les photos depuis Immich";
-                    btn.classList.remove("opacity-50", "cursor-not-allowed");
-                    
-                    progressContainer.classList.add("hidden");
-                    statusDiv.innerHTML = "";
-                }, 5000);
-            }
+            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import Immich.", 'error');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "Importer les photos depuis Immich";
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                progressContainer.classList.add("hidden");
+                statusDiv.innerHTML = "";
+            }, 5000);
         };
     });
+
+    // ----- IMPORT SAMBA -----
+    document.getElementById("samba-import-btn").addEventListener("click", () => {
+        const btn = document.getElementById("samba-import-btn");
+        const progressBar = document.getElementById("samba-progress-bar");
+        const progressContainer = document.getElementById("samba-progress-container");
+        const statusDiv = document.getElementById("samba-import-status");
+
+        btn.disabled = true;
+        btn.textContent = "Import en cours...";
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        progressContainer.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+
+        const eventSource = new EventSource('/import-samba');
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                progressBar.style.width = `${data.percent || 0}%`;
+                progressBar.textContent = `${data.percent || 0}%`;
+                
+                displayMessage(statusDiv, data.message, data.type);
+
+                if (data.type === 'done' || data.type === 'error') {
+                    eventSource.close();
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer depuis Samba";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
+            } catch (e) {
+                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+            }
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import Samba.", 'error');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "Importer depuis Samba";
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                progressContainer.classList.add("hidden");
+                statusDiv.innerHTML = "";
+            }, 5000);
+        };
+    });
+
+    // ----- TEST SAMBA CONNECTION -----
+    document.getElementById("samba-test-btn").addEventListener("click", async () => {
+        const btn = document.getElementById("samba-test-btn");
+        const statusSpan = document.getElementById("samba-test-status");
+
+        // Get values from the form
+        const host = document.getElementById("smb_host").value;
+        const share = document.getElementById("smb_share").value;
+        const path = document.getElementById("smb_path").value;
+        const user = document.getElementById("smb_user").value;
+        const password = document.getElementById("smb_password").value;
+
+        // Provide immediate feedback
+        statusSpan.textContent = "Test en cours...";
+        statusSpan.className = "ml-4 font-medium text-blue-600";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/test-samba', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    smb_host: host,
+                    smb_share: share,
+                    smb_path: path,
+                    smb_user: user,
+                    smb_password: password
+                }),
+            });
+
+            const result = await response.json();
+
+            statusSpan.textContent = result.message;
+            statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
+
+        } catch (error) {
+            statusSpan.textContent = "Erreur de communication avec le serveur.";
+            statusSpan.className = "ml-4 font-medium text-red-600";
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // ----- TEST WEATHER API -----
+    const testWeatherBtn = document.getElementById("testWeatherApiKeyBtn");
+    if (testWeatherBtn) {
+        testWeatherBtn.addEventListener("click", async () => {
+            const btn = testWeatherBtn;
+            const statusSpan = document.getElementById("weatherApiTestResult");
+
+            const apiKey = document.getElementById("weather_api_key").value;
+            const city = document.getElementById("weather_city").value;
+
+            statusSpan.textContent = "Test en cours...";
+            statusSpan.className = "ml-4 font-medium text-blue-600";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/test-weather-api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: apiKey, city: city }),
+                });
+
+                const result = await response.json();
+
+                statusSpan.textContent = result.message;
+                statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
+
+            } catch (error) {
+                statusSpan.textContent = "Erreur de communication avec le serveur.";
+                statusSpan.className = "ml-4 font-medium text-red-600";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
 });
 </script>
 
