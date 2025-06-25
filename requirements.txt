@@ -3,3 +3,5 @@ requests==2.31.0
 Pillow==10.1.0
 pygame
 psutil
+pillow-heif
+smbprotocol
