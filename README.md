@@ -22,19 +22,23 @@
 
 - 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web
 - ✅📂 Support de la clé USB 
-- ✅⏰Affichage de l’heure 
+- ✅⏰Affichage de l’heure, date
 - ✅🗂️ Réorganisation de la page de configuration en onglets  
-- 🔁 Mise à jour automatique périodique de l’album Immich
+- ✅🔁 Mise à jour automatique périodique de l’album Immich
 - ✅📱 Interface de configuration en onglets
 - ✅📱 Support du format HEIC photo Apple
-- 📁 Support du protocole SMB pour accéder à des photos partagées en réseau  
+- ✅📁 Support du protocole SMB pour accéder à des photos partagées en réseau
+- ✅ 🖼️ Effet de transition
+- ✅ 🖼️ Effet Pan zoom sur les photoq
+- ✅ 🖼️ détection de la réslution  
 
 ## 💡 Idées pour les versions suivantes
 
 - 📱 Création d’une APK Android pour contrôler le cadre  
-- 🌤️ Affichage de la météo sur l’écran  
+- ✅🌤️ Affichage de la météo sur l’écran  (openweathermap.org)
 - 🌍 Traductions de l’interface (multi-langues)  
-
+- 📱 envoie de photo depuis un smatrtphone
+- photo souvenir du jour mis en avant
 
 
 # 🖼️ Pimmich – Cadre photo connecté intelligent
