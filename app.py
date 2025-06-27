@@ -9,15 +9,18 @@ import time
 import requests
 import threading
 from datetime import datetime, timedelta
+from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify, g
 from pathlib import Path
 
-# Modules internes
 from utils.download_album import download_and_extract_album
 from utils.auth import login_required
 from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow
+from utils.slideshow_manager import HDMI_OUTPUT # Pour la détection de résolution
+from utils.wifi_manager import set_wifi_config # Import the new utility
 from utils.prepare_all_photos import prepare_all_photos_with_progress
 from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
 from utils.import_samba import import_samba_photos
+
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -25,8 +28,8 @@ app.secret_key = 'supersecretkey'
 # Chemins de config
 CONFIG_PATH = 'config/config.json'
 CREDENTIALS_PATH = '/boot/firmware/credentials.json'
+CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
 
-# --- Gestionnaire d'état pour les workers ---
 class WorkerStatus:
     def __init__(self):
         self.lock = threading.Lock()
@@ -54,15 +57,13 @@ class WorkerStatus:
 immich_status_manager = WorkerStatus()
 samba_status_manager = WorkerStatus()
 
-
-# --- Fonctions utilitaires ---
-
 def get_screen_resolution():
     """
     Détecte la résolution de l'écran principal via swaymsg.
     Retourne (width, height) ou (1920, 1080) en cas d'erreur.
     """
     default_width = 1920
+    default_height = 1080
     default_height = 1080
     try:
         # Assurer que SWAYSOCK est défini
@@ -77,7 +78,10 @@ def get_screen_resolution():
                 print("SWAYSOCK non trouvé, utilisation de la résolution par défaut.")
                 return default_width, default_height
 
-        result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True)
+        # Utiliser HDMI_OUTPUT du slideshow_manager pour cibler la bonne sortie
+        # ou chercher la sortie active si HDMI_OUTPUT n'est pas suffisant.
+        # Pour l'instant, on se base sur la sortie active.
+        result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True, env=os.environ)
         outputs = json.loads(result.stdout)
         
         for output in outputs:
@@ -145,7 +149,6 @@ def load_credentials():
 def check_credentials(username, password):
     credentials = load_credentials()
     return username == credentials.get("username") and password == credentials.get("password")
-
 def create_default_config():
     """Crée et retourne un dictionnaire de configuration par défaut."""
     return {
@@ -157,10 +160,15 @@ def create_default_config():
         "immich_url": "",
         "immich_token": "",
         "album_name": "",
+        "display_width": 1920,  # Nouvelle option: largeur d'affichage cible
+        "display_height": 1080, # Nouvelle option: hauteur d'affichage cible
         "pan_zoom_factor": 1.15, # New option
         "immich_auto_update": False,
         "immich_update_interval_hours": 24,
         "pan_zoom_enabled": False, # New option
+        "transition_enabled": True, # New option: transition enabled by default
+        "transition_type": "fade", # New option: default transition type
+        "transition_duration": 1.0, # New option
         "smb_host": "",
         "smb_share": "",
         "smb_user": "",
@@ -184,6 +192,8 @@ def create_default_config():
         "show_weather": True, # Re-added
         "weather_api_key": "", # Re-added
         "weather_city": "Paris", # Re-added
+        "wifi_ssid": "", # New: Wi-Fi SSID
+        "wifi_password": "", # New: Wi-Fi Password
         "weather_units": "metric", # Re-added
         "weather_update_interval_minutes": 60, # Re-added
     }
@@ -257,7 +267,7 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        if check_credentials(request.form['username'], request.form['password']):
+        if check_credentials(request.form['username'], request.form['password']): # type: ignore
             session['logged_in'] = True
             flash("Connexion réussie", "success")
             return redirect(url_for('configure'))
@@ -275,6 +285,7 @@ def logout():
 # --- Configuration & gestion diaporama ---
 
 @app.route('/configure', methods=['GET', 'POST'])
+@login_required
 def configure():
     config = load_config()
 
@@ -290,16 +301,22 @@ def configure():
             'clock_format', 'clock_offset_x', 'clock_offset_y',
             'clock_background_color',
             'clock_outline_color', 'clock_font_path', 'clock_position',
+            'display_width', 'display_height', # Ajout des nouvelles clés
+            'transition_enabled', # Added transition_enabled
+            'transition_type', # Added transition_type
+            'transition_duration', # Added transition_duration            
             'pan_zoom_factor', # Added pan_zoom_factor
             'immich_update_interval_hours', 'date_format', 
             'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes', # Re-added
             'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password',
             'smb_update_interval_hours'
-        ]:
+            # New Wi-Fi fields
+            , 'wifi_ssid', 'wifi_password'
+        ]: 
             if key in request.form:
                 value = request.form.get(key)
                 # Gérer les champs numériques
-                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours']: # Integer fields
+                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height']: # Integer fields
                     try:
                         config[key] = int(value)
                     except (ValueError, TypeError):
@@ -309,13 +326,24 @@ def configure():
                         config[key] = float(value)
                     except (ValueError, TypeError):
                         config[key] = 1.0 # Default to no zoom
+                elif key in ['transition_duration']: # Float fields
+                    try:
+                        config[key] = float(value)
+                    except (ValueError, TypeError):
+                        config[key] = 0.0 # Default to no transition
                 else: # Gérer les champs texte
                     config[key] = value
         
+        # Détecter et sauvegarder la résolution actuelle de l'écran
+        detected_width, detected_height = get_screen_resolution()
+        config['display_width'] = detected_width
+        config['display_height'] = detected_height
+        print(f"Résolution d'écran détectée : {detected_width}x{detected_height}. Sauvegarde dans la configuration.")
         # Gérer la clé display_sources (checkboxes)
         # request.form.getlist() retourne une liste vide si aucune checkbox avec ce nom n'est cochée.
         config['display_sources'] = request.form.getlist('display_sources')
         config["pan_zoom_enabled"] = 'pan_zoom_enabled' in request.form # New checkbox handling
+        config["transition_enabled"] = 'transition_enabled' in request.form # New checkbox handling
         config["clock_background_enabled"] = 'clock_background_enabled' in request.form
 
         # Traitement des checkboxes
@@ -326,14 +354,28 @@ def configure():
         config["show_date"] = 'show_date' in request.form
         config["show_weather"] = 'show_weather' in request.form
         save_config(config)
-        stop_slideshow()
-        start_slideshow()
+        stop_slideshow() # Stop slideshow to apply new config
+        start_slideshow() # Start slideshow with new config
         flash("Configuration enregistrée et diaporama relancé", "success")
         return redirect(url_for('configure'))
 
     slideshow_running = any(
         'local_slideshow.py' in (p.info['cmdline'] or []) for p in psutil.process_iter(attrs=['cmdline'])
     )
+
+    # Test de la connexion Wi-Fi au chargement de la page
+    wifi_status = "Inconnu"
+    try:
+        # Ceci est une vérification très basique, vous pouvez l'améliorer
+        # en vérifiant l'interface wlan0 ou en pingant une adresse externe.
+        # Pour l'instant, nous allons juste vérifier si les champs sont remplis.
+        if config.get("wifi_ssid"):
+            wifi_status = "Configuré (état non vérifié)"
+        else:
+            wifi_status = "Non configuré"
+    except Exception as e:
+        wifi_status = f"Erreur de vérification : {e}"
+
     prepared_photos_by_source = get_prepared_photos_by_source()
 
     return render_template(
@@ -350,15 +392,15 @@ def progress():
     def generate():
         def stream_event(data):
             """Formate les données en événement Server-Sent Event (SSE)."""
-            return f"data: {json.dumps(data)}\n\n"
+            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
         screen_width, screen_height = get_screen_resolution()
 
         try:
             # --- Étape 1: Import depuis la clé USB ---
             for update in import_usb_photos():
-                if update.get("type") == "error":
-                    yield stream_event(update)
+                if update.get("type") == "error": # type: ignore
+                    yield stream_event({"type": "error", "message": update.get("message")})
                     return  # Arrêter le flux en cas d'erreur
                 
                 # Simplifier l'événement pour le client, ne garder que l'essentiel
@@ -370,7 +412,7 @@ def progress():
             # --- Étape 2: Compter les photos et préparer ---
             source_dir = Path("static/photos")
             photo_files = [f for f in source_dir.iterdir() if f.is_file() and f.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif']]
-            total_photos = len(photo_files)
+            total_photos = len(photo_files) # This count is for the source_dir, not necessarily what was imported
 
             if total_photos > 0:
                 yield stream_event({
@@ -391,7 +433,7 @@ def progress():
                         yield stream_event(main_progress_update)
                     # Les avertissements et erreurs sont transmis directement
                     elif update.get("type") in ["warning", "error"]:
-                        yield stream_event(update)
+                        yield stream_event({"type": update.get("type"), "message": update.get("message")})
                 yield stream_event({
                     "type": "done", "percent": 100,
                     "message": f"Import terminé ! {total_photos} photos sont prêtes."
@@ -416,24 +458,23 @@ def import_immich():
     @stream_with_context
     def generate():
         def stream_event(data):
-            """Formate les données en événement Server-Sent Event (SSE)."""
-            return f"data: {json.dumps(data)}\n\n"
+            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
         screen_width, screen_height = get_screen_resolution()
 
         try:
             # --- Étape 1: Téléchargement depuis Immich ---
             for update in download_and_extract_album(config):
-                if update.get("type") == "error":
-                    yield stream_event(update)
+                if update.get("type") == "error": # type: ignore
+                    yield stream_event({"type": "error", "message": update.get("message")})
                     return  # Stop on error
-
+                
                 # Simplifier l'événement pour le client, ne garder que l'essentiel
                 if update.get("type") in ["progress", "done"]:
                     yield stream_event({"type": "progress", "percent": update.get("percent"), "message": update.get("message")})
                 elif update.get("type") == "warning":
                     yield stream_event(update)
-
+            
             # --- Étape 2: Compter les photos et préparer ---
             source_dir = Path("static/photos")
             photo_files = [f for f in source_dir.iterdir() if f.is_file() and f.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif']]
@@ -450,15 +491,15 @@ def import_immich():
                     if update.get("type") == "progress":
                         prep_percent = update.get("percent", 0)
                         # Créer un message de progression unifié pour le front-end
-                        main_progress_update = {
-                            "type": "progress",
+                        main_progress_update = { # Keep type as progress for client-side handling
+                            "type": "progress", # Keep type as progress for client-side handling
                             "percent": 80 + int(prep_percent * 0.20), # Pourcentage mis à l'échelle
                             "message": f"Préparation de {total_photos} photos pour l'affichage..."
                         }
                         yield stream_event(main_progress_update)
                     # Les avertissements et erreurs sont transmis directement
                     elif update.get("type") in ["warning", "error"]:
-                        yield stream_event(update)
+                        yield stream_event({"type": update.get("type"), "message": update.get("message")})
                 yield stream_event({
                     "type": "done", "percent": 100,
                     "message": f"Import Immich terminé ! {total_photos} photos sont prêtes."
@@ -482,23 +523,23 @@ def import_samba():
     @stream_with_context
     def generate():
         def stream_event(data):
-            return f"data: {json.dumps(data)}\n\n"
+            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
         screen_width, screen_height = get_screen_resolution()
 
         try:
             # --- Étape 1: Import depuis Samba ---
             for update in import_samba_photos(config):
-                if update.get("type") == "error":
-                    yield stream_event(update)
+                if update.get("type") == "error": # type: ignore
+                    yield stream_event({"type": "error", "message": update.get("message")})
                     return
 
-                # Simplifier l'événement pour le client, ne garder que l'essentiel
+                # Simplifier l'événement pour le client, ne garder que'l'essentiel
                 if update.get("type") in ["progress", "done"]:
                     yield stream_event({"type": "progress", "percent": update.get("percent"), "message": update.get("message")})
                 elif update.get("type") == "warning":
                     yield stream_event(update)
-
+            
             # --- Étape 2: Compter les photos et préparer ---
             source_dir = Path("static/photos")
             photo_files = [f for f in source_dir.iterdir() if f.is_file() and f.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif']]
@@ -516,14 +557,14 @@ def import_samba():
                         prep_percent = update.get("percent", 0)
                         # Créer un message de progression unifié pour le front-end
                         main_progress_update = {
-                            "type": "progress",
+                            "type": "progress", 
                             "percent": 80 + int(prep_percent * 0.20), # Pourcentage mis à l'échelle
                             "message": f"Préparation de {total_photos} photos pour l'affichage..."
                         }
                         yield stream_event(main_progress_update)
                     # Les avertissements et erreurs sont transmis directement
                     elif update.get("type") in ["warning", "error"]:
-                        yield stream_event(update)
+                        yield stream_event({"type": update.get("type"), "message": update.get("message")})
                 yield stream_event({"type": "done", "percent": 100, "message": f"Import Samba terminé ! {total_photos} photos prêtes."})
             else:
                 yield stream_event({"type": "warning", "message": "Aucune photo n'a été importée ou trouvée."})
@@ -546,15 +587,15 @@ def test_samba_connection():
     path_in_share = data.get("smb_path", "")
     user = data.get("smb_user")
     password = data.get("smb_password")
-
+    
     if not all([server, share]):
         return jsonify({"success": False, "message": "Le serveur et le nom du partage sont requis."})
-
+    
     full_samba_path = f"\\\\{server}\\{share}\\{path_in_share}".replace('/', '\\')
-
+    
     try:
         if user and password:
-            register_session(server, username=user, password=password)
+            path.register_session(server, username=user, password=password) # type: ignore
         
         if path.exists(full_samba_path):
             return jsonify({"success": True, "message": "Connexion réussie ! Le chemin a été trouvé."})
@@ -579,7 +620,7 @@ def test_weather_api():
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
 
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=5) # type: ignore
         if response.status_code == 200:
             return jsonify({"success": True, "message": "Clé API et ville valides !"})
         elif response.status_code == 401:
@@ -616,7 +657,7 @@ def download_photos():
     try:
         config = load_config()
         # Note: download_and_extract_album is now a generator. This call will do nothing.
-        # This route seems to be a simple POST fallback and might need to be updated or removed.
+        # This route seems to be a simple POST fallback and might need to be updated or removed. (Translated comment)
         flash("Photos téléchargées avec succès", "success")
     except Exception as e:
         flash(f"Erreur téléchargement : {e}", "danger")
@@ -636,9 +677,9 @@ def immich_update_worker():
         interval_hours = config.get("immich_update_interval_hours", 24)
         
         if is_enabled:
-            message = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
-            print(f"[Auto-Update Immich] {message}")
-            immich_status_manager.update_status(message=message)
+            status_msg = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
+            print(f"[Auto-Update Immich] {status_msg}")
+            immich_status_manager.update_status(message=status_msg)
             
             try:
                 immich_status_manager.update_status(message="Lancement du téléchargement...")
@@ -658,7 +699,8 @@ def immich_update_worker():
                 # Étape 2: Préparation et redémarrage du diaporama
                 if download_success:
                     immich_status_manager.update_status(message="Préparation des photos...")
-                    screen_width, screen_height = get_screen_resolution() # Récupérer la résolution
+                    screen_width = config.get("display_width", 1920) # Utiliser la résolution configurée
+                    screen_height = config.get("display_height", 1080) # Utiliser la résolution configurée
                     prep_successful = False
                     for update in prepare_all_photos_with_progress(screen_width, screen_height, "immich"):
                         immich_status_manager.update_status(message=update.get('message', '')) # Update status with preparation message
@@ -684,9 +726,9 @@ def immich_update_worker():
                 immich_status_manager.update_status(message=f"Erreur : {e}")
 
         else:
-            message = "Mise à jour automatique désactivée."
-            print(f"[Auto-Update Immich] {message}")
-            immich_status_manager.update_status(message=message)
+            status_msg = "Mise à jour automatique désactivée."
+            print(f"[Auto-Update Immich] {status_msg}")
+            immich_status_manager.update_status(message=status_msg)
         
         # Attendre avant la prochaine vérification
         sleep_seconds = (interval_hours * 3600) if is_enabled else (15 * 60)
@@ -707,9 +749,9 @@ def samba_update_worker():
         interval_hours = config.get("smb_update_interval_hours", 24)
         
         if is_enabled:
-            message = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
-            print(f"[Auto-Update Samba] {message}")
-            samba_status_manager.update_status(message=message)
+            status_msg = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
+            print(f"[Auto-Update Samba] {status_msg}")
+            samba_status_manager.update_status(message=status_msg)
             
             try:
                 samba_status_manager.update_status(message="Lancement de l'import...")
@@ -727,16 +769,14 @@ def samba_update_worker():
 
                 if import_success:
                     samba_status_manager.update_status(message="Préparation des photos...")
-                    screen_width, screen_height = get_screen_resolution() # Récupérer la résolution
+                    screen_width = config.get("display_width", 1920) # Utiliser la résolution configurée
+                    screen_height = config.get("display_height", 1080) # Utiliser la résolution configurée
                     prep_successful = False
                     for update in prepare_all_photos_with_progress(screen_width, screen_height, "samba"):
                         samba_status_manager.update_status(message=update.get('message', '')) # Update status with preparation message
-                        if update.get("type") == "error":
-                            print(f"[Auto-Update Samba - Prepare] Erreur lors de la préparation : {update.get('message')}")
-                            samba_status_manager.update_status(message=f"Erreur préparation: {update.get('message')}")
-                            break # Arrêter la préparation en cas d'erreur critique
-                        elif update.get("type") == "warning":
-                            print(f"[Auto-Update Samba - Prepare] Avertissement lors de la préparation : {update.get('message')}")
+                        if update.get("type") == "error": # This block is already handled by the outer loop
+                            samba_status_manager.update_status(message=f"Erreur préparation: {update.get('message')}") # This update is redundant if outer loop handles it
+                            break # This break is also redundant if outer loop handles it
                         if update.get("type") == "done":
                             prep_successful = True
                     
@@ -767,13 +807,13 @@ def samba_update_worker():
 @login_required
 def import_usb_progress():
     @stream_with_context
-    def generate():
+    def generate(): # type: ignore
         try:
             yield "Import depuis la clé USB...\n"
             import_usb_photos()
             yield "Préparation des photos...\n"
             prepare_all_photos()
-            yield "TerminÃ©. (100%)\n"
+            yield "Terminé. (100%)\n"
         except Exception as e:
             yield f"Erreur : {str(e)}\n"
     return Response(generate(), mimetype="text/plain")
@@ -807,7 +847,7 @@ def toggle_slideshow():
         start_slideshow()
         config['manual_override'] = True  # Forcer le demarrage manuel
 
-    save_config(config)
+    save_config(config) # Save config after manual override
 
     return redirect(url_for('configure'))
     
@@ -819,7 +859,7 @@ def delete_photo(photo):
         photo_path = os.path.join('static', 'prepared', photo)
         if os.path.isfile(photo_path):
             os.remove(photo_path)
-            return '', 204
+            return '', 204 # type: ignore
         return 'Not found', 404
     except Exception as e:
         return str(e), 500
@@ -837,8 +877,138 @@ def reboot():
     os.system('sudo reboot')
     return redirect(url_for('configure'))
 
+@app.route('/get_current_resolution')
+@login_required
+def get_current_resolution_route():
+    """
+    Endpoint pour récupérer la résolution de l'écran si le diaporama est actif.
+    """
+    if not is_slideshow_running():
+        return jsonify({"success": False, "message": "Le diaporama doit être actif pour détecter la résolution."})
+    
+    width, height = get_screen_resolution()
+    
+    if width and height:
+         return jsonify({"success": True, "width": width, "height": height})
+    else:
+         return jsonify({"success": False, "message": "Impossible de détecter la résolution."})
 
+@app.route('/current_photo_status')
+@login_required
+def current_photo_status():
+    """Retourne le chemin de la photo en cours d'affichage."""
+    if not is_slideshow_running():
+        return jsonify({"current_photo": None, "status": "stopped"})
+
+    try:
+        if os.path.exists(CURRENT_PHOTO_FILE):
+            with open(CURRENT_PHOTO_FILE, "r") as f:
+                photo_path = f.read().strip()
+            if photo_path:
+                # Construire l'URL complète pour l'attribut src de l'image
+                return jsonify({"current_photo": url_for('static', filename=photo_path), "status": "running"})
+    except Exception as e:
+        print(f"Erreur lecture fichier photo actuelle : {e}")
+        
+    return jsonify({"current_photo": None, "status": "running"})
+
+@app.route('/save_wifi_settings', methods=['POST'])
+@login_required
+def save_wifi_settings():
+    ssid = request.form.get('wifi_ssid')
+    password = request.form.get('wifi_password')
+
+    if not ssid:
+        flash("Le SSID Wi-Fi ne peut pas être vide.", "danger")
+        return redirect(url_for('configure'))
+
+    try:
+        # Sauvegarder les paramètres dans la config.json
+        config = load_config()
+        config['wifi_ssid'] = ssid
+        config['wifi_password'] = password
+        save_config(config)
+
+        # Appliquer les paramètres Wi-Fi au système
+        set_wifi_config(ssid, password)
+        flash("Paramètres Wi-Fi enregistrés et appliqués. Le Raspberry Pi va tenter de se connecter.", "success")
+    except Exception as e:
+        flash(f"Erreur lors de l'application des paramètres Wi-Fi : {e}", "danger")
+    return redirect(url_for('configure'))
 # --- Lancement de l'application ---
+
+@app.route('/api/system_info')
+@login_required
+def get_system_info_api():
+    """Retourne les informations système (température, CPU, RAM, stockage) en JSON."""
+    try:
+        # Température CPU
+        cpu_temp = "N/A"
+        try:
+            # Essai avec vcgencmd (spécifique Raspberry Pi)
+            temp_output = subprocess.check_output(['vcgencmd', 'measure_temp']).decode('utf-8')
+            match = re.search(r"temp=(\d+\.?\d*)'C", temp_output)
+            if match:
+                cpu_temp = f"{float(match.group(1)):.1f}°C"
+            else:
+                # Fallback pour les systèmes Linux génériques
+                with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                    temp_raw = int(f.read())
+                    cpu_temp = f"{temp_raw / 1000:.1f}°C"
+        except Exception:
+            try: # Second fallback if first generic fails
+                with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                    temp_raw = int(f.read())
+                    cpu_temp = f"{temp_raw / 1000:.1f}°C"
+            except Exception:
+                pass # Keep N/A
+
+        # Utilisation CPU
+        cpu_usage = f"{psutil.cpu_percent(interval=0.1)}%" # Short interval for quick snapshot
+
+        # Utilisation RAM
+        ram = psutil.virtual_memory()
+        ram_usage = f"{ram.percent}% ({ram.used / (1024**3):.1f}GB / {ram.total / (1024**3):.1f}GB)"
+
+        # Utilisation Disque
+        disk = psutil.disk_usage('/')
+        disk_usage = f"{disk.percent}% ({disk.used / (1024**3):.1f}GB / {disk.total / (1024**3):.1f}GB)"
+
+        return jsonify({
+            "success": True,
+            "cpu_temp": cpu_temp,
+            "cpu_usage": cpu_usage,
+            "ram_usage": ram_usage,
+            "disk_usage": disk_usage
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route('/api/logs')
+@login_required
+def get_logs_api():
+    """Retourne le contenu d'un fichier de log spécifié."""
+    log_type = request.args.get('type', 'app')
+    log_file_path = ""
+
+    if log_type == 'app':
+        log_file_path = "logs/log_app.txt"
+    elif log_type == 'slideshow_stdout':
+        log_file_path = "logs/slideshow_stdout.log"
+    elif log_type == 'slideshow_stderr':
+        log_file_path = "logs/slideshow_stderr.log"
+    else:
+        return jsonify({"success": False, "message": "Type de log invalide."})
+
+    try:
+        with open(log_file_path, 'r') as f:
+            content = f.read()
+        return jsonify({"success": True, "content": content})
+    except FileNotFoundError:
+        return jsonify({"success": False, "message": f"Fichier de log '{log_file_path}' non trouvé."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
 if __name__ == '__main__':
     # Démarrer les workers de mise à jour dans des threads séparés
     immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
