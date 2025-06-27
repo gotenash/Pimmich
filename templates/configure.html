@@ -8,6 +8,8 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <!-- GLightbox CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="relative min-h-screen">
 
@@ -62,6 +64,7 @@
   <button class="tablink" onclick="openTab(event, 'tab-sources')">Sources des photos</button>
   <button class="tablink" onclick="openTab(event, 'tab-apercu')">Aperçu</button>
   <button class="tablink" onclick="openTab(event, 'tab-actions')">Actions</button>
+  <button class="tablink" onclick="openTab(event, 'tab-system')">Système</button>
 </div>
 
 <form method="POST" action="/configure">
@@ -82,6 +85,15 @@
         <label for="screen_height_percent">Hauteur utile de l'écran (% affiché) :</label>
         <input type="number" id="screen_height_percent" name="screen_height_percent" min="10" max="100" value="{{ config.screen_height_percent }}">
 
+        <div class="flex items-center mt-2">
+            <div class="flex-grow">
+                <label for="display_width">Largeur d'affichage cible (px) :</label>
+                <input type="number" id="display_width" name="display_width" value="{{ config.get('display_width', 1920) }}">
+                <label for="display_height" class="mt-2">Hauteur d'affichage cible (px) :</label>
+                <input type="number" id="display_height" name="display_height" value="{{ config.get('display_height', 1080) }}">
+            </div>
+            <button type="button" id="detect-resolution-btn" class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded text-sm" title="Détecter la résolution de l'écran actif">Détecter</button>
+        </div>
         <div style="margin-top: 16px;">
             <label>
                 <input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False) %}checked{% endif %}>
@@ -91,6 +103,26 @@
         <div style="display: flex; align-items: center; margin-top: 8px;">
             <label for="pan_zoom_factor" style="min-width: 200px;">Amplitude du zoom (ex: 1.15 pour 15% de zoom) :</label>
             <input type="number" step="0.01" id="pan_zoom_factor" name="pan_zoom_factor" value="{{ config.get('pan_zoom_factor', 1.15) }}">
+        </div>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="transition_enabled" {% if config.get('transition_enabled', True) %}checked{% endif %}>
+                Activer l'effet de transition entre les photos
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="transition_duration" style="min-width: 200px;">Durée de transition (secondes) :</label>
+            <input type="number" step="0.1" id="transition_duration" name="transition_duration" value="{{ config.get('transition_duration', 1.0) }}">
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="transition_type" style="min-width: 200px;">Type de transition :</label>
+            <select name="transition_type" id="transition_type">
+                <option value="fade" {% if config.get('transition_type') == 'fade' %}selected{% endif %}>Fondu enchaîné</option>
+                <option value="slide_left" {% if config.get('transition_type') == 'slide_left' %}selected{% endif %}>Glisser depuis la gauche</option>
+                <option value="slide_right" {% if config.get('transition_type') == 'slide_right' %}selected{% endif %}>Glisser depuis la droite</option>
+                <option value="slide_up" {% if config.get('transition_type') == 'slide_up' %}selected{% endif %}>Glisser depuis le bas</option>
+                <option value="slide_down" {% if config.get('transition_type') == 'slide_down' %}selected{% endif %}>Glisser depuis le haut</option>
+            </select>
         </div>
     </fieldset>
 </div>
@@ -320,77 +352,108 @@
 
 <div id="tab-actions" class="tabcontent">
     <fieldset>
-        <legend><h3>Actions</h3></legend>
-                    <form method="POST" action="/toggle_slideshow">
-                        <button type="submit">
-                            {% if slideshow_running %} Arrêter{% else %} Démarrer{% endif %} le diaporama
-                        </button>
-                    </form>
+    <legend><h3>Actions</h3></legend>
 
-                                       <button id="usb-import-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-lg mt-6 shadow-lg transition duration-300 ease-in-out">Importer les photos depuis la clé USB
-                                        </button>
+        <div class="action-group">
+            <h4>Aperçu en direct</h4>
+            <div id="live-preview-container" class="mt-2 p-3 bg-gray-100 rounded-lg border text-center">
+                <p id="live-preview-status" class="text-gray-500 italic">Le diaporama est arrêté.</p>
+                <img id="live-preview-image" src="" alt="Photo en cours" class="hidden mt-2 mx-auto max-w-xs max-h-48 rounded shadow">
+            </div>
+        </div>
+
+        <div class="action-group">
+            <h4>Gestion du diaporama</h4>
+            <form method="POST" action="/toggle_slideshow">
+                <button type="submit" class="{% if slideshow_running %}bg-red-500 hover:bg-red-700{% else %}bg-green-500 hover:bg-green-700{% endif %} text-white font-bold py-2 px-4 rounded">
+                    {% if slideshow_running %}
+                    <i class="fas fa-stop"></i> Arrêter le diaporama
+                    {% else %}
+                    <i class="fas fa-play"></i> Démarrer le diaporama
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+
+        <div class="action-group">
+            <h4>Importation des photos</h4>
+            <button id="usb-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-file-import"></i> Importer depuis la clé USB
+            </button>
+            <div id="usb-progress-container" class="progress-container hidden">
+                <div id="usb-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="usb-import-status" class="status-messages"></div>
+
+            <button id="immich-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-cloud-download-alt"></i> Importer depuis Immich
+            </button>
+            <div id="immich-progress-container" class="progress-container hidden">
+                <div id="immich-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="immich-import-status" class="status-messages"></div>
                                         
-                                        <div id="usb-progress-container" class="w-full bg-gray-300 rounded mt-4 h-6 overflow-hidden shadow-inner border border-gray-400 hidden">
-                                            <div id="usb-progress-bar" 
-                                                 class="h-full text-white text-center whitespace-nowrap transition-all duration-500 ease-in-out"
-                                                 style="width: 0%; background: linear-gradient(90deg, #e11d48, #be123c); box-shadow: 0 0 10px #e11d48;">
-                                              0%
-                                            </div>
-                                          </div>
-                                        
-                                        <div id="usb-import-status" class="mt-4 space-y-1 text-sm font-medium text-gray-700 max-h-48 overflow-y-auto"></div>
-
-
-
-                                   <button id="immich-import-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded mt-4"> Importer les photos depuis Immich
-                                    </button>
-                                    
-                                    <div id="immich-progress-container" class="w-full bg-gray-300 rounded mt-4 h-6 overflow-hidden shadow-inner border border-gray-400 hidden">
-                                      <div id="immich-progress-bar"
-                                           class="h-full text-white text-center whitespace-nowrap transition-all duration-500 ease-in-out"
-                                           style="width: 0%; background: linear-gradient(90deg, #e11d48, #be123c); box-shadow: 0 0 10px #e11d48;">
-                                        0%
-                                      </div>
-                                    </div>
-                                    
-                                    <div id="immich-import-status" class="mt-4 space-y-1 text-sm font-medium text-gray-700 max-h-48 overflow-y-auto"></div>
-
-                                   <button id="samba-import-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded mt-4">Importer depuis Samba</button>
-
-                                    <div id="samba-progress-container" class="w-full bg-gray-300 rounded mt-4 h-6 overflow-hidden shadow-inner border border-gray-400 hidden">
-                                      <div id="samba-progress-bar"
-                                           class="h-full text-white text-center whitespace-nowrap transition-all duration-500 ease-in-out"
-                                           style="width: 0%; background: linear-gradient(90deg, #e11d48, #be123c); box-shadow: 0 0 10px #e11d48;">
-                                        0%
-                                      </div>
-                                    </div>
-                                    
-                                    <div id="samba-import-status" class="mt-4 space-y-1 text-sm font-medium text-gray-700 max-h-48 overflow-y-auto"></div>
-
-
-
-                    <form method="POST" action="/reboot">
-                        <button type="submit">Redémarrer le système</button>
-                    </form>
-
-                    <form method="POST" action="/shutdown">
-                        <button type="submit">Éteindre le système</button>
-                    </form>
+            <button id="samba-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-network-wired"></i> Importer depuis Samba
+            </button>
+            <div id="samba-progress-container" class="progress-container hidden">
+                <div id="samba-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="samba-import-status" class="status-messages"></div>
+        </div>
   </fieldset>
-
-
-  <fieldset>
-                    <legend><h3>Crédits</h3></legend>
-                    <div class="credits">
-                        <img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120">
-                        <p>Auteurs : Gotenash et Shenron</p>
-                        <a href="https://www.gadgetaulab.fr">
-                            <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" width="120">
-                        </a>
-                        <p>Projet réalisé dans le cadre du Gadgetaulab</p>
-                    </div>
-    </fieldset>
 </div>
+
+<style>
+.action-group {
+    margin-bottom: 20px;
+}
+.action-group h4 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #555;
+}
+                                        
+/* Styles pour les boutons d'import et de contrôle système */
+.import-button, .system-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Styles pour la barre de progression et les messages de statut */
+.progress-container {
+    width: 100%;
+    background-color: #f3f4f6; /* Tailwind's gray-100 */
+    border-radius: 0.5rem;
+    margin-top: 0.75rem;
+    height: 1.5rem;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d1d5db; /* Tailwind's gray-300 */
+}
+
+.progress-bar {
+    height: 100%;
+    text-align: center;
+    white-space: nowrap;
+    transition: width 0.3s ease;
+    color: white;
+    font-weight: 500;
+    background-image: linear-gradient(90deg, #a855f7, #6366f1); /* Indigo-400 et Indigo-500 */
+    box-shadow: 0 0 5px rgba(107, 114, 142, 0.5); /* Ombre subtile */
+}
+
+.status-messages {
+    margin-top: 0.75rem;
+    max-height: 10rem;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    color: #6b7280; /* Tailwind's gray-500 */
+}
+
+</style>
             
             
             
@@ -420,6 +483,82 @@
         {% else %}
             <p class="text-center text-gray-500 italic mt-4">Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet "Actions".</p>
         {% endif %}
+    </fieldset>
+</div>
+
+<div id="tab-system" class="tabcontent">
+    <fieldset>
+        <legend><h3>Configuration Wi-Fi</h3></legend>
+        <form action="{{ url_for('save_wifi_settings') }}" method="post">
+            <div class="mb-3">
+                <label for="wifi_ssid" class="form-label">SSID Wi-Fi</label>
+                <input type="text" class="form-control" id="wifi_ssid" name="wifi_ssid" value="{{ config.wifi_ssid }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="wifi_password" class="form-label">Mot de passe Wi-Fi</label>
+                <input type="password" class="form-control" id="wifi_password" name="wifi_password" value="{{ config.wifi_password }}">
+                <small class="form-text text-muted">Laissez vide si le réseau est ouvert.</small>
+            </div>
+            <button type="submit" class="btn btn-primary bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Appliquer les paramètres Wi-Fi</button>
+        </form>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Contrôle du système</h3></legend>
+        <form method="POST" action="/reboot" onsubmit="return confirm('Êtes-vous sûr de vouloir REDÉMARRER le système ?');">
+            <button type="submit" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded">
+                <i class="fas fa-sync-alt"></i> Redémarrer le système
+            </button>
+        </form>
+        <form method="POST" action="/shutdown" onsubmit="return confirm('Êtes-vous sûr de vouloir ÉTEINDRE le système ?');">
+            <button type="submit" class="system-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-power-off"></i> Éteindre le système
+            </button>
+        </form>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Informations Système</h3></legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Température CPU:</strong> <span id="cpu-temp">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Utilisation CPU:</strong> <span id="cpu-usage">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>RAM:</strong> <span id="ram-usage">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Stockage:</strong> <span id="disk-usage">Chargement...</span>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Logs Système</h3></legend>
+        <div class="mb-3">
+            <label for="log-selector" class="form-label">Sélectionner un log :</label>
+            <select id="log-selector" class="form-select">
+                <option value="app">app.py (Serveur Web)</option>
+                <option value="slideshow_stdout">local_slideshow.py (Diaporama - Sortie Standard)</option>
+                <option value="slideshow_stderr">local_slideshow.py (Diaporama - Erreurs)</option>
+            </select>
+            <button type="button" id="refresh-logs-btn" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-2">Actualiser</button>
+        </div>
+        <pre id="log-content" class="bg-gray-800 text-white p-4 rounded-lg overflow-auto text-sm" style="max-height: 400px; white-space: pre-wrap; word-break: break-all;"></pre>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Crédits</h3></legend>
+        <div class="credits">
+            <img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120" alt="Auteur Gotenash">
+            <p>Auteurs : Gotenash et Shenron</p>
+            <a href="https://www.gadgetaulab.fr">
+                <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" width="120" alt="Logo Gadgetaulab">
+            </a>
+            <p>Projet réalisé dans le cadre du Gadgetaulab</p>
+        </div>
     </fieldset>
 </div>
 
@@ -504,53 +643,7 @@ document.querySelectorAll('.delete-button').forEach(button => {
     }
   });
 });
-</script>
 
-<script>
-
-const lightbox = GLightbox({
-    selector: '.glightbox',
-    // Configuration pour forcer le centrage dans la zone visible
-    onOpen: () => {
-      // Scroll vers le haut de la zone d'aperçu quand la lightbox s'ouvre
-      const tabApercu = document.getElementById('tab-apercu');
-      if (tabApercu && tabApercu.style.display !== 'none') {
-        // Calculer la position du tab aperçu
-        const tabRect = tabApercu.getBoundingClientRect();
-        const scrollOffset = window.pageYOffset + tabRect.top;
-        
-        // Scroll fluide vers le début de la zone aperçu
-        window.scrollTo({
-          top: Math.max(0, scrollOffset - 100), // -100px pour un peu d'espace
-          behavior: 'smooth'
-        });
-      }
-    },
-    // Options de centrage
-    plyr: {
-      config: {
-        youtube: { noCookie: true, rel: 0, showinfo: 0, iv_load_policy: 3 }
-      }
-    },
-    // Centrage forcé
-    beforeSlideLoad: (slide, data) => {
-      // S'assurer que la lightbox apparaît dans la zone visible
-      setTimeout(() => {
-        const glightboxContainer = document.querySelector('.glightbox-container');
-        if (glightboxContainer) {
-          // Forcer le positionnement au centre de la zone visible actuelle
-          glightboxContainer.style.position = 'fixed';
-          glightboxContainer.style.top = '50%';
-          glightboxContainer.style.left = '50%';
-          glightboxContainer.style.transform = 'translate(-50%, -50%)';
-          glightboxContainer.style.zIndex = '9999';
-        }
-      }, 10);
-    }
-  });
-</script>
-
-<script>
 // Scripts d'import améliorés avec feedback détaillé
 document.addEventListener("DOMContentLoaded", () => {
     
@@ -605,7 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     eventSource.close();
                     setTimeout(() => {
                         btn.disabled = false;
-                        btn.textContent = "Importer les photos depuis la clé USB";
+                        btn.textContent = "Importer depuis la clé USB";
                         btn.classList.remove("opacity-50", "cursor-not-allowed");
                         progressContainer.classList.add("hidden");
                         statusDiv.innerHTML = "";
@@ -621,7 +714,7 @@ document.addEventListener("DOMContentLoaded", () => {
             displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import USB.", 'error');
             setTimeout(() => {
                 btn.disabled = false;
-                btn.textContent = "Importer les photos depuis la clé USB";
+                btn.textContent = "Importer depuis la clé USB";
                 btn.classList.remove("opacity-50", "cursor-not-allowed");
                 progressContainer.classList.add("hidden");
                 statusDiv.innerHTML = "";
@@ -811,13 +904,199 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
 
             } catch (error) {
-                statusSpan.textContent = "Erreur de communication avec le serveur.";
+            statusSpan.textContent = "Erreur de communication avec le serveur.";
                 statusSpan.className = "ml-4 font-medium text-red-600";
             } finally {
                 btn.disabled = false;
             }
         });
     }
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Fonction pour formater les dates ISO en format lisible
+    function formatDateTime(isoString) {
+        if (!isoString) return "N/A";
+        const date = new Date(isoString);
+        // Options pour un format français lisible
+        const options = {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false // Format 24h
+        };
+        return date.toLocaleString('fr-FR', options);
+    }
+
+    // Fonction générique pour récupérer et afficher le statut d'un worker
+    async function fetchWorkerStatus(workerName, statusManagerId, lastRunId, nextRunId) {
+        try {
+            const response = await fetch(`/${workerName}_update_status`);
+            const data = await response.json();
+
+            document.getElementById(statusManagerId).textContent = data.status_message;
+            document.getElementById(lastRunId).textContent = formatDateTime(data.last_run);
+            document.getElementById(nextRunId).textContent = formatDateTime(data.next_run);
+
+        } catch (error) {
+            console.error(`Erreur lors de la récupération du statut ${workerName}:`, error);
+            document.getElementById(statusManagerId).textContent = "Erreur de connexion";
+            document.getElementById(lastRunId).textContent = "N/A";
+            document.getElementById(nextRunId).textContent = "N/A";
+        }
+    }
+
+    // Mise à jour initiale au chargement de la page
+    fetchWorkerStatus("immich", "immich-worker-status-message", "immich-last-update-time", "immich-next-update-time");
+    fetchWorkerStatus("samba", "samba-worker-status-message", "samba-last-update-time", "samba-next-update-time");
+
+    // Mise à jour périodique toutes les 5 secondes
+    setInterval(() => {
+        fetchWorkerStatus("immich", "immich-worker-status-message", "immich-last-update-time", "immich-next-update-time");
+        fetchWorkerStatus("samba", "samba-worker-status-message", "samba-last-update-time", "samba-next-update-time");
+    }, 5000); // 5000 ms = 5 secondes
+
+    // --- Détection de la résolution ---
+    const detectResBtn = document.getElementById("detect-resolution-btn");
+    const slideshowIsRunning = {{ slideshow_running|tojson }};
+
+    async function fetchAndSetResolution() {
+        const originalText = detectResBtn.innerHTML;
+        detectResBtn.innerHTML = 'Détection...';
+        detectResBtn.disabled = true;
+
+        try {
+            const response = await fetch('/get_current_resolution');
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('display_width').value = data.width;
+                document.getElementById('display_height').value = data.height;
+                detectResBtn.innerHTML = 'Détecté !';
+            } else {
+                alert(data.message || "Erreur lors de la détection.");
+                detectResBtn.innerHTML = originalText;
+            }
+        } catch (error) {
+            alert("Erreur de communication avec le serveur.");
+            detectResBtn.innerHTML = originalText;
+        } finally {
+            setTimeout(() => {
+                detectResBtn.innerHTML = originalText;
+                detectResBtn.disabled = !slideshowIsRunning;
+            }, 2000);
+        }
+    }
+
+    if (slideshowIsRunning) {
+        detectResBtn.disabled = false;
+        fetchAndSetResolution(); // Appel automatique au chargement de la page
+    } else {
+        detectResBtn.disabled = true;
+    }
+
+    detectResBtn.addEventListener("click", fetchAndSetResolution);
+
+    // --- Aperçu en direct ---
+    const livePreviewImage = document.getElementById('live-preview-image');
+    const livePreviewStatus = document.getElementById('live-preview-status');
+
+    async function updateLivePreview() {
+        try {
+            const response = await fetch('/current_photo_status');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            if (data.status === 'stopped') {
+                livePreviewStatus.textContent = 'Le diaporama est arrêté.';
+                livePreviewStatus.classList.remove('hidden');
+                livePreviewImage.classList.add('hidden');
+            } else {
+                if (data.current_photo) {
+                    // Mettre à jour la source de l'image uniquement si elle a changé
+                    if (livePreviewImage.src !== data.current_photo) {
+                         livePreviewImage.src = data.current_photo;
+                    }
+                    livePreviewStatus.classList.add('hidden');
+                    livePreviewImage.classList.remove('hidden');
+                } else {
+                    livePreviewStatus.textContent = 'En attente de la prochaine photo...';
+                    livePreviewStatus.classList.remove('hidden');
+                    livePreviewImage.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('Erreur de mise à jour de l\'aperçu en direct:', error);
+            livePreviewStatus.textContent = 'Erreur de connexion.';
+            livePreviewStatus.classList.remove('hidden');
+            livePreviewImage.classList.add('hidden');
+        }
+    }
+
+    // Mettre à jour toutes les 5 secondes et une fois au chargement
+    setInterval(updateLivePreview, 5000);
+    updateLivePreview();
+
+    // --- Informations Système et Logs ---
+    // Fonction pour récupérer et afficher les informations système
+    async function fetchSystemInfo() {
+        try {
+            const response = await fetch('/api/system_info');
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('cpu-temp').textContent = data.cpu_temp;
+                document.getElementById('cpu-usage').textContent = data.cpu_usage;
+                document.getElementById('ram-usage').textContent = data.ram_usage;
+                document.getElementById('disk-usage').textContent = data.disk_usage;
+            } else {
+                console.error("Erreur lors de la récupération des infos système:", data.message);
+                document.getElementById('cpu-temp').textContent = "N/A";
+                document.getElementById('cpu-usage').textContent = "N/A";
+                document.getElementById('ram-usage').textContent = "N/A";
+                document.getElementById('disk-usage').textContent = "N/A";
+            }
+        } catch (error) {
+            console.error("Erreur de communication avec l'API système:", error);
+            document.getElementById('cpu-temp').textContent = "Erreur";
+            document.getElementById('cpu-usage').textContent = "Erreur";
+            document.getElementById('ram-usage').textContent = "Erreur";
+            document.getElementById('disk-usage').textContent = "Erreur";
+        }
+    }
+
+    // Fonction pour récupérer et afficher les logs
+    async function fetchLogs() {
+        const logType = document.getElementById('log-selector').value;
+        try {
+            const response = await fetch(`/api/logs?type=${logType}`);
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('log-content').textContent = data.content;
+                document.getElementById('log-content').scrollTop = document.getElementById('log-content').scrollHeight; // Scroll to bottom
+            } else {
+                document.getElementById('log-content').textContent = `Erreur: ${data.message}`;
+            }
+        } catch (error) {
+            console.error("Erreur de communication avec l'API logs:", error);
+            document.getElementById('log-content').textContent = "Erreur de connexion à l'API des logs.";
+        }
+    }
+
+    // Mettre à jour les infos système toutes les 5 secondes
+    setInterval(fetchSystemInfo, 5000);
+    // Mettre à jour les logs toutes les 10 secondes (ou sur demande)
+    setInterval(fetchLogs, 10000);
+
+    // Écouteurs d'événements pour les logs
+    document.getElementById('log-selector').addEventListener('change', fetchLogs);
+    document.getElementById('refresh-logs-btn').addEventListener('click', fetchLogs);
+
+    // Appel initial au chargement de la page pour les infos système et les logs
+    fetchSystemInfo();
+    fetchLogs();
 });
 </script>
 
