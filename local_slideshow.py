@@ -13,6 +13,7 @@ from pathlib import Path
 # Définition des chemins
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PREPARED_BASE_DIR = Path(BASE_DIR) / 'static' / 'prepared'
+CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
 CONFIG_PATH = os.path.join(BASE_DIR, 'config', 'config.json')
 
 # Charger la configuration
@@ -81,7 +82,7 @@ def get_weather(config):
 
     print("[Weather] Tentative de récupération des données météo...")
     try:
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}&lang=fr"
+        url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}&lang=fr"
         print(f"[Weather] URL: {url}")
         response = requests.get(url, timeout=10)
         print(f"[Weather] Réponse reçue, statut: {response.status_code}")
@@ -142,8 +143,78 @@ def parse_color(hex_color):
     else:
         return (255, 255, 255) # Default to white if invalid
 
+# New function to perform a transition between two images
+def perform_transition(screen, old_image_surface, new_image_path, duration, screen_width, screen_height, main_font, config, transition_type):
+    clock = pygame.time.Clock()
+    fps = 60 # FPS for the transition
+    num_frames = int(duration * fps)
+    if num_frames == 0: # Avoid division by zero if duration is too small
+        num_frames = 1
+
+    # Load and prepare new image
+    new_pil_image = Image.open(new_image_path)
+    if new_pil_image.mode != 'RGB':
+        new_pil_image = new_pil_image.convert('RGB')
+
+    # Scale new image to fit the screen (maintain aspect ratio, center)
+    # This is the base image for the transition, not the pan/zoom scaled one
+    new_pil_image_scaled = new_pil_image.copy()
+    new_pil_image_scaled.thumbnail((screen_width, screen_height), Image.Resampling.LANCZOS)
+    
+    new_surface_scaled = pygame.Surface((screen_width, screen_height))
+    new_surface_scaled.fill((0,0,0)) # Black background for new image
+    
+    img_x = (screen_width - new_pil_image_scaled.width) // 2
+    img_y = (screen_height - new_pil_image_scaled.height) // 2
+    
+    new_surface_scaled.blit(pygame.image.fromstring(new_pil_image_scaled.tobytes(), new_pil_image_scaled.size, new_pil_image_scaled.mode), (img_x, img_y))
+
+    for i in range(num_frames + 1):
+        progress = i / num_frames # 0.0 to 1.0
+
+        if transition_type == "fade":
+            alpha = int(255 * progress)
+            temp_new_surface_with_alpha = new_surface_scaled.copy()
+            temp_new_surface_with_alpha.set_alpha(alpha)
+            screen.blit(old_image_surface, (0, 0))
+            screen.blit(temp_new_surface_with_alpha, (0, 0))
+        elif transition_type.startswith("slide_"):
+            # Determine slide direction
+            direction = transition_type.split("_")[1]
+            
+            # Calculate offset for the new image
+            offset_x, offset_y = 0, 0
+            if direction == "left":
+                offset_x = int(screen_width * (1 - progress)) # New image starts off-screen right, slides left
+            elif direction == "right":
+                offset_x = int(-screen_width * (1 - progress)) # New image starts off-screen left, slides right
+            elif direction == "up":
+                offset_y = int(screen_height * (1 - progress)) # New image starts off-screen bottom, slides up
+            elif direction == "down":
+                offset_y = int(-screen_height * (1 - progress)) # New image starts off-screen top, slides down
+            
+            screen.blit(old_image_surface, (0, 0)) # Draw old image first
+            screen.blit(new_surface_scaled, (offset_x, offset_y)) # Draw new image sliding in
+        else: # Fallback to fade if unknown type
+            screen.blit(old_image_surface, (0, 0))
+            screen.blit(new_surface_scaled, (0, 0)) # Just blit new image directly
+        
+        # Draw overlay during transition
+        draw_overlay(screen, screen_width, screen_height, config, main_font)
+
+        pygame.display.flip()
+        clock.tick(fps)
+
+    # Ensure the new image is fully blitted at the end of the transition
+    screen.blit(new_surface_scaled, (0, 0))
+    draw_overlay(screen, screen_width, screen_height, config, main_font)
+    pygame.display.flip()
+
+    return new_pil_image # Return the PIL image for further processing (pan/zoom)
+
 # New function to draw the overlay elements (clock, date, weather)
 def draw_overlay(screen, screen_width, screen_height, config, main_font):
+    now = datetime.now() # Définir 'now' ici pour l'utiliser dans cette fonction
 
     if config.get("show_clock", False):
         # --- Configuration (basée sur les paramètres de l'horloge pour un style unifié) ---
@@ -177,8 +248,8 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
                     ICON_DIR = PREPARED_BASE_DIR.parent / 'weather_icons'
                     ICON_DIR.mkdir(exist_ok=True)
                     icon_path = ICON_DIR / f"{icon_code}.png"
-                    if not icon_path.exists():
-                        icon_url = f"http://api.openweathermap.org/img/wn/{icon_code}@2x.png"
+                    if not icon_path.exists() or (_last_weather_fetch and (now - _last_weather_fetch).total_seconds() > 24 * 3600): # Re-download if older than 24h
+                        icon_url = f"https://openweathermap.org/img/wn/{icon_code}@2x.png"
                         icon_response = requests.get(icon_url, timeout=10) # Increased timeout for icon download
                         icon_response.raise_for_status()
                         with open(icon_path, "wb") as f:
@@ -253,22 +324,19 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
             current_x += el['surface'].get_width()
 
 # Fonction pour afficher une image et l'heure
-def show_image(image_path, screen, screen_width, screen_height, config, main_font):
+def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, config, main_font):
     """Affiche une image préparée et l'heure sur l'écran."""
     try:
-        # Open the prepared image. It should already be at the correct resolution (e.g., 1920x1080)
-        # and have the blur/padding applied if necessary by prepare_all_photos.py.
-        image = Image.open(image_path)
-        
         # Ensure it's in a compatible mode for Pygame (RGB is generally safe)
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
 
         pan_zoom_enabled = config.get("pan_zoom_enabled", False)
         display_duration = config.get("display_duration", 10)
+        print(f"[Slideshow] Using display_duration: {display_duration} seconds.") # Debug print
         
         # Always blit the base image first (this will be overwritten by animation if enabled)
-        pygame_image_base = pygame.image.fromstring(image.tobytes(), image.size, image.mode)
+        pygame_image_base = pygame.image.fromstring(pil_image.tobytes(), pil_image.size, pil_image.mode)
         screen.blit(pygame_image_base, (0, 0))
         
         if not pan_zoom_enabled: # If pan/zoom is disabled, just show static image
@@ -285,7 +353,7 @@ def show_image(image_path, screen, screen_width, screen_height, config, main_fon
             scaled_height = int(screen_height * zoom_factor)
 
             # Scale the image once using PIL for quality, then convert to Pygame surface
-            scaled_pil_image = image.resize((scaled_width, scaled_height), Image.Resampling.LANCZOS)
+            scaled_pil_image = pil_image.resize((scaled_width, scaled_height), Image.Resampling.LANCZOS)
             scaled_pygame_image = pygame.image.fromstring(scaled_pil_image.tobytes(), scaled_pil_image.size, scaled_pil_image.mode)
 
             # Define pan start and end points (offsets from top-left of scaled image to top-left of screen)
@@ -322,13 +390,12 @@ def show_image(image_path, screen, screen_width, screen_height, config, main_fon
                 screen.blit(scaled_pygame_image, (0, 0), (current_x, current_y, screen_width, screen_height))
 
                 # Draw overlay (clock/date/weather)
-                draw_overlay(screen, screen_width, screen_height, config, main_font) # Pass main_font
-
+                draw_overlay(screen, screen_width, screen_height, config, main_font)
                 pygame.display.flip()
                 clock.tick(60) # Limit frame rate to 60 FPS for smoother animation
                 
     except Exception as e:
-        print(f"Erreur affichage {image_path} : {e}")
+        print(f"Erreur affichage photo avec pan/zoom : {e}")
         traceback.print_exc()
 
 # Boucle principale du diaporama
@@ -373,10 +440,16 @@ def start_slideshow():
             start_time = config.get("active_start", "06:00")
             end_time = config.get("active_end", "20:00")
             duration = config.get("display_duration", 10)
+            
+            # Initialize transition_duration here to ensure it's always defined within the loop scope
+            transition_type = config.get("transition_type", "fade") # Get transition type
+            transition_enabled = config.get("transition_enabled", True) # Get transition enabled status
+            transition_duration = float(config.get("transition_duration", 1.0)) 
+            
             display_sources = config.get("display_sources", ["immich"]) # Nouvelle clé de config
             
             photos = []
-            for source in display_sources: # This loop should be inside the while True loop
+            for source in display_sources:
                 source_dir = PREPARED_BASE_DIR / source
                 if source_dir.is_dir():
                     photos.extend([str(f) for f in source_dir.iterdir() if f.is_file() and f.suffix.lower() in ('.jpg', '.jpeg', '.png')])
@@ -386,10 +459,16 @@ def start_slideshow():
                 time.sleep(60)
                 continue
 
+            previous_photo_surface = None # Initialize previous_photo_surface before the loop
+
             random.shuffle(photos)
             for photo_path in photos:
                 if not is_within_active_hours(start_time, end_time):
                     print("[Info] Hors période active, écran en veille.")
+                    # Nettoyer le fichier d'état quand l'écran s'éteint
+                    if os.path.exists(CURRENT_PHOTO_FILE):
+                        os.remove(CURRENT_PHOTO_FILE)
+
                     screen.fill((0, 0, 0))
                     pygame.display.flip()
                     set_display_power(False)
@@ -398,10 +477,45 @@ def start_slideshow():
                     break # Sortir de la boucle for pour relancer la boucle while et recharger les photos
 
                 set_display_power(True)
-                print(f"[Slideshow] Displaying image: {photo_path}")
-                show_image(photo_path, screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded) # Pass main_font_loaded
-                print(f"[Slideshow] Image displayed. Sleeping for {duration} seconds.")
-                # time.sleep(duration) is now handled by the show_image function itself for pan/zoom
+                print(f"[Slideshow] Preparing to display: {photo_path}")
+
+                # Écrire le chemin de la photo actuelle dans le fichier d'état
+                try:
+                    with open(CURRENT_PHOTO_FILE, "w") as f:
+                        # Convertir le chemin absolu en chemin relatif au dossier 'static'
+                        relative_path = Path(photo_path).relative_to(Path(BASE_DIR) / 'static')
+                        f.write(str(relative_path))
+                except Exception as e:
+                    print(f"Erreur écriture fichier photo actuelle : {e}")
+
+
+                current_pil_image = None # Initialize to None to ensure it's always defined
+                try:
+                    # Perform transition if it's not the first photo and transition is enabled
+                    if previous_photo_surface is not None and transition_enabled and transition_duration > 0 and transition_type != "none": # Added transition_type check
+                        current_pil_image = perform_transition(screen, previous_photo_surface, photo_path, transition_duration, SCREEN_WIDTH, SCREEN_HEIGHT, main_font_loaded, config, transition_type)
+                    else:
+                        # For the first image or no transition, just load and blit it directly
+                        current_pil_image = Image.open(photo_path)
+                        if current_pil_image.mode != 'RGB': current_pil_image = current_pil_image.convert('RGB')
+                        # For the first image, we need to blit it directly before pan/zoom takes over
+                        # This blit is only for the initial display, not part of pan/zoom animation
+                        screen.blit(pygame.image.fromstring(current_pil_image.tobytes(), current_pil_image.size, current_pil_image.mode), (0,0))
+                        draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                        pygame.display.flip()
+                except Exception as e:
+                    print(f"[Slideshow] Error loading or transitioning to photo {photo_path}: {e}")
+                    traceback.print_exc()
+                    current_pil_image = None # Explicitly set to None on error
+
+                if current_pil_image: # Only proceed if image was successfully loaded
+                    # Now display the photo with pan/zoom or statically for its duration
+                    display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                    
+                    # Capture the current screen content for the next transition
+                    previous_photo_surface = screen.copy()
+                else:
+                    print(f"[Slideshow] Skipping photo {photo_path} due to loading error.")
 
     except KeyboardInterrupt:
         print("Arrêt manuel du diaporama.")
@@ -410,6 +524,9 @@ def start_slideshow():
         traceback.print_exc() # Print full traceback for any unhandled error
     finally:
         set_display_power(False)
+        # Nettoyer le fichier d'état à la sortie
+        if os.path.exists(CURRENT_PHOTO_FILE):
+            os.remove(CURRENT_PHOTO_FILE)
         pygame.quit()
 
 if __name__ == "__main__":
