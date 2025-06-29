@@ -32,6 +32,7 @@
 - ✅ 🖼️ Effet Pan zoom sur les photos
 - ✅ 🖼️ détection de la résolution
 - ✅ Affichage des logs
+- ✅ Apercu en direct
 
 ## 💡 Idées pour les versions suivantes
 
