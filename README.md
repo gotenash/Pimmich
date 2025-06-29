@@ -18,9 +18,9 @@
 - ✅ Paramètre de hauteur utile de l’écran (% d’écran utilisé)  
 - ✅ Correction de l’orientation via EXIF et préparation des images  
 
-## 🛠️ Juillet 2025 – Prochaine version
+## 🛠️ Juillet 2025 – Prochaine version (en test, sorti prévu le 14 juillet)
 
-- 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web
+- ✅🧭 Ajout de la configuration Wi-Fi depuis l’interface Web
 - ✅📂 Support de la clé USB 
 - ✅⏰Affichage de l’heure, date
 - ✅🗂️ Réorganisation de la page de configuration en onglets  
@@ -29,16 +29,18 @@
 - ✅📱 Support du format HEIC photo Apple
 - ✅📁 Support du protocole SMB pour accéder à des photos partagées en réseau
 - ✅ 🖼️ Effet de transition
-- ✅ 🖼️ Effet Pan zoom sur les photoq
-- ✅ 🖼️ détection de la réslution  
+- ✅ 🖼️ Effet Pan zoom sur les photos
+- ✅ 🖼️ détection de la résolution
+- ✅ Affichage des logs
 
 ## 💡 Idées pour les versions suivantes
 
 - 📱 Création d’une APK Android pour contrôler le cadre  
 - ✅🌤️ Affichage de la météo sur l’écran  (openweathermap.org)
+- ✅ Affichage des marées
 - 🌍 Traductions de l’interface (multi-langues)  
 - 📱 envoie de photo depuis un smatrtphone
-- photo souvenir du jour mis en avant
+- 🖼️ photo souvenir du jour mis en avant
 
 
 # 🖼️ Pimmich – Cadre photo connecté intelligent
