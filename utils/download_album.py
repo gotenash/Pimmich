@@ -1,13 +1,11 @@
 import os
 import requests
+import time
 from utils.config import get_album_id_by_name
 from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
 from utils.prepare_all_photos import prepare_all_photos
 
 def download_and_extract_album(config):
-    import requests
-    import time
-
     server_url = config.get("immich_url")
     api_key = config.get("immich_token")
     album_name = config.get("album_name")
@@ -54,7 +52,6 @@ def download_and_extract_album(config):
     nb_photos = len(asset_ids)
     yield {"type": "progress", "stage": "DOWNLOADING", "percent": 25, "message": f"Téléchargement de l'archive ({nb_photos} photos)..."}
 
-    from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
     zip_path = "temp_album.zip"
     
     try:
@@ -67,11 +64,8 @@ def download_and_extract_album(config):
 
     yield {"type": "progress", "stage": "EXTRACTING", "percent": 60, "message": "Extraction des photos..."}
     photos_folder = os.path.join("static", "photos")
-    
-    if os.path.exists(photos_folder):
-        for f in os.listdir(photos_folder):
-            os.remove(os.path.join(photos_folder, f))
-    
+    # S'assurer que le dossier existe sans le vider, pour permettre plusieurs sources.
+    os.makedirs(photos_folder, exist_ok=True)
     try:
         unzip_archive(zip_path, photos_folder)
         clean_archive(zip_path)

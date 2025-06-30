@@ -25,16 +25,19 @@ def import_samba_photos(config):
         yield {"type": "error", "message": "Configuration Samba incomplète : serveur ou nom de partage manquant."}
         return
 
-    full_samba_path = f"\\\\{server}\\{share}\\{path}".replace('/', '\\')
+    # Construction robuste du chemin UNC pour éviter les problèmes de slashs finaux.
+    path_in_share = path.strip('/')
+    if path_in_share:
+        full_samba_path = f"//{server}/{share}/{path_in_share}"
+    else:
+        full_samba_path = f"//{server}/{share}"
     yield {"type": "progress", "stage": "CONNECTING", "percent": 5, "message": f"Connexion à {full_samba_path}..."}
 
     try:
-        # Enregistre la session si un utilisateur/mot de passe est fourni
-        if user and password:
-            smbclient.register_session(server, username=user, password=password)
-
-        if not smbclient.path.exists(full_samba_path):
-            yield {"type": "error", "message": f"Le chemin Samba n'existe pas : {full_samba_path}"}
+        # On ne gère plus les sessions manuellement pour être compatible avec d'anciennes versions de smbclient.
+        # Les identifiants sont passés directement aux fonctions.
+        if not smbclient.path.exists(full_samba_path, username=user, password=password, connection_timeout=15):
+            yield {"type": "error", "message": f"Le chemin Samba est introuvable : {full_samba_path}"}
             return
 
         # --- Phase 1: Lister les fichiers distants et locaux ---
@@ -42,12 +45,12 @@ def import_samba_photos(config):
         
         # Récupérer les fichiers distants avec leur date de modification
         remote_files = {}
-        for filename in smbclient.listdir(full_samba_path):
+        for filename in smbclient.listdir(full_samba_path, username=user, password=password):
             if is_image_file(filename):
                 try:
                     remote_file_path = os.path.join(full_samba_path, filename)
-                    if smbclient.path.isfile(remote_file_path):
-                        stat_info = smbclient.stat(remote_file_path)
+                    if smbclient.path.isfile(remote_file_path, username=user, password=password):
+                        stat_info = smbclient.stat(remote_file_path, username=user, password=password)
                         remote_files[filename] = stat_info.st_mtime
                 except Exception as e:
                     yield {"type": "warning", "message": f"Impossible d'accéder aux informations de {filename}: {e}"}
@@ -83,7 +86,7 @@ def import_samba_photos(config):
             dest_file = TARGET_DIR / filename
             
             try:
-                with smbclient.open_file(source_file, mode='rb') as remote_f:
+                with smbclient.open_file(source_file, mode='rb', username=user, password=password) as remote_f:
                     with open(dest_file, 'wb') as local_f:
                         shutil.copyfileobj(remote_f, local_f)
                 

@@ -22,6 +22,8 @@ from utils.prepare_all_photos import prepare_all_photos_with_progress
 from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
 from utils.import_samba import import_samba_photos
 from utils.image_filters import apply_filter_to_image
+import smbclient
+from smbprotocol.exceptions import SMBException
 
 
 app = Flask(__name__)
@@ -548,29 +550,45 @@ def import_samba():
 @login_required
 def test_samba_connection():
     """Teste la connexion à un partage Samba sans importer de fichiers."""
-    from smbclient import register_session, path
-    from smbprotocol.exceptions import SMBException
 
     data = request.get_json()
     server = data.get("smb_host")
     share = data.get("smb_share")
-    path_in_share = data.get("smb_path", "")
+    path_in_share = data.get("smb_path", "").strip("/")
     user = data.get("smb_user")
     password = data.get("smb_password")
     
     if not all([server, share]):
         return jsonify({"success": False, "message": "Le serveur et le nom du partage sont requis."})
     
-    full_samba_path = f"\\\\{server}\\{share}\\{path_in_share}".replace('/', '\\')
+    # Construction robuste du chemin UNC pour éviter les problèmes de slashs finaux.
+    if path_in_share:
+        full_samba_path = f"//{server}/{share}/{path_in_share}"
+    else:
+        full_samba_path = f"//{server}/{share}"
     
     try:
-        if user and password:
-            path.register_session(server, username=user, password=password) # type: ignore
-        
-        if path.exists(full_samba_path):
-            return jsonify({"success": True, "message": "Connexion réussie ! Le chemin a été trouvé."})
-        return jsonify({"success": False, "message": "Connexion réussie, mais le chemin est introuvable."})
+        # Utiliser listdir en passant les identifiants directement.
+        # Cela évite d'utiliser register/unregister_session qui peuvent manquer dans d'anciennes versions.
+        files = smbclient.listdir(
+            full_samba_path,
+            username=user,
+            password=password,
+            connection_timeout=15
+        )
+        return jsonify({"success": True, "message": f"Connexion réussie ! {len(files)} élément(s) trouvé(s) dans le dossier."})
+
     except SMBException as e:
+        # Fournir un message plus utile pour les erreurs communes
+        if "STATUS_LOGON_FAILURE" in str(e):
+            return jsonify({"success": False, "message": "Échec de l'authentification. Vérifiez l'utilisateur et le mot de passe."})
+        elif "STATUS_BAD_NETWORK_NAME" in str(e):
+            return jsonify({"success": False, "message": f"Le nom du partage '{share}' est introuvable sur le serveur."})
+        elif "STATUS_OBJECT_NAME_NOT_FOUND" in str(e) or "STATUS_OBJECT_PATH_NOT_FOUND" in str(e):
+            # Erreur spécifique si le sous-dossier n'existe pas
+            return jsonify({"success": False, "message": f"Le chemin '{path_in_share}' est introuvable dans le partage."})
+        elif "STATUS_HOST_UNREACHABLE" in str(e) or "timed out" in str(e):
+             return jsonify({"success": False, "message": f"Impossible de joindre le serveur '{server}'. Vérifiez l'adresse et le pare-feu."})
         return jsonify({"success": False, "message": f"Erreur Samba : {e}"})
     except Exception as e:
         return jsonify({"success": False, "message": f"Erreur inattendue : {e}"})

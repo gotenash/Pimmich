@@ -40,12 +40,10 @@ def import_usb_photos():
 
     yield {"type": "progress", "stage": "DETECTED", "percent": 10, "message": f"Clé USB détectée : {usb_path}"}
 
-    yield {"type": "progress", "stage": "CLEANING", "percent": 15, "message": "Nettoyage du dossier de destination..."}
-    if TARGET_DIR.exists():
-        shutil.rmtree(TARGET_DIR)
+    # S'assurer que le dossier existe sans le vider, pour permettre plusieurs sources.
     TARGET_DIR.mkdir(parents=True, exist_ok=True)
 
-    yield {"type": "progress", "stage": "SCANNING", "percent": 20, "message": "Analyse des images sur la clé USB..."}
+    yield {"type": "progress", "stage": "SCANNING", "percent": 15, "message": "Analyse des images sur la clé USB..."}
     
     image_files = []
     for root, dirs, files in os.walk(usb_path):
@@ -58,7 +56,7 @@ def import_usb_photos():
         yield {"type": "error", "message": "Aucune image compatible trouvée sur la clé USB (formats supportés : JPG, JPEG, PNG, GIF)."}
         return
 
-    yield {"type": "stats", "stage": "STATS", "percent": 25, "message": f"{total} images trouvées, début de l'import...", "total": total}
+    yield {"type": "stats", "stage": "STATS", "percent": 20, "message": f"{total} images trouvées, début de l'import...", "total": total}
 
     for i, file_path in enumerate(image_files):
         try:
@@ -73,8 +71,8 @@ def import_usb_photos():
             
             shutil.copy2(file_path, dest_file)
             
-            # La copie représente la phase de 25% à 80%
-            percent = 25 + int(((i + 1) / total) * 55)
+            # La copie représente la phase de 20% à 80%
+            percent = 20 + int(((i + 1) / total) * 60)
             yield {
                 "type": "progress", "stage": "COPYING", "percent": percent,
                 "message": f"Copie en cours... ({i + 1}/{total})",

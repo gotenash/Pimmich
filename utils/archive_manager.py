@@ -10,16 +10,23 @@ def download_album_archive(server_url, api_key, asset_ids, zip_path):
     }
     data = {"assetIds": asset_ids}
 
-    response = requests.post(url, json=data, headers=headers)
+    # Utilisation du streaming pour éviter de charger toute l'archive en mémoire.
+    # Ajout d'un timeout généreux car la création de l'archive peut être longue.
+    try:
+        response = requests.post(url, json=data, headers=headers, stream=True, timeout=(10, 300)) # 10s connect, 5min read
 
-    if response.status_code != 200:
-        print(f"Erreur Immich API: {response.status_code} - {response.text}")
+        if response.status_code != 200:
+            print(f"Erreur Immich API: {response.status_code} - {response.text}")
+            return False
+
+        # Écrire le contenu dans le fichier par morceaux (chunks)
+        with open(zip_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur réseau lors du téléchargement de l'archive : {e}")
         return False
-
-    with open(zip_path, "wb") as f:
-        f.write(response.content)
-
-    return True
 
 def unzip_archive(zip_path, extract_to):
     try:
