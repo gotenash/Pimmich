@@ -1,43 +1,77 @@
-<!-- templates/login.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion Pimmich</title>
+    <title>Connexion - Pimmich</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        #login-container {
+            max-width: 384px; /* ~24rem, équivalent à max-w-sm de Tailwind */
+        }
+    </style>
 </head>
-<body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
-              {{ message }}
-            </div>
-          {% endfor %}
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-container" class="absolute top-0 mt-4 max-w-xs w-full z-20">
+      {% for category, message in messages %}
+        <div class="
+          flash-message
+          px-4 py-3 rounded-md text-white shadow-md transition-opacity duration-700 ease-in-out
+          {% if category == 'success' %}
+            bg-green-500
+          {% elif category == 'danger' %}
+            bg-red-500
+          {% else %}
+            bg-gray-500
+          {% endif %}
+        ">
+          {{ message }}
         </div>
-      {% endif %}
-    {% endwith %}
-
-    <div class="container">
-        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
-        <h1>Connexion</h1>
-
-<form method="post" class="login-form">
-  <div class="form-row">
-    <label for="username">Identifiant :</label>
-    <input type="text" id="username" name="username" required>
-  </div>
-  <div class="form-row">
-    <label for="password">Mot de passe :</label>
-    <input type="password" id="password" name="password" required>
-  </div>
-  <div class="form-submit">
-    <button type="submit">Connexion</button>
-  </div>
-</form>
-
+      {% endfor %}
     </div>
+    <script>
+      // Disparition automatique après 4 secondes
+      setTimeout(() => {
+        const messages = document.querySelectorAll('.flash-message');
+        messages.forEach(msg => {
+          msg.classList.add('opacity-0');
+          setTimeout(() => msg.remove(), 700); // attendre que l'effet se termine
+        });
+      }, 4000);
+    </script>
+  {% endif %}
+  {% endwith %}
+
+  <!-- Conteneur de connexion -->
+  <div id="login-container" class="container w-full">
+    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="w-40 mx-auto mb-8">
+    
+    <form method="POST" action="{{ url_for('login') }}">
+        <!-- Champ Utilisateur -->
+        <div class="mb-4">
+            <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Utilisateur</label>
+            <input type="text" id="username" name="username" required maxlength="20" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- Champ Mot de passe -->
+        <div class="mb-6">
+            <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Mot de passe</label>
+            <input type="password" id="password" name="password" required maxlength="20" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- Bouton de connexion -->
+        <div class="flex items-center justify-center mt-8">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out w-auto">
+                Se connecter
+            </button>
+        </div>
+    </form>
+  </div>
+
 </body>
 </html>

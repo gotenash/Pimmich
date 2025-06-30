@@ -3,102 +3,1444 @@
 <head>
     <meta charset="UTF-8">
     <title>Configuration - Pimmich</title>
+     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!-- GLightbox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
+<body class="relative min-h-screen">
 
-        <h2>Configuration du cadre photo connecté</h2>
-        
-                <div class="logout-link">
-            <a href="/logout">&#128682; Se déconnecter</a>
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-container" class="relative z-10 max-w-xl mx-auto mt-4 space-y-2">
+      {% for category, message in messages %}
+        <div class="
+          flash-message
+          px-4 py-3 rounded-md text-white shadow-md transition-opacity duration-700 ease-in-out
+          {% if category == 'success' %}
+            bg-green-500
+          {% elif category == 'error' %}
+            bg-red-500
+          {% elif category == 'warning' %}
+            bg-yellow-400 text-black
+          {% else %}
+            bg-gray-500
+          {% endif %}
+        ">
+          {{ message }}
         </div>
-
-        <div class="config-container">
-            <!-- Colonne de gauche : Formulaire de configuration -->
-            <div class="config-left">
-                <form method="POST" action="/configure">
-  <fieldset>
-                <legend>                    <h3>Paramètres d'affichage</h3></legend>
-
-                    <label for="display_duration">Durée d'affichage (en secondes) :</label>
-                    <input type="number" id="display_duration" name="display_duration" value="{{ config.display_duration }}" required>
-
-                    <label for="active_start">Heure de début d'activité (HH:MM) :</label>
-                    <input type="time" id="active_start" name="active_start" value="{{ config.active_start }}">
-
-                    <label for="active_end">Heure de fin d'activité (HH:MM) :</label>
-                    <input type="time" id="active_end" name="active_end" value="{{ config.active_end }}">
-</fieldset>
-
-   <fieldset>
-                <legend>  <h3>Configuration de l'album photo Immich</h3></legend>
-
-                    <label for="source">Source des photos :</label>
-                    <select id="source" name="source">
-                        <option value="immich" {% if config.source == 'immich' %}selected{% endif %}>Album Immich</option>
-                        <option value="usb" {% if config.source == 'usb' %}selected{% endif %}>Clé USB</option>
-                    </select>
-
-                    <label for="album_name">Nom technique de l'album Immich :</label>
-                    <input type="text" id="album_name" name="album_name" value="{{ config.album_name }}">
-
-                    <label for="album_title">Titre affiché dans le diaporama :</label>
-                    <input type="text" id="album_title" name="album_title" value="{{ config.album_title }}">
-
-                    <label for="immich_url">URL du serveur Immich :</label>
-                    <input type="url" id="immich_url" name="immich_url" value="{{ config.immich_url }}">
-
-                    <label for="immich_token">Token d'accès Immich :</label>
-                    <input type="text" id="immich_token" name="immich_token" value="{{ config.immich_token }}">
-
-                    <button type="submit" class="save-button">Enregistrer</button>
-                </form>
-            </div>
-</fieldset>
-            <!-- Colonne de droite : Boutons d'action -->
-<fieldset>
-    <legend><h3> Actions </h3></legend>
-            <div class="config-right">
-                <form method="POST" action="/toggle_slideshow">
-                    <button type="submit">
-                        {% if slideshow_running %}Arrêter{% else %}Démarrer{% endif %} le diaporama
-                    </button>
-                </form>
-
-                <form method="POST" action="/download">
-                    <button type="submit">Télécharger les photos</button>
-                </form>
-
-                <form method="POST" action="/reboot">
-                    <button type="submit">Redémarrer le système</button>
-                </form>
-
-                <form method="POST" action="/shutdown">
-                    <button type="submit">Éteindre le système</button>
-                </form>
-                
-                
-                
-    <center><h3>Credits</h3></center>
-    <table align=center valign=middle><tr><td><img src="static/gotenash.jpg" width=75px></td>
-    <td>Auteurs : Gotenash et Shenron</td></tr>
-   <tr><td>  <a href="https://www.gadgetaulab.fr"><img src="static/logo_gadgeto.png" width=75px></a></td>
-   <td>Projet réalisé dans le cadre du Gadgetaulab <br></td></tr>
-   </table>
-   
-  
-    
-</fieldset>
-
-
-                
-            </div>
-        </div>
-
+      {% endfor %}
     </div>
     
+        <script>
+      // Disparition automatique après 4 secondes
+      setTimeout(() => {
+        const messages = document.querySelectorAll('.flash-message');
+        messages.forEach(msg => {
+          msg.classList.add('opacity-0');
+          setTimeout(() => msg.remove(), 700); // attendre que l'effet se termine
+        });
+      }, 4000);
+    </script>
+  {% endif %}
+{% endwith %}
+
+  <!-- Contenu principal -->
+  <div class="relative z-10 container mx-auto p-4 bg-white/80 backdrop-blur-md rounded-xl shadow-xl mt-8">
+    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo mx-auto mb-4">
+    <h2 class="text-center text-2xl font-semibold mb-4">Configuration du cadre photo connecté</h2>
+        <div class="logout-link">
+            <a href="/logout">Se déconnecter</a>
+        </div>
+        
+
+<div class="tabs">
+  <button class="tablink active" onclick="openTab(event, 'tab-affichage')">Affichage</button>
+  <button class="tablink" onclick="openTab(event, 'tab-heure')">Heure, Météo et Marées</button>
+  <button class="tablink" onclick="openTab(event, 'tab-sources')">Sources des photos</button>
+  <button class="tablink" onclick="openTab(event, 'tab-apercu')">Aperçu</button>
+  <button class="tablink" onclick="openTab(event, 'tab-actions')">Actions</button>
+  <button class="tablink" onclick="openTab(event, 'tab-system')">Système</button>
+</div>
+
+<form method="POST" action="/configure">
+
+<div id="tab-affichage" class="tabcontent" style="display:block">
+    <fieldset>
+        <legend><h3>Paramètres d'affichage</h3></legend>
+
+        <label for="display_duration">Durée d'affichage (en secondes) :</label>
+        <input type="number" id="display_duration" name="display_duration" value="{{ config.display_duration }}" required>
+
+        <label for="active_start">Heure de début d'activité (HH:MM) :</label>
+        <input type="time" id="active_start" name="active_start" value="{{ config.active_start }}">
+
+        <label for="active_end">Heure de fin d'activité (HH:MM) :</label>
+        <input type="time" id="active_end" name="active_end" value="{{ config.active_end }}">
+
+        <label for="screen_height_percent">Hauteur utile de l'écran (% affiché) :</label>
+        <input type="number" id="screen_height_percent" name="screen_height_percent" min="10" max="100" value="{{ config.screen_height_percent }}">
+
+        <div class="flex items-center mt-2">
+            <div class="flex-grow">
+                <label for="display_width">Largeur d'affichage cible (px) :</label>
+                <input type="number" id="display_width" name="display_width" value="{{ config.get('display_width', 1920) }}">
+                <label for="display_height" class="mt-2">Hauteur d'affichage cible (px) :</label>
+                <input type="number" id="display_height" name="display_height" value="{{ config.get('display_height', 1080) }}">
+            </div>
+            <button type="button" id="detect-resolution-btn" class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded text-sm" title="Détecter la résolution de l'écran actif">Détecter</button>
+        </div>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False) %}checked{% endif %}>
+                Activer l'effet Pan/Zoom sur les photos
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="pan_zoom_factor" style="min-width: 200px;">Amplitude du zoom (ex: 1.15 pour 15% de zoom) :</label>
+            <input type="number" step="0.01" id="pan_zoom_factor" name="pan_zoom_factor" value="{{ config.get('pan_zoom_factor', 1.15) }}">
+        </div>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="transition_enabled" {% if config.get('transition_enabled', True) %}checked{% endif %}>
+                Activer l'effet de transition entre les photos
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="transition_duration" style="min-width: 200px;">Durée de transition (secondes) :</label>
+            <input type="number" step="0.1" id="transition_duration" name="transition_duration" value="{{ config.get('transition_duration', 1.0) }}">
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="transition_type" style="min-width: 200px;">Type de transition :</label>
+            <select name="transition_type" id="transition_type">
+                <option value="fade" {% if config.get('transition_type') == 'fade' %}selected{% endif %}>Fondu enchaîné</option>
+                <option value="slide_left" {% if config.get('transition_type') == 'slide_left' %}selected{% endif %}>Glisser depuis la gauche</option>
+                <option value="slide_right" {% if config.get('transition_type') == 'slide_right' %}selected{% endif %}>Glisser depuis la droite</option>
+                <option value="slide_up" {% if config.get('transition_type') == 'slide_up' %}selected{% endif %}>Glisser depuis le bas</option>
+                <option value="slide_down" {% if config.get('transition_type') == 'slide_down' %}selected{% endif %}>Glisser depuis le haut</option>
+            </select>
+        </div>
+    </fieldset>
+</div>
+
+                    
+<div id="tab-heure" class="tabcontent">
+    <fieldset>
+        <legend><strong>Affichage de l'heure</strong></legend>
+
+                    
+                      <div style="margin-bottom: 8px;">
+                        <label>
+                          <input type="checkbox" name="show_clock" {% if config.get('show_clock', False) %}checked{% endif %}>
+                          Afficher l'heure
+                        </label>
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_font_size" style="min-width: 200px;">Taille de la police :</label>
+                        <input type="number" name="clock_font_size" value="{{ config.get('clock_font_size', 48) }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_offset_x" style="min-width: 200px;">Décalage horizontal (px) :</label>
+                        <input type="number" name="clock_offset_x" value="{{ config.get('clock_offset_x', 30) }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_offset_y" style="min-width: 200px;">Décalage vertical (px) :</label>
+                        <input type="number" name="clock_offset_y" value="{{ config.get('clock_offset_y', 30) }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_color" style="min-width: 200px;">Couleur du texte (hex) :</label>
+                        <input type="text" name="clock_color" value="{{ config.get('clock_color', '#FFFFFF') }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_outline_color" style="min-width: 200px;">Couleur du contour (hex) :</label>
+                        <input type="text" name="clock_outline_color" value="{{ config.get('clock_outline_color', '#000000') }}">
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_position" style="min-width: 200px;">Position de l'heure :</label>
+                        <select name="clock_position">
+                          <option value="left" {% if config.get('clock_position') == 'left' %}selected{% endif %}>Gauche</option>
+                          <option value="center" {% if config.get('clock_position') == 'center' %}selected{% endif %}>Centre</option>
+                          <option value="right" {% if config.get('clock_position') == 'right' %}selected{% endif %}>Droite</option>
+                        </select>
+                      </div>
+                    
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_font_path" style="min-width: 200px;">Police :</label>
+                        <select name="clock_font_path">
+                          {% set fonts = [
+                              ('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 'DejaVu Sans Bold'),
+                              ('/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', 'Liberation Sans'),
+                              ('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 'FreeSans')
+                          ] %}
+                          {% for path, label in fonts %}
+                            <option value="{{ path }}" {% if config.get('clock_font_path') == path %}selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <div style="margin-bottom: 8px;">
+                        <label>
+                          <input type="checkbox" name="clock_background_enabled" {% if config.get('clock_background_enabled', False) %}checked{% endif %}>
+                          Afficher un fond derrière l'heure/date/météo
+                        </label>
+                      </div>
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <label for="clock_background_color" style="min-width: 200px;">Couleur du fond (hex RGBA) :</label>
+                        <input type="text" name="clock_background_color" value="{{ config.get('clock_background_color', '#00000080') }}">
+                      </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><strong>Affichage de la date</strong></legend>
+        <div style="margin-bottom: 8px;">
+            <label>
+                <input type="checkbox" name="show_date" {% if config.get('show_date', False) %}checked{% endif %}>
+                Afficher la date (sous l'heure)
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="date_format" style="min-width: 200px;">Format de la date :</label>
+            <input type="text" name="date_format" value="{{ config.get('date_format', '%A %d %B %Y') }}">
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><strong>Affichage de la météo (OpenWeatherMap)</strong></legend>
+
+        <div style="margin-bottom: 8px;">
+            <label>
+                <input type="checkbox" name="show_weather" {% if config.get('show_weather', False) %}checked{% endif %}>
+                Afficher la météo
+            </label>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_city" style="min-width: 200px;">Ville :</label>
+            <input type="text" id="weather_city" name="weather_city" value="{{ config.get('weather_city', 'Paris') }}">
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_api_key" style="min-width: 200px;">Clé API :</label>
+            <input type="text" id="weather_api_key" name="weather_api_key" value="{{ config.get('weather_api_key', '') }}">
+        </div>
+        
+        <div class="mt-2 mb-4">
+            <button type="button" id="testWeatherApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm">Tester la clé API et la ville</button>
+            <span id="weatherApiTestResult" class="ml-4 font-medium"></span>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_units" style="min-width: 200px;">Unités :</label>
+            <select name="weather_units">
+                <option value="metric" {% if config.get('weather_units') == 'metric' %}selected{% endif %}>Celsius</option>
+                <option value="imperial" {% if config.get('weather_units') == 'imperial' %}selected{% endif %}>Fahrenheit</option>
+            </select>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="weather_update_interval_minutes" style="min-width: 200px;">Intervalle de MàJ (min) :</label>
+            <input type="number" name="weather_update_interval_minutes" value="{{ config.get('weather_update_interval_minutes', 30) }}">
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><strong>Affichage des marées (StormGlass Tide API)</strong></legend>
+        <p class="text-sm text-gray-600 mb-3">Utilise l'API de <a href="https://stormglass.io/" target="_blank" class="text-blue-600 hover:underline">StormGlass</a>. Une clé API est requise. Vous pouvez trouver les coordonnées de votre port sur des sites comme <a href="https://www.latlong.net/" target="_blank" class="text-blue-600 hover:underline">latlong.net</a>.</p>
+        <p class="text-sm text-gray-600 mb-3">Note : Cette API fournit les hauteurs de marée, mais pas le coefficient de marée.</p>
+
+        <div style="margin-bottom: 8px;">
+            <label>
+                <input type="checkbox" name="show_tides" {% if config.get('show_tides', False) %}checked{% endif %}>
+                Afficher les informations de marée
+            </label>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="tide_latitude" style="min-width: 200px;">Latitude (ex: 48.3904) :</label>
+            <input type="text" id="tide_latitude" name="tide_latitude" value="{{ config.get('tide_latitude', '') }}">
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="tide_longitude" style="min-width: 200px;">Longitude (ex: -4.4861) :</label>
+            <input type="text" id="tide_longitude" name="tide_longitude" value="{{ config.get('tide_longitude', '') }}">
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="stormglass_api_key" style="min-width: 200px;">Clé API StormGlass :</label>
+            <input type="text" id="stormglass_api_key" name="stormglass_api_key" value="{{ config.get('stormglass_api_key', '') }}">
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="tide_offset_x" style="min-width: 200px;">Décalage horizontal (px) :</label>
+            <input type="number" id="tide_offset_x" name="tide_offset_x" value="{{ config.get('tide_offset_x', 0) }}">
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <label for="tide_offset_y" style="min-width: 200px;">Décalage vertical (px) :</label>
+            <input type="number" id="tide_offset_y" name="tide_offset_y" value="{{ config.get('tide_offset_y', 0) }}">
+        </div>
+
+        <div class="mt-2 mb-4">
+            <button type="button" id="testStormglassApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm">Tester la connexion StormGlass</button>
+            <span id="stormglassApiTestResult" class="ml-4 font-medium"></span>
+        </div>
+
+        <fieldset class="mt-6">
+            <legend><strong>État Actuel des Marées</strong></legend>
+            <div id="tide-status-container" class="p-3 bg-gray-100 rounded-lg border text-sm">
+                <p><strong>Dernière mise à jour des données :</strong> <span id="tide-last-update" class="font-mono">Chargement...</span></p>
+                <p><strong>Prochaine Pleine Mer :</strong> <span id="tide-next-high" class="font-mono">Chargement...</span></p>
+                <p><strong>Prochaine Basse Mer :</strong> <span id="tide-next-low" class="font-mono">Chargement...</span></p>
+                <p><strong>État de l'API :</strong> <span id="tide-api-status" class="font-mono text-gray-500">Chargement...</span></p>
+            </div>
+        </fieldset>
+    </fieldset>
+</div>
+
+
+<div id="tab-sources" class="tabcontent">
+    <fieldset>
+        <legend><h3>Configuration de l'album photo Immich</h3></legend>
+                   
+
+                        
+                        <label for="album_name">Nom technique de l'album Immich :</label>
+                        <input type="text" id="album_name" name="album_name" value="{{ config.album_name }}">
+
+
+                        <label for="immich_url">URL du serveur Immich :</label>
+                        <input type="url" id="immich_url" name="immich_url" value="{{ config.immich_url }}">
+
+                        <label for="immich_token">Token d'accès Immich :</label>
+                        <input type="text" id="immich_token" name="immich_token" value="{{ config.immich_token }}">
+
+                        <hr class="my-4">
+                        <h5 class="text-lg font-semibold mt-2">Mise à jour automatique (Immich)</h5>
+                        <div class="form-check form-switch my-3">
+                            <input class="form-check-input" type="checkbox" id="immich_auto_update" name="immich_auto_update" {% if config.get('immich_auto_update') %}checked{% endif %}>
+                            <label class="form-check-label" for="immich_auto_update">Activer la mise à jour automatique</label>
+                        </div>
+                        <label for="immich_update_interval_hours">Intervalle de mise à jour (heures):</label>
+                        <input type="number" id="immich_update_interval_hours" name="immich_update_interval_hours" value="{{ config.get('immich_update_interval_hours', 24) }}" min="1">
+
+                        <div id="immich-worker-status-container" class="mt-4 p-3 bg-gray-100 rounded-lg border">
+                            <p><strong>État du service :</strong> <span id="immich-worker-status-message" class="font-mono">...</span></p>
+                            <p><strong>Dernière mise à jour :</strong> <span id="immich-last-update-time" class="font-mono">...</span></p>
+                            <p><strong>Prochaine mise à jour :</strong> <span id="immich-next-update-time" class="font-mono">...</span></p>
+                        </div>
+
+
+    </fieldset>
+
+    <fieldset class="mt-4">
+        <legend><h3>Sources à afficher dans le diaporama</h3></legend>
+        <p class="mb-3 text-gray-700">Sélectionnez les sources de photos à inclure dans le diaporama. Les photos seront mélangées entre les sources sélectionnées.</p>
+
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_immich" name="display_sources" value="immich" {% if 'immich' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_immich">Photos Immich</label>
+        </div>
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_usb" name="display_sources" value="usb" {% if 'usb' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_usb">Photos USB</label>
+        </div>
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_samba" name="display_sources" value="samba" {% if 'samba' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_samba">Photos Samba</label>
+        </div>
+    </fieldset>
+    <fieldset class="mt-4">
+        <legend><h3>Configuration du partage Samba (Windows)</h3></legend>
+        <label for="smb_host">Serveur :</label>
+        <input type="text" id="smb_host" name="smb_host" value="{{ config.get('smb_host', '') }}" placeholder="ex: 192.168.1.50 ou MON-NAS">
+
+        <label for="smb_share">Nom du partage :</label>
+        <input type="text" id="smb_share" name="smb_share" value="{{ config.get('smb_share', '') }}" placeholder="ex: Photos">
+
+        <label for="smb_path">Chemin dans le partage (optionnel) :</label>
+        <input type="text" id="smb_path" name="smb_path" value="{{ config.get('smb_path', '') }}" placeholder="ex: Famille/2024">
+
+        <label for="smb_user">Nom d'utilisateur (optionnel) :</label>
+        <input type="text" id="smb_user" name="smb_user" value="{{ config.get('smb_user', '') }}">
+
+        <label for="smb_password">Mot de passe (optionnel) :</label>
+        <input type="password" id="smb_password" name="smb_password" value="{{ config.get('smb_password', '') }}">
+
+        <div class="mt-4">
+            <button type="button" id="samba-test-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Tester la connexion</button>
+            <span id="samba-test-status" class="ml-4 font-medium"></span>
+        </div>
+
+        <hr class="my-4">
+        <h5 class="text-lg font-semibold mt-2">Mise à jour automatique (Samba)</h5>
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="smb_auto_update" name="smb_auto_update" {% if config.get('smb_auto_update') %}checked{% endif %}>
+            <label class="form-check-label" for="smb_auto_update">Activer la mise à jour automatique</label>
+        </div>
+        <label for="smb_update_interval_hours">Intervalle de mise à jour (heures):</label>
+        <input type="number" id="smb_update_interval_hours" name="smb_update_interval_hours" value="{{ config.get('smb_update_interval_hours', 24) }}" min="1">
+
+        <div id="samba-worker-status-container" class="mt-4 p-3 bg-gray-100 rounded-lg border">
+            <p><strong>État du service :</strong> <span id="samba-worker-status-message" class="font-mono">...</span></p>
+            <p><strong>Dernière mise à jour :</strong> <span id="samba-last-update-time" class="font-mono">...</span></p>
+            <p><strong>Prochaine mise à jour :</strong> <span id="samba-next-update-time" class="font-mono">...</span></p>
+        </div>
+
+    </fieldset>
+
+    <fieldset class="mt-4">
+        <legend><h3>Options de démarrage</h3></legend>
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="skip_initial_auto_import" name="skip_initial_auto_import" {% if config.get('skip_initial_auto_import', False) %}checked{% endif %}>
+            <label class="form-check-label" for="skip_initial_auto_import">Ignorer le premier import automatique au démarrage</label>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne se lanceront pas immédiatement après un redémarrage du cadre, mais attendront le prochain cycle programmé.</p>
+    </fieldset>
+</div>
+
+   
+    <button type="submit" id="save-changes-btn" class="save-button">Enregistrer les modifications</button>
+
+</form>
+
+<div id="tab-actions" class="tabcontent">
+    <fieldset>
+    <legend><h3>Actions</h3></legend>
+
+        <div class="action-group">
+            <h4>Aperçu en direct</h4>
+            <div id="live-preview-container" class="mt-2 p-3 bg-gray-100 rounded-lg border text-center">
+                <p id="live-preview-status" class="text-gray-500 italic">Le diaporama est arrêté.</p>
+                <img id="live-preview-image" src="" alt="Photo en cours" class="hidden mt-2 mx-auto max-w-xs max-h-48 rounded shadow">
+            </div>
+        </div>
+
+        <div class="action-group">
+            <h4>Gestion du diaporama</h4>
+            <form method="POST" action="/toggle_slideshow">
+                <button type="submit" class="system-button {% if slideshow_running %}bg-red-500 hover:bg-red-700{% else %}bg-green-500 hover:bg-green-700{% endif %} text-white font-bold py-2 px-4 rounded">
+                    {% if slideshow_running %}
+                    <i class="fas fa-stop"></i> Arrêter le diaporama
+                    {% else %}
+                    <i class="fas fa-play"></i> Démarrer le diaporama
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+
+        <div class="action-group">
+            <h4>Importation des photos</h4>
+            <button id="usb-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-file-import"></i> Importer depuis la clé USB
+            </button>
+            <div id="usb-progress-container" class="progress-container hidden">
+                <div id="usb-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="usb-import-status" class="status-messages"></div>
+
+            <button id="immich-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-cloud-download-alt"></i> Importer depuis Immich
+            </button>
+            <div id="immich-progress-container" class="progress-container hidden">
+                <div id="immich-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="immich-import-status" class="status-messages"></div>
+                                        
+            <button id="samba-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-network-wired"></i> Importer depuis Samba
+            </button>
+            <div id="samba-progress-container" class="progress-container hidden">
+                <div id="samba-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="samba-import-status" class="status-messages"></div>
+        </div>
+  </fieldset>
+</div>
+
+<style>
+.action-group {
+    margin-bottom: 20px;
+}
+.action-group h4 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #555;
+}
+                                        
+/* Styles pour les boutons d'import et de contrôle système */
+.import-button, .system-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Styles pour la barre de progression et les messages de statut */
+.progress-container {
+    width: 100%;
+    background-color: #f3f4f6; /* Tailwind's gray-100 */
+    border-radius: 0.5rem;
+    margin-top: 0.75rem;
+    height: 1.5rem;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d1d5db; /* Tailwind's gray-300 */
+}
+
+.progress-bar {
+    height: 100%;
+    text-align: center;
+    white-space: nowrap;
+    transition: width 0.3s ease;
+    color: white;
+    font-weight: 500;
+    background-image: linear-gradient(90deg, #a855f7, #6366f1); /* Indigo-400 et Indigo-500 */
+    box-shadow: 0 0 5px rgba(107, 114, 142, 0.5); /* Ombre subtile */
+}
+
+.status-messages {
+    margin-top: 0.75rem;
+    max-height: 10rem;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    color: #6b7280; /* Tailwind's gray-500 */
+}
+
+</style>
+            
+            
+            
+<div id="tab-apercu" class="tabcontent">
+    <fieldset>
+        <legend><h3>Aperçu des photos préparées</h3></legend>
+        <p class="text-gray-600 mb-4">Voici les photos qui sont prêtes à être affichées par le diaporama, classées par source. Cliquez sur une photo pour l'agrandir.</p>
+
+        {% if prepared_photos_by_source and prepared_photos_by_source.values()|map('count')|sum > 0 %}
+            {% for source_name, photos in prepared_photos_by_source.items() %}
+                {% if photos %}
+                <fieldset class="mb-6 p-4 border rounded-lg bg-gray-50/50">
+                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                        <h4 class="text-xl font-semibold text-gray-800">{{ source_name.capitalize() }}</h4>
+                        <!-- Bouton pour supprimer toutes les photos de la source -->
+                        <button type="button" class="delete-all-btn bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded inline-flex items-center" data-source="{{ source_name }}" title="Supprimer toutes les photos de la source '{{ source_name }}'">
+                            <i class="fas fa-trash-alt mr-2"></i>
+                            <span>Tout supprimer</span>
+                        </button>
+                    </div>
+                        <div class="photo-grid">
+                            {% for photo in photos %}
+                            <div class="photo-tile">
+                                <!-- L'image a maintenant un ID unique pour la manipulation en JS -->
+                                <a href="{{ url_for('static', filename='prepared/' + photo) }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ photo }}">
+                                  <img id="img-{{ photo | replace('/', '-') | replace('.', '-') }}" src="{{ url_for('static', filename='prepared/' + photo) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition" alt="Photo from {{ source_name }}">
+                                </a>
+                                <!-- Actions alignées avec "justify-between" pour pousser la poubelle à droite -->
+                                <div class="photo-actions mt-1 flex items-center justify-between w-full gap-x-2">
+                                    <select class="filter-select text-xs rounded border-gray-300 py-1" data-photo="{{ photo }}">
+                                        <option value="none">Filtre...</option>
+                                        <option value="grayscale">Noir & Blanc</option>
+                                        <option value="sepia">Sépia</option>
+                                        <option value="vignette">Vignette</option>
+                                        <option value="original" class="text-blue-600 font-semibold">Original</option>
+                                    </select>
+                                    <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo }}" title="Supprimer cette photo"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                </fieldset>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-gray-500 italic mt-4">Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet "Actions".</p>
+        {% endif %}
+    </fieldset>
+</div>
+
+<div id="tab-system" class="tabcontent">
+    <fieldset>
+        <legend><h3>Configuration Wi-Fi</h3></legend>
+        <form action="{{ url_for('save_wifi_settings') }}" method="post" id="wifi-config-form">
+            <div class="mb-4">
+                <label for="wifi_ssid" class="block text-sm font-medium text-gray-700">SSID (Nom du réseau)</label>
+                <input type="text" id="wifi_ssid" name="wifi_ssid" value="{{ config.get('wifi_ssid', '') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+            <div class="mb-4">
+                <label for="wifi_password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                <input type="password" id="wifi_password" name="wifi_password" value="{{ config.get('wifi_password', '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <p class="mt-2 text-sm text-gray-500">Laissez vide si le réseau est ouvert.</p>
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                <i class="fas fa-save mr-2"></i>Appliquer les paramètres Wi-Fi
+            </button>
+        </form>
+    </fieldset>
+
+    <!-- Bloc de scan Wi-Fi -->
+    <div class="mt-6 p-4 border rounded-lg bg-gray-50/50">
+        <h4 class="text-xl font-semibold text-gray-800 mb-2">Réseaux Wi-Fi à proximité</h4>
+        <p class="text-gray-600 mb-4">Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. Cliquer sur un réseau dans la liste remplira automatiquement le champ SSID ci-dessus.</p>
+        <button id="scan-wifi-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded mb-3 inline-flex items-center">
+            <i class="fas fa-wifi mr-2"></i>
+            <span id="scan-wifi-btn-text">Lancer le scan</span>
+        </button>
+        <div id="wifi-scan-results" class="mt-4">
+            <!-- Les résultats du scan apparaîtront ici -->
+        </div>
+    </div>
+
+    <fieldset class="mt-6">
+        <legend><h3>Contrôle du système</h3></legend>
+        <form method="POST" action="/reboot" onsubmit="return confirm('Êtes-vous sûr de vouloir REDÉMARRER le système ?');">
+            <button type="submit" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded">
+                <i class="fas fa-sync-alt"></i> Redémarrer le système
+            </button>
+        </form>
+        <form method="POST" action="/shutdown" onsubmit="return confirm('Êtes-vous sûr de vouloir ÉTEINDRE le système ?');">
+            <button type="submit" class="system-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-power-off"></i> Éteindre le système
+            </button>
+        </form>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Informations Système</h3></legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Température CPU:</strong> <span id="cpu-temp">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Utilisation CPU:</strong> <span id="cpu-usage">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>RAM:</strong> <span id="ram-usage">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Stockage:</strong> <span id="disk-usage">Chargement...</span>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Logs Système</h3></legend>
+        <div class="mb-3">
+            <label for="log-selector" class="form-label">Sélectionner un log :</label>
+            <select id="log-selector" class="form-select">
+                <option value="app">app.py (Serveur Web)</option>
+                <option value="slideshow_stdout">local_slideshow.py (Diaporama - Sortie Standard)</option>
+                <option value="slideshow_stderr">local_slideshow.py (Diaporama - Erreurs)</option>
+            </select>
+            <button type="button" id="refresh-logs-btn" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-2">Actualiser</button>
+            <button type="button" id="clear-logs-btn" class="btn btn-danger bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded ml-2">Effacer les logs</button>
+        </div>
+        <pre id="log-content" class="bg-gray-800 text-white p-4 rounded-lg overflow-auto text-sm" style="max-height: 400px; min-height: 150px; white-space: pre-wrap; word-break: break-all;"></pre>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Crédits</h3></legend>
+        <div class="credits">
+            <img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120" alt="Auteur Gotenash">
+            <p>Auteurs : Gotenash et Shenron</p>
+            <a href="https://www.gadgetaulab.fr">
+                <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" width="120" alt="Logo Gadgetaulab">
+            </a>
+            <p>Projet réalisé dans le cadre du Gadgetaulab</p>
+        </div>
+    </fieldset>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+  const lightbox = GLightbox({
+    selector: '.glightbox'
+  });
+</script>
+<script>
+
+function openTab(evt, tabId) {
+    const tabcontent = document.getElementsByClassName("tabcontent");
+    const tablinks = document.getElementsByClassName("tablink");
+
+    for (let i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].classList.remove("active");
+    }
+
+    document.getElementById(tabId).style.display = "block";
+
+    // Gérer la classe active sur le bouton de l'onglet
+    const currentButton = evt ? evt.currentTarget : document.querySelector(`.tablink[onclick*="'${tabId}'"]`);
+    if (currentButton) {
+        currentButton.classList.add("active");
+    }
+
+    // Sauvegarder l'onglet actuel dans le localStorage
+    localStorage.setItem('activeTab', tabId);
+
+    // Gérer la visibilité du bouton "Enregistrer"
+    const saveButton = document.getElementById('save-changes-btn');
+    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system'];
+
+    if (saveButton) {
+        saveButton.style.display = tabsWithoutSaveButton.includes(tabId) ? 'none' : 'block';
+    }
+}
+
+// Restaurer l'onglet actif au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    let activeTabId = localStorage.getItem('activeTab') || 'tab-affichage';
+    if (!document.getElementById(activeTabId)) {
+        activeTabId = 'tab-affichage';
+    }
+    openTab(null, activeTabId);
+});
+
+// Script de suppression amélioré
+document.querySelectorAll('.delete-button').forEach(button => {
+  button.addEventListener('click', async (event) => {
+    const photo = button.dataset.photo;
+    const confirmDelete = confirm(`Supprimer la photo ${photo} ?`);
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`/delete_photo/${photo}`, { method: 'DELETE' });
+      
+      if (response.ok) {
+        // Suppression réussie - recharger la page
+        // L'onglet actif sera automatiquement restauré grâce au localStorage
+        location.reload();
+      } else {
+        alert("Erreur lors de la suppression.");
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert("Erreur lors de la suppression.");
+    }
+  });
+});
+
+// Script pour supprimer toutes les photos d'une source
+document.querySelectorAll('.delete-all-btn').forEach(button => {
+    button.addEventListener('click', async (event) => {
+        const source = button.dataset.source;
+        const confirmDelete = confirm(`Êtes-vous sûr de vouloir supprimer TOUTES les photos de la source "${source}" ? Cette action est irréversible.`);
+        if (!confirmDelete) return;
+
+        try {
+            const response = await fetch(`/delete_source_photos/${source}`, { method: 'DELETE' });
+            
+            if (response.ok) {
+                // Recharger la page pour voir les changements
+                location.reload();
+            } else {
+                const result = await response.json();
+                alert(`Erreur lors de la suppression : ${result.message || 'Erreur inconnue'}`);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert("Erreur de communication lors de la suppression.");
+        }
+    });
+});
+
+// Script pour appliquer les filtres
+document.querySelectorAll('.filter-select').forEach(select => {
+    select.addEventListener('change', async (event) => {
+        const filter = event.target.value;
+        const photo = select.dataset.photo;
+
+        if (filter === 'none') return;
+
+        // Créer un ID valide pour l'élément image
+        const imgId = `img-${photo.replace(/\//g, '-').replace(/\./g, '-')}`;
+        const imgElement = document.getElementById(imgId);
+
+        // Afficher un retour visuel (chargement)
+        if (imgElement) {
+            imgElement.style.opacity = '0.5';
+        }
+
+        try {
+            const response = await fetch('/api/apply_filter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photo: photo, filter: filter })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Forcer le rechargement de l'image en ajoutant un paramètre aléatoire (cache busting)
+                if (imgElement) {
+                    imgElement.src = `${result.new_path}?v=${new Date().getTime()}`;
+                }
+            } else {
+                alert(`Erreur : ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert("Erreur de communication avec le serveur.");
+        } finally {
+            // Réinitialiser l'affichage
+            if (imgElement) {
+                imgElement.style.opacity = '1';
+            }
+            select.value = 'none'; // Réinitialiser le menu déroulant
+        }
+    });
+});
+// Scripts d'import améliorés avec feedback détaillé
+document.addEventListener("DOMContentLoaded", () => {
+    
+    function createStyledMessage(message, type = 'info') {
+        const div = document.createElement('div');
+        div.className = `status-message status-${type}`;
+        div.textContent = message;
+        return div;
+    }
+
+    function displayMessage(container, message, type = 'info') {
+        // Utilise le type fourni par le serveur ('info', 'success', 'warning', 'error')
+        // pour choisir la bonne couleur de message.
+        const messageElement = createStyledMessage(message, type);
+        container.appendChild(messageElement);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // ----- IMPORT USB AMÉLIORÉ -----
+    document.getElementById("usb-import-btn").addEventListener("click", () => {
+        const btn = document.getElementById("usb-import-btn");
+        const progressBar = document.getElementById("usb-progress-bar");
+        const progressContainer = document.getElementById("usb-progress-container");
+        const statusDiv = document.getElementById("usb-import-status");
+
+        // Désactiver le bouton pendant l'import
+        btn.disabled = true;
+        btn.textContent = "Import en cours...";
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+
+        // Reset de l'interface
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        progressContainer.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+        
+        let importTermine = false;
+        let timeoutId = null;
+
+        const eventSource = new EventSource('/import-usb');
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                progressBar.style.width = `${data.percent || 0}%`;
+                progressBar.textContent = `${data.percent || 0}%`;
+                
+                displayMessage(statusDiv, data.message, data.type);
+
+                if (data.type === 'done' || data.type === 'error') {
+                    eventSource.close();
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer depuis la clé USB";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
+            } catch (e) {
+                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+            }
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import USB.", 'error');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "Importer depuis la clé USB";
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                progressContainer.classList.add("hidden");
+                statusDiv.innerHTML = "";
+            }, 5000);
+        };
+    });
+
+    // ----- IMPORT IMMICH AMÉLIORÉ -----
+    document.getElementById("immich-import-btn").addEventListener("click", () => {
+        const btn = document.getElementById("immich-import-btn");
+        const progressBar = document.getElementById("immich-progress-bar");
+        const progressContainer = document.getElementById("immich-progress-container");
+        const statusDiv = document.getElementById("immich-import-status");
+        // Désactiver le bouton pendant l'import
+        btn.disabled = true;
+        btn.textContent = "Import en cours...";
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+        // Reset de l'interface
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        progressContainer.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+        
+        const eventSource = new EventSource('/import-immich');
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                progressBar.style.width = `${data.percent || 0}%`;
+                progressBar.textContent = `${data.percent || 0}%`;
+                
+                displayMessage(statusDiv, data.message, data.type);
+
+                if (data.type === 'done' || data.type === 'error') {
+                    eventSource.close();
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer les photos depuis Immich";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
+            } catch (e) {
+                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+            }
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import Immich.", 'error');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "Importer les photos depuis Immich";
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                progressContainer.classList.add("hidden");
+                statusDiv.innerHTML = "";
+            }, 5000);
+        };
+    });
+
+    // ----- IMPORT SAMBA -----
+    document.getElementById("samba-import-btn").addEventListener("click", () => {
+        const btn = document.getElementById("samba-import-btn");
+        const progressBar = document.getElementById("samba-progress-bar");
+        const progressContainer = document.getElementById("samba-progress-container");
+        const statusDiv = document.getElementById("samba-import-status");
+
+        btn.disabled = true;
+        btn.textContent = "Import en cours...";
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        progressContainer.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+
+        const eventSource = new EventSource('/import-samba');
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                progressBar.style.width = `${data.percent || 0}%`;
+                progressBar.textContent = `${data.percent || 0}%`;
+                
+                displayMessage(statusDiv, data.message, data.type);
+
+                if (data.type === 'done' || data.type === 'error') {
+                    eventSource.close();
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Importer depuis Samba";
+                        btn.classList.remove("opacity-50", "cursor-not-allowed");
+                        progressContainer.classList.add("hidden");
+                        statusDiv.innerHTML = "";
+                    }, 5000);
+                }
+            } catch (e) {
+                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+            }
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import Samba.", 'error');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "Importer depuis Samba";
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                progressContainer.classList.add("hidden");
+                statusDiv.innerHTML = "";
+            }, 5000);
+        };
+    });
+
+    // ----- TEST SAMBA CONNECTION -----
+    document.getElementById("samba-test-btn").addEventListener("click", async () => {
+        const btn = document.getElementById("samba-test-btn");
+        const statusSpan = document.getElementById("samba-test-status");
+
+        // Get values from the form
+        const host = document.getElementById("smb_host").value;
+        const share = document.getElementById("smb_share").value;
+        const path = document.getElementById("smb_path").value;
+        const user = document.getElementById("smb_user").value;
+        const password = document.getElementById("smb_password").value;
+
+        // Provide immediate feedback
+        statusSpan.textContent = "Test en cours...";
+        statusSpan.className = "ml-4 font-medium text-blue-600";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/test-samba', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    smb_host: host,
+                    smb_share: share,
+                    smb_path: path,
+                    smb_user: user,
+                    smb_password: password
+                }),
+            });
+
+            const result = await response.json();
+
+            statusSpan.textContent = result.message;
+            statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
+
+        } catch (error) {
+            statusSpan.textContent = "Erreur de communication avec le serveur.";
+            statusSpan.className = "ml-4 font-medium text-red-600";
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // ----- TEST WEATHER API -----
+    const testWeatherBtn = document.getElementById("testWeatherApiKeyBtn");
+    if (testWeatherBtn) {
+        testWeatherBtn.addEventListener("click", async () => {
+            const btn = testWeatherBtn;
+            const statusSpan = document.getElementById("weatherApiTestResult");
+
+            const apiKey = document.getElementById("weather_api_key").value;
+            const city = document.getElementById("weather_city").value;
+
+            statusSpan.textContent = "Test en cours...";
+            statusSpan.className = "ml-4 font-medium text-blue-600";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/test-weather-api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: apiKey, city: city }),
+                });
+
+                const result = await response.json();
+
+                statusSpan.textContent = result.message;
+                statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
+
+            } catch (error) {
+            statusSpan.textContent = "Erreur de communication avec le serveur.";
+                statusSpan.className = "ml-4 font-medium text-red-600";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- État des marées ---
+    async function fetchTideInfo() {
+        const tideLastUpdate = document.getElementById('tide-last-update');
+        const tideNextHigh = document.getElementById('tide-next-high');
+        const tideNextLow = document.getElementById('tide-next-low');
+        const tideApiStatus = document.getElementById('tide-api-status');
+
+        try {
+            const response = await fetch('/api/tide_info');
+            const data = await response.json();
+
+            if (data.success) {
+                tideLastUpdate.textContent = data.last_update || 'N/A';
+                tideNextHigh.textContent = data.next_high || 'N/A';
+                tideNextLow.textContent = data.next_low || 'N/A';
+                tideApiStatus.textContent = data.api_status || 'OK';
+                tideApiStatus.className = data.api_status.includes('cooldown') || data.api_status.includes('Erreur') ? 'font-mono text-yellow-600' : 'font-mono text-green-600';
+            } else {
+                tideLastUpdate.textContent = 'N/A';
+                tideNextHigh.textContent = 'N/A';
+                tideNextLow.textContent = 'N/A';
+                tideApiStatus.textContent = data.message || 'Impossible de charger les données.';
+                tideApiStatus.className = 'font-mono text-red-600';
+            }
+        } catch (error) {
+            console.error("Erreur de communication avec l'API des marées:", error);
+            tideApiStatus.textContent = "Erreur de connexion au serveur.";
+            tideApiStatus.className = 'font-mono text-red-600';
+        }
+    }
+
+
+    // ----- TEST STORMGLASS API -----
+    const testStormglassBtn = document.getElementById("testStormglassApiKeyBtn");
+    if (testStormglassBtn) {
+        testStormglassBtn.addEventListener("click", async () => {
+            const btn = testStormglassBtn;
+            const statusSpan = document.getElementById("stormglassApiTestResult");
+
+            const apiKey = document.getElementById("stormglass_api_key").value;
+            const lat = document.getElementById("tide_latitude").value;
+            const lon = document.getElementById("tide_longitude").value;
+
+            statusSpan.textContent = "Test en cours...";
+            statusSpan.className = "ml-4 font-medium text-blue-600";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/test-stormglass-api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: apiKey, lat: lat, lon: lon }),
+                });
+
+                const result = await response.json();
+
+                statusSpan.textContent = result.message;
+                statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
+
+            } catch (error) {
+                statusSpan.textContent = "Erreur de communication avec le serveur.";
+                statusSpan.className = "ml-4 font-medium text-red-600";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // Mise à jour périodique
+    fetchTideInfo(); // Appel initial
+    setInterval(fetchTideInfo, 30000); // Mise à jour toutes les 30 secondes
+
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Fonction pour formater les dates ISO en format lisible
+    function formatDateTime(isoString) {
+        if (!isoString) return "N/A";
+        const date = new Date(isoString);
+        // Options pour un format français lisible
+        const options = {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false // Format 24h
+        };
+        return date.toLocaleString('fr-FR', options);
+    }
+
+    // Fonction générique pour récupérer et afficher le statut d'un worker
+    async function fetchWorkerStatus(workerName, statusManagerId, lastRunId, nextRunId) {
+        try {
+            const response = await fetch(`/${workerName}_update_status`);
+            const data = await response.json();
+
+            document.getElementById(statusManagerId).textContent = data.status_message;
+            document.getElementById(lastRunId).textContent = formatDateTime(data.last_run);
+            document.getElementById(nextRunId).textContent = formatDateTime(data.next_run);
+
+        } catch (error) {
+            console.error(`Erreur lors de la récupération du statut ${workerName}:`, error);
+            document.getElementById(statusManagerId).textContent = "Erreur de connexion";
+            document.getElementById(lastRunId).textContent = "N/A";
+            document.getElementById(nextRunId).textContent = "N/A";
+        }
+    }
+
+    // Mise à jour initiale au chargement de la page
+    fetchWorkerStatus("immich", "immich-worker-status-message", "immich-last-update-time", "immich-next-update-time");
+    fetchWorkerStatus("samba", "samba-worker-status-message", "samba-last-update-time", "samba-next-update-time");
+
+    // Mise à jour périodique toutes les 5 secondes
+    setInterval(() => {
+        fetchWorkerStatus("immich", "immich-worker-status-message", "immich-last-update-time", "immich-next-update-time");
+        fetchWorkerStatus("samba", "samba-worker-status-message", "samba-last-update-time", "samba-next-update-time");
+    }, 5000); // 5000 ms = 5 secondes
+
+    // --- Détection de la résolution ---
+    const detectResBtn = document.getElementById("detect-resolution-btn");
+    const slideshowIsRunning = {{ slideshow_running|tojson }};
+
+    async function fetchAndSetResolution() {
+        const originalText = detectResBtn.innerHTML;
+        detectResBtn.innerHTML = 'Détection...';
+        detectResBtn.disabled = true;
+
+        try {
+            const response = await fetch('/get_current_resolution');
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('display_width').value = data.width;
+                document.getElementById('display_height').value = data.height;
+                detectResBtn.innerHTML = 'Détecté !';
+            } else {
+                alert(data.message || "Erreur lors de la détection.");
+                detectResBtn.innerHTML = originalText;
+            }
+        } catch (error) {
+            alert("Erreur de communication avec le serveur.");
+            detectResBtn.innerHTML = originalText;
+        } finally {
+            setTimeout(() => {
+                detectResBtn.innerHTML = originalText;
+                detectResBtn.disabled = !slideshowIsRunning;
+            }, 2000);
+        }
+    }
+
+    if (slideshowIsRunning) {
+        detectResBtn.disabled = false;
+        fetchAndSetResolution(); // Appel automatique au chargement de la page
+    } else {
+        detectResBtn.disabled = true;
+    }
+
+    detectResBtn.addEventListener("click", fetchAndSetResolution);
+
+    // --- Aperçu en direct ---
+    const livePreviewImage = document.getElementById('live-preview-image');
+    const livePreviewStatus = document.getElementById('live-preview-status');
+
+    async function updateLivePreview() {
+        try {
+            const response = await fetch('/current_photo_status');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            if (data.status === 'stopped') {
+                livePreviewStatus.textContent = 'Le diaporama est arrêté.';
+                livePreviewStatus.classList.remove('hidden');
+                livePreviewImage.classList.add('hidden');
+            } else {
+                if (data.current_photo) {
+                    // Mettre à jour la source de l'image uniquement si elle a changé
+                    if (livePreviewImage.src !== data.current_photo) {
+                         livePreviewImage.src = data.current_photo;
+                    }
+                    livePreviewStatus.classList.add('hidden');
+                    livePreviewImage.classList.remove('hidden');
+                } else {
+                    livePreviewStatus.textContent = 'En attente de la prochaine photo...';
+                    livePreviewStatus.classList.remove('hidden');
+                    livePreviewImage.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('Erreur de mise à jour de l\'aperçu en direct:', error);
+            livePreviewStatus.textContent = 'Erreur de connexion.';
+            livePreviewStatus.classList.remove('hidden');
+            livePreviewImage.classList.add('hidden');
+        }
+    }
+
+    // Mettre à jour toutes les 5 secondes et une fois au chargement
+    setInterval(updateLivePreview, 5000);
+    updateLivePreview();
+
+    // --- Informations Système et Logs ---
+    // Fonction pour récupérer et afficher les informations système
+    async function fetchSystemInfo() {
+        try {
+            const response = await fetch('/api/system_info');
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('cpu-temp').textContent = data.cpu_temp;
+                document.getElementById('cpu-usage').textContent = data.cpu_usage;
+                document.getElementById('ram-usage').textContent = data.ram_usage;
+                document.getElementById('disk-usage').textContent = data.disk_usage;
+            } else {
+                console.error("Erreur lors de la récupération des infos système:", data.message);
+                document.getElementById('cpu-temp').textContent = "N/A";
+                document.getElementById('cpu-usage').textContent = "N/A";
+                document.getElementById('ram-usage').textContent = "N/A";
+                document.getElementById('disk-usage').textContent = "N/A";
+            }
+        } catch (error) {
+            console.error("Erreur de communication avec l'API système:", error);
+            document.getElementById('cpu-temp').textContent = "Erreur";
+            document.getElementById('cpu-usage').textContent = "Erreur";
+            document.getElementById('ram-usage').textContent = "Erreur";
+            document.getElementById('disk-usage').textContent = "Erreur";
+        }
+    }
+
+    // Fonction pour récupérer et afficher les logs
+    async function fetchLogs() {
+        const logType = document.getElementById('log-selector').value;
+        try {
+            const response = await fetch(`/api/logs?type=${logType}`);
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('log-content').textContent = data.content;
+                document.getElementById('log-content').scrollTop = document.getElementById('log-content').scrollHeight; // Scroll to bottom
+            } else {
+                document.getElementById('log-content').textContent = `Erreur: ${data.message}`;
+            }
+        } catch (error) {
+            console.error("Erreur de communication avec l'API logs:", error);
+            document.getElementById('log-content').textContent = "Erreur de connexion à l'API des logs.";
+        }
+    }
+
+    // Mettre à jour les infos système toutes les 5 secondes
+    setInterval(fetchSystemInfo, 5000);
+    // Mettre à jour les logs toutes les 10 secondes (ou sur demande)
+    setInterval(fetchLogs, 10000);
+
+    // Écouteurs d'événements pour les logs
+    document.getElementById('log-selector').addEventListener('change', fetchLogs);
+    document.getElementById('refresh-logs-btn').addEventListener('click', fetchLogs);
+    document.getElementById('clear-logs-btn').addEventListener('click', async () => {
+        const logSelector = document.getElementById('log-selector');
+        const logType = logSelector.value;
+        const logName = logSelector.options[logSelector.selectedIndex].text;
+
+        if (!confirm(`Êtes-vous sûr de vouloir effacer le contenu du log "${logName}" ? Cette action est irréversible.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/clear_logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: logType })
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchLogs(); // Rafraîchir la vue pour montrer que le log est vide
+            } else {
+                alert(`Erreur lors de l'effacement du log : ${data.message}`);
+            }
+        } catch (error) {
+            alert("Erreur de connexion à l'API pour effacer les logs.");
+        }
+    });
+
+    // Appel initial au chargement de la page pour les infos système et les logs
+    fetchSystemInfo();
+    fetchLogs();
+
+    // --- Scan Wi-Fi ---
+    const scanBtn = document.getElementById('scan-wifi-btn');
+    const scanBtnText = document.getElementById('scan-wifi-btn-text');
+    const resultsDiv = document.getElementById('wifi-scan-results');
+    const ssidInput = document.getElementById('wifi_ssid');
+
+    if (scanBtn) {
+        // Fonction pour obtenir une icône Wi-Fi colorée en fonction de la force du signal
+        function getSignalIconHtml(signal) {
+            let colorClass = 'text-gray-400'; // Faible ou par défaut
+            if (signal > 75) {
+                colorClass = 'text-green-500'; // Fort
+            } else if (signal > 50) {
+                colorClass = 'text-green-400'; // Bon
+            } else if (signal > 25) {
+                colorClass = 'text-yellow-500'; // Moyen
+            } else {
+                colorClass = 'text-red-500'; // Faible
+            }
+            return `<i class="fas fa-wifi ${colorClass} fa-fw mr-2"></i>`;
+        }
+
+        scanBtn.addEventListener('click', function() {
+            resultsDiv.innerHTML = `
+                <div class="p-4 text-sm text-blue-700 bg-blue-100 rounded-lg flex items-center" role="alert">
+                    <i class="fas fa-spinner fa-spin mr-3"></i>
+                    <span>Scan en cours...</span>
+                </div>`;
+            scanBtn.disabled = true;
+            scanBtnText.textContent = 'Scan en cours...';
+
+            fetch('/api/scan_wifi')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.networks && data.networks.length > 0) {
+                            let table = `
+                                <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+                                    <table class="w-full text-sm text-left text-gray-500">
+                                        <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                            <tr>
+                                                <th scope="col" class="py-3 px-6">SSID</th>
+                                                <th scope="col" class="py-3 px-6">Sécurité</th>
+                                                <th scope="col" class="py-3 px-6">Signal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>`;
+                            data.networks.forEach(net => {
+                                table += `
+                                    <tr class="bg-white border-b hover:bg-gray-50 cursor-pointer wifi-row" data-ssid="${net.ssid}" title="Cliquer pour sélectionner ce réseau">
+                                        <td class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">${net.ssid}</td>
+                                        <td class="py-4 px-6">${net.security || 'Aucune'}</td>
+                                        <td class="py-4 px-6 flex items-center">${getSignalIconHtml(net.signal)}<span>${net.signal}%</span></td>
+                                    </tr>`;
+                            });
+                            table += '</tbody></table></div>';
+                            resultsDiv.innerHTML = table;
+
+                            // Ajouter les écouteurs d'événements pour chaque ligne du tableau
+                            document.querySelectorAll('.wifi-row').forEach(row => {
+                                row.addEventListener('click', function() {
+                                    const selectedSsid = this.dataset.ssid;
+                                    if (ssidInput) {
+                                        ssidInput.value = selectedSsid;
+                                        ssidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        ssidInput.focus();
+                                    }
+                                });
+                            });
+
+                        } else {
+                            resultsDiv.innerHTML = '<div class="p-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg" role="alert">Aucun réseau Wi-Fi trouvé.</div>';
+                        }
+                    } else {
+                        resultsDiv.innerHTML = `<div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert"><strong>Erreur:</strong> ${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    resultsDiv.innerHTML = `<div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert"><strong>Erreur:</strong> Erreur de communication avec le serveur: ${error}</div>`;
+                })
+                .finally(() => {
+                    scanBtn.disabled = false;
+                    scanBtnText.textContent = 'Lancer le scan';
+                });
+        });
+    }
+});
+</script>
+
 </body>
 </html>

@@ -2,54 +2,81 @@ import os
 import requests
 from utils.config import get_album_id_by_name
 from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
+from utils.prepare_all_photos import prepare_all_photos
 
 def download_and_extract_album(config):
+    import requests
+    import time
+
     server_url = config.get("immich_url")
     api_key = config.get("immich_token")
     album_name = config.get("album_name")
 
     if not all([server_url, api_key, album_name]):
-        raise ValueError("Configuration incomplète : serveur, token ou nom d'album manquant.")
+        yield {"type": "error", "message": "Configuration incomplète : serveur, token ou nom d'album manquant."}
+        return
 
-    # Récupérer l'ID de l'album
-    headers = {
-        "x-api-key": api_key
-    }
+    yield {"type": "progress", "stage": "CONNECTING", "percent": 5, "message": "Connexion à Immich..."}
+    time.sleep(0.5)
+
+    headers = { "x-api-key": api_key }
     album_list_url = f"{server_url}/api/albums"
-    response = requests.get(album_list_url, headers=headers)
+    
+    try:
+        response = requests.get(album_list_url, headers=headers, timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        yield {"type": "error", "message": f"Impossible de se connecter au serveur Immich : {str(e)}"}
+        return
 
-    if response.status_code != 200:
-        raise ValueError(f"Impossible de récupérer les albums : {response.status_code} {response.text}")
-
+    yield {"type": "progress", "stage": "SEARCHING", "percent": 10, "message": "Recherche de l'album..."}
+    
     albums = response.json()
     album_id = next((album["id"] for album in albums if album["albumName"] == album_name), None)
-
     if not album_id:
-        raise ValueError(f"Aucun album trouvé avec le nom : {album_name}")
+        available_albums = [album["albumName"] for album in albums[:5]]  # Limiter à 5 pour l'affichage
+        yield {"type": "error", "message": f"Album '{album_name}' introuvable. Albums disponibles : {', '.join(available_albums)}"}
+        return
 
-    # Récupérer les assets de l'album
+    yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
+
     assets_url = f"{server_url}/api/albums/{album_id}"
-    response = requests.get(assets_url, headers=headers)
-
-    if response.status_code != 200:
-        raise ValueError(f"Impossible de récupérer les assets : {response.status_code} {response.text}")
+    response = requests.get(assets_url, headers=headers, timeout=30)
+    response.raise_for_status()
 
     album_data = response.json()
     asset_ids = [asset["id"] for asset in album_data.get("assets", [])]
 
     if not asset_ids:
-        raise ValueError("Aucun asset trouvé dans l'album.")
+        yield {"type": "error", "message": "L'album est vide ou ne contient aucune photo accessible."}
+        return
+    
+    nb_photos = len(asset_ids)
+    yield {"type": "progress", "stage": "DOWNLOADING", "percent": 25, "message": f"Téléchargement de l'archive ({nb_photos} photos)..."}
 
-    # Télécharger l'archive ZIP des assets
+    from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
     zip_path = "temp_album.zip"
-    if not download_album_archive(server_url, api_key, asset_ids, zip_path):
-        raise ValueError("Erreur lors du téléchargement de l'archive ZIP.")
+    
+    try:
+        if not download_album_archive(server_url, api_key, asset_ids, zip_path):
+            yield {"type": "error", "message": "Échec du téléchargement de l'archive."}
+            return
+    except Exception as e:
+        yield {"type": "error", "message": f"Erreur critique lors du téléchargement : {str(e)}"}
+        return
 
-    # Extraire l'archive dans static/photos
+    yield {"type": "progress", "stage": "EXTRACTING", "percent": 60, "message": "Extraction des photos..."}
     photos_folder = os.path.join("static", "photos")
+    
     if os.path.exists(photos_folder):
         for f in os.listdir(photos_folder):
             os.remove(os.path.join(photos_folder, f))
+    
+    try:
+        unzip_archive(zip_path, photos_folder)
+        clean_archive(zip_path)
+    except Exception as e:
+        yield {"type": "error", "message": f"Erreur lors de l'extraction : {str(e)}"}
+        return
 
-    unzip_archive(zip_path, photos_folder)
-    clean_archive(zip_path)
+    yield {"type": "done", "stage": "DOWNLOAD_COMPLETE", "percent": 80, "message": f"{nb_photos} photos prêtes pour préparation.", "total_downloaded": nb_photos}

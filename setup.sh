@@ -1,73 +1,83 @@
 #!/bin/bash
 
-echo "=== Installation de Pimmich ==="
+echo "=== [1/7] Mise à jour des paquets ==="
+sudo apt update && sudo apt upgrade -y
 
-# Mises à jour et dépendances système
-sudo apt update && sudo apt install -y python3-venv python3-pip python3-pil python3-tk unzip libjpeg-dev libatlas-base-dev libopenjp2-7 libtiff5 tk-dev python3-dev python3-setuptools python3-wheel
+echo "=== [2/7] Installation des dépendances ==="
+sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient
 
-# Détection Desktop (X11) ou Lite
-if [ -n "$DISPLAY" ] || [ -d /etc/xdg/autostart ]; then
-    MODE="desktop"
-    echo "Mode : Raspberry Pi OS Desktop détecté"
-else
-    MODE="lite"
-    echo "Mode : Raspberry Pi OS Lite détecté"
-fi
-
-# Création du dossier projet
-cd /home/pi || exit 1
-mkdir -p pimmich/{config,logs,static/photos,templates}
-cd pimmich || exit 1
-
-# Création de l'environnement virtuel
+echo "=== [3/7] Création de l’environnement Python ==="
+cd "$(dirname "$0")"
 python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 
-# Installation des paquets Python
-pip install --upgrade pip
-pip install flask pillow requests pygame
+echo "=== [4/7] Création du fichier de configuration par défaut ==="
+CONFIG_DIR="config"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+mkdir -p "$CONFIG_DIR"
 
-# Création du service systemd (pour Lite)
-if [ "$MODE" = "lite" ]; then
-    echo "Création du service systemd pour démarrage automatique..."
-
-    cat <<EOF | sudo tee /etc/systemd/system/pimmich.service > /dev/null
-[Unit]
-Description=Pimmich Slideshow and Flask App
-After=network.target
-
-[Service]
-User=pi
-WorkingDirectory=/home/pi/pimmich
-ExecStart=/home/pi/pimmich/start_pimmich.sh
-Restart=always
-Environment=DISPLAY=:0
-StandardOutput=file:/home/pi/pimmich/logs/systemd_out.log
-StandardError=file:/home/pi/pimmich/logs/systemd_err.log
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-    sudo chmod 644 /etc/systemd/system/pimmich.service
-    sudo systemctl daemon-reexec
-    sudo systemctl enable pimmich.service
-    echo "Service systemd installé. Il démarrera automatiquement au prochain boot."
-
-# Création de l’autostart (pour Desktop)
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Création du fichier de configuration initial : $CONFIG_FILE"
+    cat > "$CONFIG_FILE" << EOL
+{
+  "photo_source": "immich",
+  "display_duration": 10,
+  "active_start": "07:00",
+  "active_end": "22:00",
+  "screen_height_percent": "100",
+  "immich_url": "",
+  "immich_token": "",
+  "album_name": "",
+  "immich_auto_update": false,
+  "immich_update_interval_hours": 24,
+  "smb_host": "",
+  "smb_share": "",
+  "smb_user": "",
+  "smb_password": "",
+  "smb_path": "/",
+  "smb_auto_update": false,
+  "smb_update_interval_hours": 24,
+  "show_clock": true,
+  "clock_format": "%H:%M",
+  "clock_color": "#FFFFFF",
+  "clock_outline_color": "#000000",
+  "clock_font_size": 72,
+  "clock_font_path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+  "clock_offset_x": 0,
+  "clock_offset_y": 0
+}
+EOL
 else
-    echo "Création du fichier autostart pour interface graphique..."
-    mkdir -p ~/.config/autostart
-    cat <<EOF > ~/.config/autostart/pimmich.desktop
-[Desktop Entry]
-Type=Application
-Name=Pimmich Diaporama
-Exec=/home/pi/pimmich/start_pimmich.sh
-X-GNOME-Autostart-enabled=true
-EOF
+    echo "✅ Le fichier de configuration existe déjà."
 fi
 
-# Rendre le script de démarrage exécutable
+echo "=== [5/7] Configuration du lancement automatique de Sway ==="
+BASH_PROFILE="/home/pi/.bash_profile"
+if ! grep -q 'exec sway' "$BASH_PROFILE"; then
+    echo 'if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then' >> "$BASH_PROFILE"
+    echo '  exec sway' >> "$BASH_PROFILE"
+    echo 'fi' >> "$BASH_PROFILE"
+    echo "Ajout du démarrage automatique de Sway dans $BASH_PROFILE"
+else
+    echo "✅ Sway déjà configuré pour se lancer automatiquement"
+fi
+
+echo "=== [6/7] Configuration du lancement automatique de Pimmich dans Sway ==="
+SWAY_CONFIG_DIR="/home/pi/.config/sway"
+SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
+mkdir -p "$SWAY_CONFIG_DIR"
+
+# Rendre exécutable
 chmod +x /home/pi/pimmich/start_pimmich.sh
 
-echo "=== Installation terminée. Redémarre le Raspberry Pi pour tester le démarrage automatique ==="
+# Ajout de l'exec_always si absent
+if ! grep -q 'start_pimmich.sh' "$SWAY_CONFIG_FILE" 2>/dev/null; then
+    echo 'exec_always --no-startup-id /home/pi/pimmich/start_pimmich.sh' >> "$SWAY_CONFIG_FILE"
+    echo "Ajout de start_pimmich.sh dans la config sway"
+else
+    echo "✅ start_pimmich.sh déjà présent dans la config sway"
+fi
+
+echo "=== [7/7] Installation terminée ==="
+echo "✅ Installation terminée. Redémarrez pour lancer automatiquement Sway + Pimmich."
