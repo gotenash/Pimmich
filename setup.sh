@@ -4,8 +4,9 @@
 # ⚠️ Étape facultative. Si nécessaire, faire manuellement :
 # sudo apt update && sudo apt upgrade -y
 # echo "Mise à jour sautée pour une installation plus rapide."
+
 echo "=== [2/8] Installation des dépendances ==="
-sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager
+sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient
 
 echo "=== [3/8] Création de l’environnement Python ==="
 cd "$(dirname "$0")"
@@ -13,7 +14,15 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-echo "=== [4/8] Création du fichier de configuration par défaut ==="
+echo "=== [4/8] Création de l'arborescence des dossiers nécessaires ==="
+mkdir -p logs
+mkdir -p cache
+mkdir -p static/photos
+mkdir -p static/prepared
+mkdir -p static/pending_uploads
+echo "✅ Arborescence des dossiers créée."
+
+echo "=== [5/8] Création du fichier de configuration par défaut ==="
 CONFIG_DIR="config"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 mkdir -p "$CONFIG_DIR"
@@ -53,7 +62,7 @@ else
     echo "✅ Le fichier de configuration existe déjà."
 fi
 
-echo "=== [5/8] Configuration du lancement automatique de Sway ==="
+echo "=== [6/8] Configuration du lancement automatique de Sway ==="
 BASH_PROFILE="/home/pi/.bash_profile"
 if ! grep -q 'exec sway' "$BASH_PROFILE"; then
     echo 'if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then' >> "$BASH_PROFILE"
@@ -64,7 +73,7 @@ else
     echo "✅ Sway déjà configuré pour se lancer automatiquement"
 fi
 
-echo "=== [6/8] Configuration du lancement automatique de Pimmich dans Sway ==="
+echo "=== [7/8] Configuration du lancement automatique de Pimmich dans Sway ==="
 SWAY_CONFIG_DIR="/home/pi/.config/sway"
 SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
 mkdir -p "$SWAY_CONFIG_DIR"
@@ -79,14 +88,6 @@ if ! grep -q 'start_pimmich.sh' "$SWAY_CONFIG_FILE" 2>/dev/null; then
 else
     echo "✅ start_pimmich.sh déjà présent dans la config sway"
 fi
-
-echo "=== [7/8] Passage à NetworkManager pour la gestion réseau ==="
-echo "Cela assure la compatibilité avec la configuration Wi-Fi de l'interface Pimmich."
-sudo systemctl stop dhcpcd
-sudo systemctl disable dhcpcd
-sudo systemctl enable NetworkManager
-sudo systemctl start NetworkManager
-echo "✅ dhcpcd désactivé et NetworkManager activé."
 
 echo "=== [8/8] Installation terminée ==="
 echo "✅ Installation terminée. Redémarrez pour lancer automatiquement Sway + Pimmich."

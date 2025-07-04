@@ -1,108 +1,109 @@
-from PIL import Image, ImageFilter, ImageOps, ImageDraw
-from pathlib import Path
+import os
 import shutil
+from pathlib import Path
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter, ImageDraw
+import piexif
 
-def _apply_grayscale(image):
-    """Applique un filtre noir et blanc."""
-    return ImageOps.grayscale(image)
+def _get_content_bbox(image_with_exif):
+    """Lit les métadonnées EXIF pour trouver la 'bounding box' du contenu."""
+    try:
+        exif_dict = piexif.load(image_with_exif.info.get('exif', b''))
+        user_comment_bytes = exif_dict.get("Exif", {}).get(piexif.ExifIFD.UserComment, b'')
+        user_comment = user_comment_bytes.decode('ascii', errors='ignore')
+        
+        if user_comment.startswith("pimmich_bbox:"):
+            coords_str = user_comment.split(":")[1]
+            x, y, w, h = map(int, coords_str.split(','))
+            return (x, y, x + w, y + h) # Retourne un tuple (left, top, right, bottom)
+    except Exception:
+        pass # Si erreur de lecture ou format invalide, on retourne None
+    return None
 
-def _apply_sepia(image):
-    """Applique un filtre sépia."""
-    # Travailler sur une copie pour éviter de modifier l'original en place
-    img_copy = image.copy()
+def create_polaroid_effect(image_content):
+    """
+    Applique un effet de couleur et un cadre Polaroid à une image donnée.
+    Prend une image PIL et retourne une nouvelle image PIL.
+    """
+    # 1. Appliquer les filtres de couleur
+    content_filtered = ImageEnhance.Contrast(image_content).enhance(0.8)
+    yellow_overlay = Image.new('RGB', content_filtered.size, (255, 248, 220))
+    content_filtered = Image.blend(content_filtered, yellow_overlay, 0.25)
+    content_filtered = ImageEnhance.Brightness(content_filtered).enhance(1.1)
+    blue_overlay = Image.new('RGB', content_filtered.size, (0, 100, 120))
+    content_filtered = Image.blend(content_filtered, blue_overlay, 0.08)
+
+    # 2. Dessiner le cadre à l'intérieur de l'image
+    draw = ImageDraw.Draw(content_filtered)
+    width, height = content_filtered.size
+    frame_color = (255, 253, 248)
+    padding_top = int(height * 0.05)
+    padding_sides = int(height * 0.05)
+    padding_bottom = int(height * 0.18)
+    draw.rectangle([0, 0, width, padding_top], fill=frame_color)
+    draw.rectangle([0, height - padding_bottom, width, height], fill=frame_color)
+    draw.rectangle([0, padding_top, padding_sides, height - padding_bottom], fill=frame_color)
+    draw.rectangle([width - padding_sides, padding_top, width, height - padding_bottom], fill=frame_color)
     
-    if img_copy.mode != 'RGB':
-        img_copy = img_copy.convert('RGB')
-    
-    width, height = img_copy.size
-    pixels = img_copy.load()
-
-    for py in range(height):
-        for px in range(width):
-            r, g, b = pixels[px, py] # Lire depuis l'objet pixels est plus efficace
-            
-            tr = int(0.393 * r + 0.769 * g + 0.189 * b)
-            tg = int(0.349 * r + 0.686 * g + 0.168 * b)
-            tb = int(0.272 * r + 0.534 * g + 0.131 * b)
-            
-            pixels[px, py] = (min(255, tr), min(255, tg), min(255, tb))
-
-    return img_copy
-
-def _apply_vignette(image):
-    """Applique un effet de vignettage à l'image."""
-    # S'assurer que l'image est en mode RGBA pour la composition alpha
-    img_copy = image.copy().convert("RGBA")
-
-    # Créer un masque radial pour le vignettage
-    mask = Image.new("L", img_copy.size, 0) # 'L' pour 8-bit pixels, black and white
-    draw = ImageDraw.Draw(mask)
-
-    # Dessiner une ellipse blanche au centre (la zone qui restera claire)
-    x0, y0 = int(img_copy.width * 0.15), int(img_copy.height * 0.15)
-    x1, y1 = img_copy.width - x0, img_copy.height - y0
-    draw.ellipse((x0, y0, x1, y1), fill=255)
-
-    # Flouter le masque pour créer un dégradé doux
-    mask = mask.filter(ImageFilter.GaussianBlur(radius=img_copy.width // 7))
-
-    # Créer une couche de vignettage noire et semi-transparente
-    # On inverse le masque pour que le centre soit transparent et les bords opaques
-    vignette_layer = Image.new("RGBA", img_copy.size, (0, 0, 0, 0))
-    vignette_layer.putalpha(mask.point(lambda i: 255 - i))
-
-    # Appliquer la couche de vignettage sur l'image
-    return Image.alpha_composite(img_copy, vignette_layer)
+    return content_filtered
 
 def apply_filter_to_image(image_path_str, filter_name):
     """
-    Ouvre une image, applique un filtre et l'enregistre en écrasant l'original.
-    Gère également la restauration à l'original.
+    Applique un filtre à une image et la sauvegarde.
+    Utilise un système de backup pour ne pas appliquer de filtres sur une image déjà filtrée.
     """
     image_path = Path(image_path_str)
-    # Le nom du dossier de backup est basé sur le nom de la source (parent de l'image)
-    backup_dir = image_path.parent.parent.parent / '.backups' / image_path.parent.name
-    backup_path = backup_dir / image_path.name
+    
+    # Détermine le chemin de la sauvegarde. Ex: static/prepared/samba/img.jpg -> static/.backups/samba/img.jpg
+    try:
+        prepared_index = image_path.parts.index('prepared')
+        backup_base_path = Path(*image_path.parts[:prepared_index]) / '.backups'
+        backup_path = backup_base_path.joinpath(*image_path.parts[prepared_index+1:])
+    except ValueError:
+        raise ValueError("Le chemin de la photo ne semble pas être dans un dossier 'prepared'.")
 
-    # Si on demande de revenir à l'original
-    if filter_name == 'original':
-        if backup_path.exists():
-            shutil.copy2(backup_path, image_path)
-            backup_path.unlink() # Supprime la sauvegarde après restauration
-        # Si pas de backup, on ne fait rien (l'image est déjà l'originale)
-        return
+    # S'assure que le dossier de backup existe
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
 
-    filters = {
-        'grayscale': _apply_grayscale,
-        'sepia': _apply_sepia,
-        'vignette': _apply_vignette,
-    }
-
-    if filter_name not in filters:
-        raise ValueError(f"Filtre inconnu : '{filter_name}'.")
-
-    # Créer une sauvegarde si elle n'existe pas déjà (avant la première modification)
+    # Crée une sauvegarde si elle n'existe pas
     if not backup_path.exists():
-        backup_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(image_path, backup_path)
 
-    with Image.open(image_path) as img:
-        # Conserver les données EXIF si possible
-        exif = img.info.get('exif')
+    # Le traitement se fait toujours à partir de la sauvegarde (l'original préparé)
+    source_for_processing = backup_path
 
-        filtered_img = filters[filter_name](img)
+    try:
+        img = Image.open(source_for_processing)
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+    except FileNotFoundError:
+        raise ValueError(f"Image source introuvable : {source_for_processing}")
 
-        # Pour assurer la compatibilité, on convertit l'image en RGB avant de la sauvegarder
-        # en tant que JPEG, ce qui est le format standard pour les photos préparées.
-        if filtered_img.mode != 'RGB':
-            filtered_img = filtered_img.convert('RGB')
+    # Applique le filtre sélectionné
+    if filter_name == 'original':
+        img_to_save = img
+    elif filter_name == 'grayscale':
+        img_to_save = ImageOps.grayscale(img).convert('RGB')
+    elif filter_name == 'sepia':
+        grayscale = ImageOps.grayscale(img)
+        # Créer une palette sépia. La palette doit être une liste plate de 768 entiers (256 * RGB).
+        sepia_palette = []
+        for i in range(256):
+            r, g, b = int(i * 1.07), int(i * 0.74), int(i * 0.43)
+            sepia_palette.extend([min(255, r), min(255, g), min(255, b)])
+        grayscale.putpalette(sepia_palette)
+        img_to_save = grayscale.convert('RGB')
+    elif filter_name == 'vignette':
+        img_to_save = img.copy()
+        width, height = img_to_save.size
+        mask = Image.new('L', (width, height), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((width * 0.05, height * 0.05, width * 0.95, height * 0.95), fill=255)
+        mask = mask.filter(ImageFilter.GaussianBlur(radius=max(width, height) // 7))
+        mask = ImageOps.invert(mask)
+        black_layer = Image.new('RGB', img.size, (0, 0, 0))
+        img_to_save = Image.composite(img, black_layer, mask)
+    else:
+        raise ValueError(f"Filtre inconnu : '{filter_name}'")
 
-        # Sauvegarder l'image en écrasant l'ancienne, en format JPEG
-        save_kwargs = {
-            'quality': 85,
-            'optimize': True
-        }
-        if exif:
-            save_kwargs['exif'] = exif
-        
-        filtered_img.save(image_path, 'JPEG', **save_kwargs)
+    # Sauvegarde l'image modifiée dans le dossier 'prepared'
+    img_to_save.save(image_path, 'JPEG', quality=90, optimize=True)

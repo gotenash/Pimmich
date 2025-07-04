@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Envoyer une photo - Pimmich</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body class="relative min-h-screen">
+
+    <!-- Messages flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-full max-w-md">
+            {% for category, message in messages %}
+                <div class="
+                flash-message
+                px-4 py-3 rounded-md text-white shadow-md transition-opacity duration-700 ease-in-out mb-2
+                {% if category == 'success' %} bg-green-500
+                {% elif category == 'error' %} bg-red-500
+                {% else %} bg-gray-500 {% endif %}
+                ">
+                {{ message }}
+                </div>
+            {% endfor %}
+            </div>
+            <script>
+            setTimeout(() => {
+                document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.classList.add('opacity-0');
+                setTimeout(() => msg.remove(), 700);
+                });
+            }, 4000);
+            </script>
+        {% endif %}
+    {% endwith %}
+
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="container mx-auto p-8 bg-white/80 backdrop-blur-md rounded-xl shadow-xl max-w-lg text-center">
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="w-48 mx-auto mb-6">
+        <h2 class="text-2xl font-semibold mb-4">Envoyer des photos au cadre</h2>
+        <p class="text-gray-600 mb-6">Vos photos seront soumises à validation avant d'être affichées.</p>
+
+        <form action="{{ url_for('handle_upload') }}" method="post" enctype="multipart/form-data">
+            <div class="mb-4">
+                <input type="file" name="photos" multiple required 
+                       class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none">
+            </div>
+            <button type="submit" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors duration-300">
+                Envoyer pour validation
+            </button>
+        </form>
+        <p class="text-xs text-gray-500 mt-4">Vous pouvez sélectionner plusieurs fichiers.</p>
+        </div>
+    </div>
+</body>
+</html>

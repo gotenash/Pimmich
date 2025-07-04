@@ -60,14 +60,11 @@
 
 <div class="tabs">
   <button class="tablink active" onclick="openTab(event, 'tab-affichage')">Affichage</button>
-<<<<<<< HEAD
   <button class="tablink" onclick="openTab(event, 'tab-heure')">Heure, Météo et Marées</button>
-=======
-  <button class="tablink" onclick="openTab(event, 'tab-heure')">Heure & Météo</button>
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
   <button class="tablink" onclick="openTab(event, 'tab-sources')">Sources des photos</button>
   <button class="tablink" onclick="openTab(event, 'tab-apercu')">Aperçu</button>
   <button class="tablink" onclick="openTab(event, 'tab-actions')">Actions</button>
+  <button class="tablink" onclick="openTab(event, 'tab-validation')">Validation <span id="pending-count-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
   <button class="tablink" onclick="openTab(event, 'tab-system')">Système</button>
 </div>
 
@@ -255,7 +252,6 @@
             <input type="number" name="weather_update_interval_minutes" value="{{ config.get('weather_update_interval_minutes', 30) }}">
         </div>
     </fieldset>
-<<<<<<< HEAD
 
     <fieldset class="mt-6">
         <legend><strong>Affichage des marées (StormGlass Tide API)</strong></legend>
@@ -309,8 +305,6 @@
             </div>
         </fieldset>
     </fieldset>
-=======
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 </div>
 
 
@@ -364,6 +358,10 @@
             <input class="form-check-input" type="checkbox" id="display_source_samba" name="display_sources" value="samba" {% if 'samba' in config.display_sources %}checked{% endif %}>
             <label class="form-check-label" for="display_source_samba">Photos Samba</label>
         </div>
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_smartphone" name="display_sources" value="smartphone" {% if 'smartphone' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_smartphone">Photos Smartphone</label>
+        </div>
     </fieldset>
     <fieldset class="mt-4">
         <legend><h3>Configuration du partage Samba (Windows)</h3></legend>
@@ -403,7 +401,6 @@
         </div>
 
     </fieldset>
-<<<<<<< HEAD
 
     <fieldset class="mt-4">
         <legend><h3>Options de démarrage</h3></legend>
@@ -417,12 +414,6 @@
 
    
     <button type="submit" id="save-changes-btn" class="save-button">Enregistrer les modifications</button>
-=======
-</div>
-
-   
-    <button type="submit" class="save-button">Enregistrer les modifications</button>
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
 </form>
 
@@ -441,11 +432,7 @@
         <div class="action-group">
             <h4>Gestion du diaporama</h4>
             <form method="POST" action="/toggle_slideshow">
-<<<<<<< HEAD
                 <button type="submit" class="system-button {% if slideshow_running %}bg-red-500 hover:bg-red-700{% else %}bg-green-500 hover:bg-green-700{% endif %} text-white font-bold py-2 px-4 rounded">
-=======
-                <button type="submit" class="{% if slideshow_running %}bg-red-500 hover:bg-red-700{% else %}bg-green-500 hover:bg-green-700{% endif %} text-white font-bold py-2 px-4 rounded">
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
                     {% if slideshow_running %}
                     <i class="fas fa-stop"></i> Arrêter le diaporama
                     {% else %}
@@ -480,8 +467,35 @@
                 <div id="samba-progress-bar" class="progress-bar"></div>
             </div>
             <div id="samba-import-status" class="status-messages"></div>
+
+            <!-- Smartphone Upload Form -->
+            <form id="smartphone-upload-form" enctype="multipart/form-data" class="mt-4 pt-4 border-t border-gray-200">
+                <h5 class="text-lg font-semibold mb-2 flex items-center gap-2"><i class="fas fa-mobile-alt"></i> Importer depuis un Smartphone</h5>
+                <p class="text-sm text-gray-600 mb-3">Envoyez des photos directement depuis votre téléphone via le navigateur.</p>
+                <input type="file" name="photos" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none mb-3" multiple required>
+                <button type="submit" id="import-smartphone-btn" class="import-button bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    <i class="fas fa-upload"></i> Envoyer les photos
+                </button>
+            </form>
+            <div id="smartphone-progress-container" class="progress-container hidden">
+                <div id="smartphone-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="smartphone-import-status" class="status-messages"></div>
         </div>
   </fieldset>
+</div>
+
+<div id="tab-validation" class="tabcontent">
+    <fieldset>
+        <legend><h3>Photos en attente de validation</h3></legend>
+        <div class="flex justify-between items-center mb-4">
+            <p class="text-gray-600">Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées à la source "Smartphone".</p>
+            <button type="button" id="refresh-pending-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"><i class="fas fa-sync-alt mr-2"></i>Actualiser</button>
+        </div>
+        <div id="pending-photos-grid" class="photo-grid">
+            <!-- Les photos en attente seront chargées ici par JavaScript -->
+        </div>
+    </fieldset>
 </div>
 
 <style>
@@ -546,7 +560,6 @@
             {% for source_name, photos in prepared_photos_by_source.items() %}
                 {% if photos %}
                 <fieldset class="mb-6 p-4 border rounded-lg bg-gray-50/50">
-<<<<<<< HEAD
                     <div class="flex justify-between items-center border-b pb-2 mb-4">
                         <h4 class="text-xl font-semibold text-gray-800">{{ source_name.capitalize() }}</h4>
                         <!-- Bouton pour supprimer toutes les photos de la source -->
@@ -557,32 +570,38 @@
                     </div>
                         <div class="photo-grid">
                             {% for photo in photos %}
-                            <div class="photo-tile">
-                                <!-- L'image a maintenant un ID unique pour la manipulation en JS -->
-                                <a href="{{ url_for('static', filename='prepared/' + photo) }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ photo }}">
-                                  <img id="img-{{ photo | replace('/', '-') | replace('.', '-') }}" src="{{ url_for('static', filename='prepared/' + photo) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition" alt="Photo from {{ source_name }}">
+                            {% set photo_path = photo.path %}
+                            {% set has_polaroid = photo.has_polaroid %}
+                            {% set active_filter = photo.active_filter %}
+                            <div class="photo-tile relative">
+                                <!-- Spinner Overlay -->
+                                <div class="spinner-overlay hidden absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded z-10">
+                                    <i class="fas fa-spinner fa-spin text-white text-3xl"></i>
+                                </div>
+                                
+                                {% set initial_image_path = 'prepared/' + photo_path %}
+                                {% if active_filter == 'polaroid' and has_polaroid %}
+                                    {% set polaroid_filename = photo_path.rsplit('.', 1)[0] + '_polaroid.jpg' %}
+                                    {% set initial_image_path = 'prepared/' + polaroid_filename %}
+                                {% endif %}
+                                <a href="{{ url_for('static', filename=initial_image_path) }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ photo_path }}">
+                                  <img src="{{ url_for('static', filename=initial_image_path) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition" alt="Photo from {{ source_name }}">
                                 </a>
                                 <!-- Actions alignées avec "justify-between" pour pousser la poubelle à droite -->
                                 <div class="photo-actions mt-1 flex items-center justify-between w-full gap-x-2">
-                                    <select class="filter-select text-xs rounded border-gray-300 py-1" data-photo="{{ photo }}">
-                                        <option value="none">Filtre...</option>
-                                        <option value="grayscale">Noir & Blanc</option>
-                                        <option value="sepia">Sépia</option>
-                                        <option value="vignette">Vignette</option>
+                                    <select class="filter-select text-xs rounded border-gray-300 py-1" data-photo="{{ photo_path }}">
+                                        <option value="none" {% if active_filter == 'none' %}selected{% endif %}>Filtre...</option>
+                                        <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>Noir & Blanc</option>
+                                        <option value="sepia" {% if active_filter == 'sepia' %}selected{% endif %}>Sépia</option>
+                                        <option value="vignette" {% if active_filter == 'vignette' %}selected{% endif %}>Vignette</option>
+                                        <option value="vintage" {% if active_filter == 'vintage' %}selected{% endif %}>Vintage</option>
+                                        {% if has_polaroid %}
+                                        <option value="polaroid" {% if active_filter == 'polaroid' %}selected{% endif %}>Polaroid</option>
+                                        {% endif %}
                                         <option value="original" class="text-blue-600 font-semibold">Original</option>
                                     </select>
-                                    <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo }}" title="Supprimer cette photo"><i class="fas fa-trash-alt"></i></button>
+                                    <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="Supprimer cette photo"><i class="fas fa-trash-alt"></i></button>
                                 </div>
-=======
-                    <legend class="text-xl font-semibold px-2 text-gray-800">{{ source_name.capitalize() }}</legend>
-                        <div class="photo-grid">
-                            {% for photo in photos %}
-                            <div class="photo-tile">
-                                <a href="{{ url_for('static', filename='prepared/' + photo) }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ photo }}">
-                                  <img src="{{ url_for('static', filename='prepared/' + photo) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition" alt="Photo from {{ source_name }}">
-                                </a>
-                                <button class="delete-button" data-photo="{{ photo }}" title="Supprimer cette photo">✖</button>
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
                             </div>
                             {% endfor %}
                         </div>
@@ -598,7 +617,6 @@
 <div id="tab-system" class="tabcontent">
     <fieldset>
         <legend><h3>Configuration Wi-Fi</h3></legend>
-<<<<<<< HEAD
         <form action="{{ url_for('save_wifi_settings') }}" method="post" id="wifi-config-form">
             <div class="mb-4">
                 <label for="wifi_ssid" class="block text-sm font-medium text-gray-700">SSID (Nom du réseau)</label>
@@ -628,22 +646,6 @@
         </div>
     </div>
 
-=======
-        <form action="{{ url_for('save_wifi_settings') }}" method="post">
-            <div class="mb-3">
-                <label for="wifi_ssid" class="form-label">SSID Wi-Fi</label>
-                <input type="text" class="form-control" id="wifi_ssid" name="wifi_ssid" value="{{ config.wifi_ssid }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="wifi_password" class="form-label">Mot de passe Wi-Fi</label>
-                <input type="password" class="form-control" id="wifi_password" name="wifi_password" value="{{ config.wifi_password }}">
-                <small class="form-text text-muted">Laissez vide si le réseau est ouvert.</small>
-            </div>
-            <button type="submit" class="btn btn-primary bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Appliquer les paramètres Wi-Fi</button>
-        </form>
-    </fieldset>
-
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
     <fieldset class="mt-6">
         <legend><h3>Contrôle du système</h3></legend>
         <form method="POST" action="/reboot" onsubmit="return confirm('Êtes-vous sûr de vouloir REDÉMARRER le système ?');">
@@ -686,14 +688,9 @@
                 <option value="slideshow_stderr">local_slideshow.py (Diaporama - Erreurs)</option>
             </select>
             <button type="button" id="refresh-logs-btn" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-2">Actualiser</button>
-<<<<<<< HEAD
             <button type="button" id="clear-logs-btn" class="btn btn-danger bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded ml-2">Effacer les logs</button>
         </div>
         <pre id="log-content" class="bg-gray-800 text-white p-4 rounded-lg overflow-auto text-sm" style="max-height: 400px; min-height: 150px; white-space: pre-wrap; word-break: break-all;"></pre>
-=======
-        </div>
-        <pre id="log-content" class="bg-gray-800 text-white p-4 rounded-lg overflow-auto text-sm" style="max-height: 400px; white-space: pre-wrap; word-break: break-all;"></pre>
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
     </fieldset>
 
     <fieldset class="mt-6">
@@ -714,11 +711,82 @@
   const lightbox = GLightbox({
     selector: '.glightbox'
   });
+
+  // ----- GESTION DE LA VALIDATION (Fonctions globales) -----
+  // On définit ces fonctions ici pour qu'elles soient accessibles partout et éviter les erreurs de chargement.
+
+  async function refreshValidationTab() {
+      const grid = document.getElementById('pending-photos-grid');
+      const badge = document.getElementById('pending-count-badge');
+      const validationTab = document.getElementById('tab-validation');
+      const isTabActive = validationTab && validationTab.style.display === 'block';
+
+      if (isTabActive && grid && !grid.hasChildNodes()) {
+          grid.innerHTML = '<p class="text-center text-gray-500 italic">Chargement des photos en attente...</p>';
+      }
+
+      try {
+          const response = await fetch(`/api/get_pending_photos?_=${new Date().getTime()}`);
+          const data = await response.json();
+          if (!data.success) throw new Error(data.message || "Erreur serveur");
+
+          const photoCount = data.photos.length;
+
+          if (badge) {
+              if (photoCount > 0) {
+                  badge.textContent = photoCount;
+                  badge.classList.remove('hidden');
+              } else {
+                  badge.classList.add('hidden');
+              }
+          }
+
+          if (isTabActive && grid) {
+              if (photoCount === 0) {
+                  grid.innerHTML = '<p class="text-center text-gray-500 italic">Aucune photo en attente de validation.</p>';
+              } else {
+                  grid.innerHTML = '';
+                  data.photos.forEach(filename => {
+                      const tile = document.createElement('div');
+                      tile.className = 'photo-tile';
+                      tile.dataset.filename = filename;
+                      const imgSrc = `/static/pending_uploads/${filename}`;
+                      tile.innerHTML = `
+                          <a href="${imgSrc}" class="glightbox" data-gallery="pending" title="${filename}"><img src="${imgSrc}" class="w-32 h-32 object-cover rounded shadow"></a>
+                          <div class="photo-actions mt-1 flex items-center justify-around w-full gap-x-2">
+                              <button class="approve-btn bg-green-500 hover:bg-green-600 text-white text-xs rounded py-1 px-2" title="Approuver"><i class="fas fa-check"></i></button>
+                              <button class="reject-btn bg-red-500 hover:bg-red-600 text-white text-xs rounded py-1 px-2" title="Rejeter"><i class="fas fa-times"></i></button>
+                          </div>`;
+                      grid.appendChild(tile);
+                  });
+                  GLightbox({ selector: '#pending-photos-grid .glightbox' });
+              }
+          }
+      } catch (error) {
+          if (isTabActive && grid) grid.innerHTML = `<p class="text-center text-red-500">Erreur: ${error.message}</p>`;
+          if (badge) badge.classList.add('hidden');
+      }
+  }
+
+  async function handlePendingAction(filename, action) {
+      const tile = document.querySelector(`.photo-tile[data-filename="${filename}"]`);
+      if (tile) tile.style.opacity = '0.5';
+
+      try {
+          const response = await fetch('/api/manage_pending_photo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename, action })
+          });
+          const result = await response.json();
+          if (result.success) refreshValidationTab();
+          else { alert(`Erreur: ${result.message}`); if (tile) tile.style.opacity = '1'; }
+      } catch (error) { alert("Erreur de communication."); if (tile) tile.style.opacity = '1'; }
+  }
 </script>
 <script>
 
 function openTab(evt, tabId) {
-<<<<<<< HEAD
     const tabcontent = document.getElementsByClassName("tabcontent");
     const tablinks = document.getElementsByClassName("tablink");
 
@@ -743,77 +811,32 @@ function openTab(evt, tabId) {
 
     // Gérer la visibilité du bouton "Enregistrer"
     const saveButton = document.getElementById('save-changes-btn');
-    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system'];
-
+    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system', 'tab-validation'];
+    if (tabId === 'tab-validation') {
+        refreshValidationTab(); // On rafraîchit la grille et le badge
+    }
     if (saveButton) {
         saveButton.style.display = tabsWithoutSaveButton.includes(tabId) ? 'none' : 'block';
     }
-=======
-  const tabcontent = document.getElementsByClassName("tabcontent");
-  const tablinks = document.getElementsByClassName("tablink");
 
-  for (let i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
-  }
-
-  for (let i = 0; i < tablinks.length; i++) {
-    tablinks[i].classList.remove("active");
-  }
-
-  document.getElementById(tabId).style.display = "block";
-  evt.currentTarget.classList.add("active");
-  
-  // Sauvegarder l'onglet actuel dans le localStorage
-  localStorage.setItem('activeTab', tabId);
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 }
 
 // Restaurer l'onglet actif au chargement de la page
 document.addEventListener('DOMContentLoaded', function() {
-<<<<<<< HEAD
     let activeTabId = localStorage.getItem('activeTab') || 'tab-affichage';
     if (!document.getElementById(activeTabId)) {
         activeTabId = 'tab-affichage';
     }
     openTab(null, activeTabId);
-=======
-  const activeTab = localStorage.getItem('activeTab');
-  if (activeTab) {
-    // Masquer tous les onglets
-    const tabcontent = document.getElementsByClassName("tabcontent");
-    const tablinks = document.getElementsByClassName("tablink");
-    
-    for (let i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
-    }
-    
-    for (let i = 0; i < tablinks.length; i++) {
-      tablinks[i].classList.remove("active");
-    }
-    
-    // Afficher l'onglet sauvegardé
-    const tabElement = document.getElementById(activeTab);
-    const buttonElement = document.querySelector(`[onclick="openTab(event, '${activeTab}')"]`);
-    
-    if (tabElement && buttonElement) {
-      tabElement.style.display = "block";
-      buttonElement.classList.add("active");
-    } else {
-      // Fallback sur l'onglet par défaut si problème
-      document.getElementById('tab-affichage').style.display = "block";
-      document.querySelector('[onclick="openTab(event, \'tab-affichage\')"]').classList.add("active");
-    }
-  }
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
+
+    // Mettre à jour le badge au chargement (et la grille si l'onglet est déjà actif)
+    refreshValidationTab(); // Appel initial pour mettre à jour le badge
+    setInterval(refreshValidationTab, 15000); // Et le mettre à jour périodiquement
 });
 
 // Script de suppression amélioré
 document.querySelectorAll('.delete-button').forEach(button => {
-<<<<<<< HEAD
   button.addEventListener('click', async (event) => {
-=======
-  button.addEventListener('click', async () => {
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
     const photo = button.dataset.photo;
     const confirmDelete = confirm(`Supprimer la photo ${photo} ?`);
     if (!confirmDelete) return;
@@ -835,7 +858,6 @@ document.querySelectorAll('.delete-button').forEach(button => {
   });
 });
 
-<<<<<<< HEAD
 // Script pour supprimer toutes les photos d'une source
 document.querySelectorAll('.delete-all-btn').forEach(button => {
     button.addEventListener('click', async (event) => {
@@ -866,48 +888,67 @@ document.querySelectorAll('.filter-select').forEach(select => {
         const filter = event.target.value;
         const photo = select.dataset.photo;
 
-        if (filter === 'none') return;
+        const tileElement = select.closest('.photo-tile');
+        if (!tileElement) return;
 
-        // Créer un ID valide pour l'élément image
-        const imgId = `img-${photo.replace(/\//g, '-').replace(/\./g, '-')}`;
-        const imgElement = document.getElementById(imgId);
+        const spinnerOverlay = tileElement.querySelector('.spinner-overlay');
+        const imgElement = tileElement.querySelector('img');
+        const glightboxLink = tileElement.querySelector('a.glightbox');
 
-        // Afficher un retour visuel (chargement)
-        if (imgElement) {
-            imgElement.style.opacity = '0.5';
-        }
-
+        // --- 1. Sauvegarder la préférence de filtre ---
         try {
-            const response = await fetch('/api/apply_filter', {
+            await fetch('/api/set_photo_filter', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ photo: photo, filter: filter })
             });
+        } catch (e) {
+            alert('Erreur lors de la sauvegarde de la préférence.');
+            return;
+        }
 
-            const result = await response.json();
+        // --- 2. Mettre à jour l'aperçu ---
+        if (filter === 'none') {
+            // Ne rien faire à l'aperçu si l'utilisateur sélectionne "Filtre..."
+            // Pour réinitialiser, l'utilisateur doit choisir "Original".
+            return;
+        }
 
-            if (result.success) {
-                // Forcer le rechargement de l'image en ajoutant un paramètre aléatoire (cache busting)
-                if (imgElement) {
-                    imgElement.src = `${result.new_path}?v=${new Date().getTime()}`;
+        if (filter === 'polaroid') {
+            // Afficher instantanément la version pré-générée
+            const polaroidPath = photo.replace('.jpg', '_polaroid.jpg');
+            const newSrc = `/static/prepared/${polaroidPath}?v=${new Date().getTime()}`;
+            imgElement.src = newSrc;
+            if (glightboxLink) glightboxLink.href = newSrc;
+        } else {
+            // Pour les autres filtres (y compris 'original'), les appliquer en direct
+            if (spinnerOverlay) spinnerOverlay.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/apply_filter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo: photo, filter: filter })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    imgElement.onload = () => { if (spinnerOverlay) spinnerOverlay.classList.add('hidden'); imgElement.onload = null; };
+                    imgElement.onerror = () => { if (spinnerOverlay) spinnerOverlay.classList.add('hidden'); alert("Erreur chargement image."); imgElement.onerror = null; };
+                    const newSrc = `${result.new_path}?v=${new Date().getTime()}`;
+                    imgElement.src = newSrc;
+                    if (glightboxLink) glightboxLink.href = newSrc;
+                } else {
+                    alert(`Erreur : ${result.message}`);
+                    if (spinnerOverlay) spinnerOverlay.classList.add('hidden');
                 }
-            } else {
-                alert(`Erreur : ${result.message}`);
+            } catch (error) {
+                alert("Erreur de communication avec le serveur.");
+                if (spinnerOverlay) spinnerOverlay.classList.add('hidden');
             }
-        } catch (error) {
-            console.error('Erreur:', error);
-            alert("Erreur de communication avec le serveur.");
-        } finally {
-            // Réinitialiser l'affichage
-            if (imgElement) {
-                imgElement.style.opacity = '1';
-            }
-            select.value = 'none'; // Réinitialiser le menu déroulant
         }
     });
 });
-=======
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 // Scripts d'import améliorés avec feedback détaillé
 document.addEventListener("DOMContentLoaded", () => {
     
@@ -1175,7 +1216,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-<<<<<<< HEAD
 
     // --- État des marées ---
     async function fetchTideInfo() {
@@ -1249,9 +1289,113 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchTideInfo(); // Appel initial
     setInterval(fetchTideInfo, 30000); // Mise à jour toutes les 30 secondes
 
-=======
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
+    // ----- IMPORT SMARTPHONE -----
+    document.getElementById('smartphone-upload-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const btn = document.getElementById('import-smartphone-btn');
+        const progressBar = document.getElementById('smartphone-progress-bar');
+        const progressContainer = document.getElementById('smartphone-progress-container');
+        const statusDiv = document.getElementById('smartphone-import-status');
+        const allImportButtons = document.querySelectorAll('.import-button, #import-smartphone-btn');
+
+        // Check if files were selected
+        if (!formData.has('photos') || !formData.get('photos').name) {
+            displayMessage(statusDiv, "Veuillez sélectionner au moins un fichier.", 'error');
+            return;
+        }
+
+        // Disable all import buttons
+        allImportButtons.forEach(b => {
+            b.disabled = true;
+            b.classList.add("opacity-50", "cursor-not-allowed");
+        });
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+
+        // Reset UI
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        progressContainer.classList.remove('hidden');
+        statusDiv.innerHTML = '';
+
+        fetch('/import-smartphone', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            function processStream() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        // Re-enable buttons after a delay
+                        setTimeout(() => {
+                            allImportButtons.forEach(b => {
+                                b.disabled = false;
+                                b.classList.remove("opacity-50", "cursor-not-allowed");
+                            });
+                            btn.innerHTML = '<i class="fas fa-upload"></i> Envoyer les photos';
+                            progressContainer.classList.add('hidden');
+                            statusDiv.innerHTML = "";
+                        }, 5000);
+                        return;
+                    }
+
+                    // Process the stream chunk
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n\n');
+                    lines.forEach(line => {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                progressBar.style.width = `${data.percent || 0}%`;
+                                progressBar.textContent = `${data.percent || 0}%`;
+                                displayMessage(statusDiv, data.message, data.type);
+                            } catch (e) {
+                                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+                            }
+                        }
+                    });
+                    processStream();
+                });
+            }
+            processStream();
+        })
+        .catch(error => {
+            displayMessage(statusDiv, `Erreur de communication: ${error.message}`, 'error');
+            allImportButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
+            btn.innerHTML = '<i class="fas fa-upload"></i> Envoyer les photos';
+        });
+    });
+
+    // ----- GESTION DE LA VALIDATION (Écouteurs d'événements) -----
+    // Ces écouteurs utilisent les fonctions globales définies plus haut.
+    const grid = document.getElementById('pending-photos-grid');
+    if (grid) {
+        grid.addEventListener('click', function(event) {
+        const approveBtn = event.target.closest('.approve-btn');
+        const rejectBtn = event.target.closest('.reject-btn');
+        const filename = event.target.closest('.photo-tile')?.dataset.filename;
+
+        if (approveBtn && filename) {
+            handlePendingAction(filename, 'approve');
+        } else if (rejectBtn && filename) {
+            handlePendingAction(filename, 'reject');
+        }
+        });
+    }
+
+    const refreshBtn = document.getElementById('refresh-pending-btn');
+    if (refreshBtn) refreshBtn.addEventListener('click', refreshValidationTab);
 });
+
+
 </script>
 
 <script>
@@ -1433,7 +1577,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Écouteurs d'événements pour les logs
     document.getElementById('log-selector').addEventListener('change', fetchLogs);
     document.getElementById('refresh-logs-btn').addEventListener('click', fetchLogs);
-<<<<<<< HEAD
     document.getElementById('clear-logs-btn').addEventListener('click', async () => {
         const logSelector = document.getElementById('log-selector');
         const logType = logSelector.value;
@@ -1459,13 +1602,10 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Erreur de connexion à l'API pour effacer les logs.");
         }
     });
-=======
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
     // Appel initial au chargement de la page pour les infos système et les logs
     fetchSystemInfo();
     fetchLogs();
-<<<<<<< HEAD
 
     // --- Scan Wi-Fi ---
     const scanBtn = document.getElementById('scan-wifi-btn');
@@ -1553,8 +1693,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
         });
     }
-=======
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 });
 </script>
 

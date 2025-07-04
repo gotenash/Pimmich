@@ -2,11 +2,10 @@ import os
 from PIL import Image, ImageFilter # Import ImageFilter for blurring
 import pillow_heif
 from utils.config import load_config # Import load_config to get screen_height_percent
+import piexif
+from utils.image_filters import create_polaroid_effect
 from utils.exif import get_rotation_angle # Import get_rotation_angle for EXIF rotation
-<<<<<<< HEAD
 from pathlib import Path
-=======
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
 # Configuration
 SOURCE_DIR = "static/photos"
@@ -20,6 +19,7 @@ def prepare_photo(source_path, dest_path, output_width, output_height):
     # Get screen_height_percent from config, default to 100 if not found or invalid
     screen_height_percent = int(config.get("screen_height_percent", "100"))
 
+    exif_bytes_to_add = None # Initialiser les données EXIF à ajouter
     # Calculate the effective height for the photo content within the output resolution
     effective_photo_height = int(output_height * (screen_height_percent / 100))
 
@@ -87,6 +87,30 @@ def prepare_photo(source_path, dest_path, output_width, output_height):
             final_img.paste(img_content, (x_offset, y_offset))
             img_to_save = final_img
 
+            # --- NOUVEAU: Générer et sauvegarder la version Polaroid ---
+            try:
+                polaroid_content = create_polaroid_effect(img_content.copy())
+                polaroid_final_img = final_img.copy()
+                polaroid_final_img.paste(polaroid_content, (x_offset, y_offset))
+                
+                # Construire le chemin pour la version polaroid
+                dest_path_obj = Path(dest_path)
+                polaroid_dest_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_polaroid.jpg")
+                
+                polaroid_final_img.save(polaroid_dest_path, 'JPEG', quality=90, optimize=True)
+            except Exception as polaroid_e:
+                print(f"[Polaroid] Avertissement: Impossible de créer la version Polaroid pour {os.path.basename(source_path)}: {polaroid_e}")
+            # --- NOUVEAU: Préparer les métadonnées EXIF avec les coordonnées du contenu ---
+            try:
+                exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "1st": {}, "thumbnail": None}
+                # Stocker les coordonnées dans le champ UserComment (non-standard mais sûr)
+                # Format: "pimmich_bbox:x,y,w,h"
+                bbox_str = f"pimmich_bbox:{x_offset},{y_offset},{img_content.width},{img_content.height}"
+                exif_dict["Exif"][piexif.ExifIFD.UserComment] = bbox_str.encode('ascii')
+                exif_bytes_to_add = piexif.dump(exif_dict)
+            except Exception as exif_e:
+                print(f"[EXIF] Avertissement: Impossible de créer les métadonnées pour {os.path.basename(source_path)}: {exif_e}")
+
         else:
             # Landscape or square photo relative to the display area.
             # Fit its width to OUTPUT_WIDTH or height to effective_photo_height, no blur background, center on black.
@@ -103,7 +127,10 @@ def prepare_photo(source_path, dest_path, output_width, output_height):
             img_to_save = final_img
         
         # Save the prepared image as JPEG
-        img_to_save.save(dest_path, 'JPEG', quality=85, optimize=True)
+        if exif_bytes_to_add:
+            img_to_save.save(dest_path, 'JPEG', quality=85, optimize=True, exif=exif_bytes_to_add)
+        else:
+            img_to_save.save(dest_path, 'JPEG', quality=85, optimize=True)
             
     except Exception as e:
         # Re-raise with more context
@@ -115,18 +142,12 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     actual_output_width = screen_width if screen_width is not None else DEFAULT_OUTPUT_WIDTH
     actual_output_height = screen_height if screen_height is not None else DEFAULT_OUTPUT_HEIGHT
 
-<<<<<<< HEAD
     PREPARED_SOURCE_DIR = Path("static") / "prepared" / source_type
-=======
-    # Définir le dossier de destination basé sur le type de source
-    PREPARED_SOURCE_DIR = os.path.join("static", "prepared", source_type)
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
     if not os.path.isdir(SOURCE_DIR):
         yield {"type": "error", "message": f"Le dossier source '{SOURCE_DIR}' n'existe pas."}
         return
 
-<<<<<<< HEAD
     PREPARED_SOURCE_DIR.mkdir(parents=True, exist_ok=True)
 
     # --- Nouvelle logique de synchronisation intelligente ---
@@ -136,23 +157,28 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     source_basenames = set(source_files.values())
 
     # 2. Obtenir les noms de base des photos déjà préparées
-    prepared_basenames = {os.path.splitext(f.name)[0] for f in PREPARED_SOURCE_DIR.iterdir() if f.is_file() and f.suffix.lower() == '.jpg'}
+    prepared_basenames = {os.path.splitext(f.name)[0] for f in PREPARED_SOURCE_DIR.iterdir() if f.is_file() and f.suffix.lower() == '.jpg' and not f.name.endswith('_polaroid.jpg')}
 
     # 3. Déterminer les photos à supprimer (obsolètes)
-    basenames_to_delete = prepared_basenames - source_basenames
-    if basenames_to_delete:
-        yield {"type": "progress", "stage": "CLEANING", "message": f"Suppression de {len(basenames_to_delete)} photos obsolètes..."}
-        for basename in basenames_to_delete:
-            prepared_photo_path = PREPARED_SOURCE_DIR / f"{basename}.jpg"
-            backup_photo_path = PREPARED_SOURCE_DIR.parent.parent / '.backups' / source_type / f"{basename}.jpg"
-            
-            try:
-                if prepared_photo_path.is_file():
-                    prepared_photo_path.unlink()
-                if backup_photo_path.is_file():
-                    backup_photo_path.unlink()
-            except OSError as e:
-                yield {"type": "warning", "message": f"Impossible de supprimer {basename}.jpg : {e}"}
+    # On ne supprime les photos obsolètes que pour les sources qui sont synchronisées (pas pour le smartphone qui est additif)
+    if source_type != "smartphone":
+        basenames_to_delete = prepared_basenames - source_basenames
+        if basenames_to_delete:
+            yield {"type": "progress", "stage": "CLEANING", "message": f"Suppression de {len(basenames_to_delete)} photos obsolètes..."}
+            for basename in basenames_to_delete:
+                prepared_photo_path = PREPARED_SOURCE_DIR / f"{basename}.jpg"
+                polaroid_photo_path = PREPARED_SOURCE_DIR / f"{basename}_polaroid.jpg"
+                backup_photo_path = PREPARED_SOURCE_DIR.parent.parent / '.backups' / source_type / f"{basename}.jpg"
+                
+                try:
+                    if prepared_photo_path.is_file():
+                        prepared_photo_path.unlink()
+                    if polaroid_photo_path.is_file():
+                        polaroid_photo_path.unlink()
+                    if backup_photo_path.is_file():
+                        backup_photo_path.unlink()
+                except OSError as e:
+                    yield {"type": "warning", "message": f"Impossible de supprimer {basename}.jpg : {e}"}
 
     # 4. Déterminer les photos à préparer (nouvelles)
     basenames_to_prepare = source_basenames - prepared_basenames
@@ -168,33 +194,10 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
 
     for i, filename in enumerate(files_to_prepare, start=1):
-=======
-    # Créer le dossier de destination spécifique à la source
-    os.makedirs(PREPARED_SOURCE_DIR, exist_ok=True)
-
-    yield {"type": "progress", "stage": "CLEANING", "message": "Nettoyage du dossier de destination..."}
-    # Nettoyer uniquement le dossier de la source actuelle
-    for f in os.listdir(PREPARED_SOURCE_DIR):
-        file_path = os.path.join(PREPARED_SOURCE_DIR, f)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
-
-    photos = [f for f in os.listdir(SOURCE_DIR) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif'))]
-    total = len(photos)
-    
-    if total == 0:
-        yield {"type": "warning", "message": "Aucune photo à préparer dans le dossier source."}
-        return
-
-    yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} photos...", "total": total}
-
-    for i, filename in enumerate(photos, start=1):
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
         src_path = os.path.join(SOURCE_DIR, filename)
         
         base_name = os.path.splitext(filename)[0]
         dest_filename = f"{base_name}.jpg"
-<<<<<<< HEAD
         dest_path = PREPARED_SOURCE_DIR / dest_filename
         
         try:
@@ -202,26 +205,12 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
             percent = int((i / total) * 100)
             yield {
                 "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent, "message": f"Nouvelle photo préparée : {filename} ({i}/{total})",
-=======
-        dest_path = os.path.join(PREPARED_SOURCE_DIR, dest_filename)
-        
-        try:
-            prepare_photo(src_path, dest_path, actual_output_width, actual_output_height)
-            percent = int((i / total) * 100)
-            yield {
-                "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent,
-                "message": f"Photo préparée : {filename} ({i}/{total})",
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
                 "current": i, "total": total
             }
         except Exception as e:
             yield {"type": "warning", "message": f"Erreur lors de la préparation de {filename}: {e}"}
 
-<<<<<<< HEAD
     yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Préparation des nouvelles photos terminée."}
-=======
-    yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Toutes les photos ont été préparées."}
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
 def prepare_all_photos(status_callback=None):
     """Version originale avec callback pour compatibilité"""
@@ -236,8 +225,4 @@ def prepare_all_photos(status_callback=None):
 if __name__ == "__main__":
     print("Test de préparation des photos...")
     prepare_all_photos()
-<<<<<<< HEAD
     print("Terminé !")
-=======
-    print("Terminé !")
->>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99

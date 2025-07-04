@@ -11,6 +11,7 @@ import threading
 import shutil
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify, g
+from werkzeug.utils import secure_filename
 from pathlib import Path
 
 from utils.download_album import download_and_extract_album
@@ -30,8 +31,10 @@ app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
 # Chemins de config
+PENDING_UPLOADS_DIR = Path("static/pending_uploads")
 CONFIG_PATH = 'config/config.json'
 CREDENTIALS_PATH = '/boot/firmware/credentials.json'
+FILTER_STATES_PATH = 'config/filter_states.json'
 CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
 
 class WorkerStatus:
@@ -234,6 +237,16 @@ def load_config():
         print("Création d'une nouvelle configuration par défaut.")
     return config
 
+def load_filter_states():
+    """Charge les états des filtres depuis un fichier JSON."""
+    if not os.path.exists(FILTER_STATES_PATH):
+        return {}
+    try:
+        with open(FILTER_STATES_PATH, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
 def save_config(config):
     temp_path = CONFIG_PATH + '.tmp'
     try:
@@ -243,23 +256,47 @@ def save_config(config):
     except Exception as e:
         print(f"Erreur lors de la sauvegarde de la configuration : {e}")
 
+def save_filter_states(states):
+    """Sauvegarde les états des filtres dans un fichier JSON."""
+    try:
+        with open(FILTER_STATES_PATH, 'w') as f:
+            json.dump(states, f, indent=4)
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde des états de filtre : {e}")
+
 def get_prepared_photos_by_source():
     """
     Récupère les photos préparées, organisées par leur source (immich, usb, samba).
-    Retourne un dictionnaire où les clés sont les noms des sources
-    et les valeurs sont des listes de chemins relatifs aux photos.
-    Ex: {'immich': ['immich/photo1.jpg', 'immich/photo2.jpg'], 'usb': ['usb/photo3.jpg']}
+    Retourne un dictionnaire où les clés sont les noms des sources et les valeurs sont des listes de dictionnaires.
+    Ex: {'immich': [{'path': 'immich/photo1.jpg', 'has_polaroid': True}, ...]}
     """
     base_prepared_dir = Path("static/prepared")
     photos_by_source = {}
-    for source_dir in base_prepared_dir.iterdir():
-        if source_dir.is_dir():
-            source_name = source_dir.name
-            photos = sorted([
-                f.name for f in source_dir.glob("*")
-                if f.suffix.lower() in [".jpg", ".jpeg", ".png", ".gif"]
-            ])
-            photos_by_source[source_name] = [f"{source_name}/{photo}" for photo in photos]
+    filter_states = load_filter_states()
+    if base_prepared_dir.exists():
+        for source_dir in base_prepared_dir.iterdir():
+            if source_dir.is_dir():
+                source_name = source_dir.name
+                
+                # Lister tous les fichiers pour trouver les versions polaroid
+                all_files = {f.name for f in source_dir.glob("*.jpg")}
+                
+                # Identifier les photos de base (non-polaroid)
+                base_photos = sorted([f for f in all_files if not f.endswith('_polaroid.jpg')])
+
+                photo_data_list = []
+                for photo_name in base_photos:
+                    base_name = Path(photo_name).stem
+                    photo_relative_path = f"{source_name}/{photo_name}"
+                    has_polaroid = f"{base_name}_polaroid.jpg" in all_files
+                    photo_data_list.append({
+                        "path": photo_relative_path,
+                        "has_polaroid": has_polaroid,
+                        "active_filter": filter_states.get(photo_relative_path, "none")
+                    })
+                
+                if photo_data_list:
+                    photos_by_source[source_name] = photo_data_list
     return photos_by_source
 
 def get_all_prepared_photos():
@@ -310,6 +347,118 @@ def _handle_photo_preparation_stream(source_name, screen_width, screen_height):
         yield stream_event({"type": "warning", "message": "Aucune photo n'a été importée ou trouvée pour la préparation."})
         return False
 
+
+@app.route('/upload', methods=['GET'])
+def upload_page():
+    """Affiche la page publique pour envoyer des photos."""
+    return render_template('upload.html')
+
+@app.route('/handle_upload', methods=['POST'])
+def handle_upload():
+    """Gère la réception des fichiers depuis la page publique."""
+    if 'photos' not in request.files:
+        flash("Aucun fichier sélectionné.", "error")
+        return redirect(url_for('upload_page'))
+
+    files = request.files.getlist('photos')
+    if not files or files[0].filename == '':
+        flash("Aucun fichier sélectionné.", "error")
+        return redirect(url_for('upload_page'))
+
+    PENDING_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    
+    count = 0
+    for file in files:
+        if file:
+            # Sécuriser le nom du fichier
+            filename = secure_filename(file.filename)
+            # Gérer les collisions de noms en ajoutant un timestamp
+            base, ext = os.path.splitext(filename)
+            final_path = PENDING_UPLOADS_DIR / f"{base}_{int(time.time())}{ext}"
+            file.save(final_path)
+            count += 1
+
+    flash(f"{count} photo(s) envoyée(s) pour validation avec succès !", "success")
+    return redirect(url_for('upload_page'))
+
+@app.route('/api/get_pending_photos')
+@login_required
+def get_pending_photos():
+    """Retourne la liste des photos en attente de validation."""
+    pending_files = []
+    if not PENDING_UPLOADS_DIR.exists():
+        # Si le dossier n'existe pas, la liste est simplement vide.
+        pass
+    else:
+        pending_files = sorted(
+            [f.name for f in PENDING_UPLOADS_DIR.iterdir() if f.is_file()],
+            key=lambda p: os.path.getmtime(PENDING_UPLOADS_DIR / p),
+            reverse=True
+        )
+    
+    # Retourner une réponse structurée et ajouter des en-têtes anti-cache.
+    response = jsonify({"success": True, "photos": pending_files})
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+@app.route('/api/manage_pending_photo', methods=['POST'])
+@login_required
+def manage_pending_photo():
+    """Approuve ou rejette une photo en attente."""
+    data = request.get_json()
+    filename = data.get('filename')
+    action = data.get('action')
+
+    if not filename or not action in ['approve', 'reject']:
+        return jsonify({"success": False, "message": "Données invalides."}), 400
+
+    pending_path = PENDING_UPLOADS_DIR / secure_filename(filename)
+
+    if not pending_path.is_file():
+        return jsonify({"success": False, "message": "Fichier non trouvé."}), 404
+
+    if action == 'reject':
+        try:
+            pending_path.unlink()
+            return jsonify({"success": True, "message": "Photo rejetée."})
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Erreur: {e}"}), 500
+
+    if action == 'approve':
+        # Processus d'approbation rendu plus robuste :
+        # 1. Copier la photo vers le dossier de transit (au lieu de la déplacer).
+        # 2. Lancer la préparation.
+        # 3. Si la préparation réussit, supprimer la photo du dossier d'attente.
+        source_dir = Path("static/photos")
+        source_dir.mkdir(parents=True, exist_ok=True)
+
+        # Vider le dossier de transit pour ne préparer que cette photo
+        for f in source_dir.iterdir():
+            f.unlink()
+
+        # Copier la photo pour la traiter
+        shutil.copy(str(pending_path), str(source_dir / pending_path.name))
+
+        # Lancer la préparation
+        screen_width, screen_height = get_screen_resolution()
+        try:
+            preparation_successful = False
+            for update in _handle_photo_preparation_stream("smartphone", screen_width, screen_height):
+                # On vérifie si la préparation s'est terminée avec succès en lisant le flux d'événements
+                if json.loads(update.lstrip('data: ').strip()).get("type") == "done":
+                    preparation_successful = True
+            
+            if preparation_successful:
+                pending_path.unlink() # Supprimer l'original seulement si tout s'est bien passé
+                return jsonify({"success": True, "message": "Photo approuvée et préparée."})
+            else:
+                return jsonify({"success": False, "message": "La préparation de la photo a échoué. La photo reste en attente."}), 500
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Erreur lors de la préparation: {e}"}), 500
+
+    return jsonify({"success": False, "message": "Action inconnue."}), 400
 
 @app.route('/')
 def home():
@@ -543,6 +692,47 @@ def import_samba():
 
         except Exception as e:
             yield stream_event({"type": "error", "message": f"Erreur critique : {str(e)}"})
+
+    return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
+
+@app.route("/import-smartphone", methods=['POST'])
+@login_required
+def import_smartphone():
+    """
+    Gère l'upload de photos depuis un smartphone via un formulaire web.
+    """
+    @stream_with_context
+    def generate():
+        def stream_event(data):
+            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+        screen_width, screen_height = get_screen_resolution()
+        source_dir = Path("static/photos")
+
+        try:
+            # --- Étape 1: Réception et sauvegarde des fichiers ---
+            yield stream_event({"type": "progress", "stage": "UPLOADING", "percent": 5, "message": "Réception des fichiers..."})
+
+            # Vider le dossier de destination pour éviter les mélanges
+            if source_dir.exists():
+                shutil.rmtree(source_dir)
+            source_dir.mkdir(parents=True, exist_ok=True)
+
+            uploaded_files = request.files.getlist('photos')
+            if not uploaded_files or not uploaded_files[0].filename:
+                yield stream_event({"type": "error", "message": "Aucun fichier sélectionné."})
+                return
+
+            for file in uploaded_files:
+                file.save(source_dir / file.filename)
+
+            yield stream_event({"type": "progress", "stage": "PREPARING", "percent": 80, "message": f"{len(uploaded_files)} photos reçues, préparation en cours..."})
+
+            # --- Étape 2: Préparation des photos ---
+            yield from _handle_photo_preparation_stream("smartphone", screen_width, screen_height)
+
+        except Exception as e:
+            yield stream_event({"type": "error", "message": f"Erreur critique lors de l'import : {str(e)}"})
 
     return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
@@ -918,10 +1108,24 @@ def toggle_slideshow():
 def delete_photo(photo):
     try:
         photo_path = os.path.join('static', 'prepared', photo)
+        photo_path_obj = Path(photo_path)
+        
+        # Déterminer le chemin de la version polaroid et de la sauvegarde
+        polaroid_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_polaroid.jpg")
+        backup_path = Path('static/.backups') / photo
+
         if os.path.isfile(photo_path):
             os.remove(photo_path)
-            return '', 204 # type: ignore
-        return 'Not found', 404
+        if polaroid_path.is_file():
+            polaroid_path.unlink()
+        if backup_path.is_file():
+            backup_path.unlink()
+        
+        # Supprimer l'état du filtre pour cette photo
+        states = load_filter_states()
+        if states.pop(photo, None):
+            save_filter_states(states)
+        return '', 204
     except Exception as e:
         return str(e), 500
 # --- Contrôle système ---
@@ -945,6 +1149,13 @@ def delete_source_photos(source_name):
             shutil.rmtree(backup_dir)
             print(f"Dossier de sauvegarde supprimé : {backup_dir}")
 
+        # Supprimer les états de filtre pour cette source
+        states = load_filter_states()
+        keys_to_delete = [key for key in states if key.startswith(f"{source_name}/")]
+        if keys_to_delete:
+            for key in keys_to_delete:
+                del states[key]
+            save_filter_states(states)
         return jsonify({"success": True, "message": "Photos supprimées."}), 200
     except Exception as e:
         print(f"Erreur lors de la suppression des photos de la source {source_name}: {e}")
@@ -1184,6 +1395,28 @@ def apply_filter_api():
     except Exception as e:
         print(f"Erreur lors de l'application du filtre : {e}")
         return jsonify({"success": False, "message": f"Erreur interne du serveur : {e}"}), 500
+
+@app.route('/api/set_photo_filter', methods=['POST'])
+@login_required
+def set_photo_filter():
+    """Enregistre la préférence de filtre pour une photo donnée."""
+    data = request.get_json()
+    photo_relative_path = data.get('photo')
+    filter_name = data.get('filter')
+
+    if not photo_relative_path or not filter_name:
+        return jsonify({"success": False, "message": "Données manquantes."}), 400
+
+    states = load_filter_states()
+    
+    if filter_name in ['none', 'original']:
+        # Si le filtre est 'none' ou 'original', on le retire du fichier d'état
+        states.pop(photo_relative_path, None)
+    else:
+        states[photo_relative_path] = filter_name
+    
+    save_filter_states(states)
+    return jsonify({"success": True, "message": "Préférence de filtre enregistrée."})
 
 @app.route('/api/scan_wifi', methods=['GET'])
 @login_required

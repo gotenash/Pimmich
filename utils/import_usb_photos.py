@@ -40,7 +40,9 @@ def import_usb_photos():
 
     yield {"type": "progress", "stage": "DETECTED", "percent": 10, "message": f"Clé USB détectée : {usb_path}"}
 
-    # S'assurer que le dossier existe sans le vider, pour permettre plusieurs sources.
+    # Vider le dossier de destination avant l'import pour éviter les mélanges.
+    if TARGET_DIR.exists():
+        shutil.rmtree(TARGET_DIR)
     TARGET_DIR.mkdir(parents=True, exist_ok=True)
 
     yield {"type": "progress", "stage": "SCANNING", "percent": 15, "message": "Analyse des images sur la clé USB..."}

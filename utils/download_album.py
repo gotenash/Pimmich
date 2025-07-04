@@ -1,5 +1,6 @@
 import os
 import requests
+import shutil
 import time
 from utils.config import get_album_id_by_name
 from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
@@ -64,8 +65,10 @@ def download_and_extract_album(config):
 
     yield {"type": "progress", "stage": "EXTRACTING", "percent": 60, "message": "Extraction des photos..."}
     photos_folder = os.path.join("static", "photos")
-    # S'assurer que le dossier existe sans le vider, pour permettre plusieurs sources.
-    os.makedirs(photos_folder, exist_ok=True)
+    # Vider le dossier de destination avant l'import pour éviter les mélanges.
+    if os.path.exists(photos_folder):
+        shutil.rmtree(photos_folder)
+    os.makedirs(photos_folder)
     try:
         unzip_archive(zip_path, photos_folder)
         clean_archive(zip_path)
