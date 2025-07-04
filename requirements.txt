@@ -5,3 +5,5 @@ pygame
 psutil
 pillow-heif
 smbprotocol
+piexif
+
