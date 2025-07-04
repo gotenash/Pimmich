@@ -18,20 +18,46 @@
 - ✅ Paramètre de hauteur utile de l’écran (% d’écran utilisé)  
 - ✅ Correction de l’orientation via EXIF et préparation des images  
 
+<<<<<<< HEAD
 ## 🛠️ Juillet 2025 – Prochaine version
 
 - 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web  
 - 🗂️ Réorganisation de la page de configuration en onglets  
 - 🔁 Mise à jour automatique périodique de l’album Immich  
 - 📁 Support du protocole SMB pour accéder à des photos partagées en réseau  
+=======
+## 🛠️ Juillet 2025 – Prochaine version (en test, sorti prévu le 14 juillet)
+
+- ✅🧭 Ajout de la configuration Wi-Fi depuis l’interface Web
+- ✅📂 Support de la clé USB 
+- ✅⏰Affichage de l’heure, date
+- ✅🗂️ Réorganisation de la page de configuration en onglets  
+- ✅🔁 Mise à jour automatique périodique de l’album Immich
+- ✅📱 Interface de configuration en onglets
+- ✅📱 Support du format HEIC photo Apple
+- ✅📁 Support du protocole SMB pour accéder à des photos partagées en réseau
+- ✅ 🖼️ Effet de transition
+- ✅ 🖼️ Effet Pan zoom sur les photos
+- ✅ 🖼️ détection de la résolution
+- ✅ Affichage des logs
+- ✅ Apercu en direct
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
 ## 💡 Idées pour les versions suivantes
 
 - 📱 Création d’une APK Android pour contrôler le cadre  
+<<<<<<< HEAD
 - ⏰🌤️ Affichage de l’heure et de la météo sur l’écran  
 - 🧑‍🤝‍🧑 Partage multi-utilisateur (plusieurs comptes Immich)  
 - 🌍 Traductions de l’interface (multi-langues)  
 
+=======
+- ✅🌤️ Affichage de la météo sur l’écran  (openweathermap.org)
+- ✅ Affichage des marées
+- 🌍 Traductions de l’interface (multi-langues)  
+- 📱 envoie de photo depuis un smatrtphone
+- 🖼️ photo souvenir du jour mis en avant
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
 
 # 🖼️ Pimmich – Cadre photo connecté intelligent

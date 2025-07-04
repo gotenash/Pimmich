@@ -86,3 +86,7 @@ def stop_slideshow():
 
     # 3. Éteindre l’écran proprement
     subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "disable"])
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99

@@ -45,6 +45,7 @@ fieldset {
   border-radius: 8px;
   padding: 15px;
   margin-top: 20px;
+<<<<<<< HEAD
   background-color: #f0f0f0;
 }
 
@@ -61,6 +62,23 @@ legend {
 .tabcontent input[type="time"],
 .tabcontent input[type="url"],
 .tabcontent select {
+=======
+  background-color: #f9f9f9;
+}
+
+legend {
+  font-weight: 700;
+  padding: 0 10px;
+  color: #333;
+}
+
+input[type="number"],
+input[type="password"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+select {
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
@@ -79,8 +97,13 @@ button {
   font-weight: 700;
   border: none;
   border-radius: 6px;
+<<<<<<< HEAD
   width: 100%;
   cursor: pointer;
+=======
+  cursor: pointer;
+  width: 100%;
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
   font-size: 1rem;
   transition: background-color 0.3s ease;
 }
@@ -148,7 +171,10 @@ button:hover {
   border-radius: 10px 10px 0 0;
   outline: 0;
   transition: background-color 0.3s, box-shadow 0.3s;
+<<<<<<< HEAD
   margin-top: 0; /* Annuler la marge héritée du sélecteur 'button' générique */
+=======
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -293,4 +319,8 @@ button:hover {
     gap: 0.75rem;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99

@@ -1,7 +1,11 @@
 Flask==2.3.2
 requests==2.31.0
 Pillow==10.1.0
+<<<<<<< HEAD
 pygame
+=======
+pygame==2.5.2 # Spécifier la version pour éviter les problèmes de compatibilité
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 psutil
 pillow-heif
 smbprotocol

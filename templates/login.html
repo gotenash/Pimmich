@@ -32,7 +32,31 @@
         ">
           {{ message }}
         </div>
+<<<<<<< HEAD
       {% endfor %}
+=======
+      {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo">
+        <center><h2 class="title">Connexion à Pimmich</h2></center>
+
+        <form method="post" class="login-form">
+            <div class="form-row">
+                <label for="username">Identifiant :</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <br>
+            <div class="form-row">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-submit">
+                <button type="submit" class="btn">Connexion</button>
+            </div>
+        </form>
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
     </div>
     <script>
       // Disparition automatique après 4 secondes

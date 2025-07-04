@@ -3,7 +3,10 @@ from PIL import Image, ImageFilter # Import ImageFilter for blurring
 import pillow_heif
 from utils.config import load_config # Import load_config to get screen_height_percent
 from utils.exif import get_rotation_angle # Import get_rotation_angle for EXIF rotation
+<<<<<<< HEAD
 from pathlib import Path
+=======
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
 # Configuration
 SOURCE_DIR = "static/photos"
@@ -112,12 +115,18 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     actual_output_width = screen_width if screen_width is not None else DEFAULT_OUTPUT_WIDTH
     actual_output_height = screen_height if screen_height is not None else DEFAULT_OUTPUT_HEIGHT
 
+<<<<<<< HEAD
     PREPARED_SOURCE_DIR = Path("static") / "prepared" / source_type
+=======
+    # Définir le dossier de destination basé sur le type de source
+    PREPARED_SOURCE_DIR = os.path.join("static", "prepared", source_type)
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
     if not os.path.isdir(SOURCE_DIR):
         yield {"type": "error", "message": f"Le dossier source '{SOURCE_DIR}' n'existe pas."}
         return
 
+<<<<<<< HEAD
     PREPARED_SOURCE_DIR.mkdir(parents=True, exist_ok=True)
 
     # --- Nouvelle logique de synchronisation intelligente ---
@@ -159,10 +168,33 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
 
     for i, filename in enumerate(files_to_prepare, start=1):
+=======
+    # Créer le dossier de destination spécifique à la source
+    os.makedirs(PREPARED_SOURCE_DIR, exist_ok=True)
+
+    yield {"type": "progress", "stage": "CLEANING", "message": "Nettoyage du dossier de destination..."}
+    # Nettoyer uniquement le dossier de la source actuelle
+    for f in os.listdir(PREPARED_SOURCE_DIR):
+        file_path = os.path.join(PREPARED_SOURCE_DIR, f)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    photos = [f for f in os.listdir(SOURCE_DIR) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif'))]
+    total = len(photos)
+    
+    if total == 0:
+        yield {"type": "warning", "message": "Aucune photo à préparer dans le dossier source."}
+        return
+
+    yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} photos...", "total": total}
+
+    for i, filename in enumerate(photos, start=1):
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
         src_path = os.path.join(SOURCE_DIR, filename)
         
         base_name = os.path.splitext(filename)[0]
         dest_filename = f"{base_name}.jpg"
+<<<<<<< HEAD
         dest_path = PREPARED_SOURCE_DIR / dest_filename
         
         try:
@@ -170,12 +202,26 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
             percent = int((i / total) * 100)
             yield {
                 "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent, "message": f"Nouvelle photo préparée : {filename} ({i}/{total})",
+=======
+        dest_path = os.path.join(PREPARED_SOURCE_DIR, dest_filename)
+        
+        try:
+            prepare_photo(src_path, dest_path, actual_output_width, actual_output_height)
+            percent = int((i / total) * 100)
+            yield {
+                "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent,
+                "message": f"Photo préparée : {filename} ({i}/{total})",
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
                 "current": i, "total": total
             }
         except Exception as e:
             yield {"type": "warning", "message": f"Erreur lors de la préparation de {filename}: {e}"}
 
+<<<<<<< HEAD
     yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Préparation des nouvelles photos terminée."}
+=======
+    yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Toutes les photos ont été préparées."}
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
 
 def prepare_all_photos(status_callback=None):
     """Version originale avec callback pour compatibilité"""
@@ -190,4 +236,8 @@ def prepare_all_photos(status_callback=None):
 if __name__ == "__main__":
     print("Test de préparation des photos...")
     prepare_all_photos()
+<<<<<<< HEAD
     print("Terminé !")
+=======
+    print("Terminé !")
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99

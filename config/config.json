@@ -6,6 +6,7 @@
     "screen_height_percent": "70",
     "immich_url": "",
     "immich_token": "",
+<<<<<<< HEAD
     "album_name": "cadrepi",
     "display_width": 1280,
     "display_height": 1024,
@@ -55,3 +56,28 @@
     "info_display_duration": 5,
     "clock_position": "left"
 }
+=======
+    "active_start": "07:00",
+    "active_end": "21:30",
+    "source": "immich",
+    "album_name": "",
+    "album_id": "",
+    "album_title": "Diaporama",
+    "display_duration": 5,
+    "pan_zoom": false,
+    "immich_album": "",
+    "resolution": "auto",
+    "screen_height_percent": "70",
+    "diaporama_active": true,
+    "manual_override": true,
+    "show_clock": true,
+    "clock_font_size": 36,
+    "clock_offset_x": 460,
+    "clock_offset_y": 330,
+    "clock_color": "#FFFFFF",
+    "clock_outline_color": "#000000",
+    "clock_font_path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "clock_position": "center",
+    "clock_format": "%H:%M"
+}
+>>>>>>> 3363f89ea41d3158a19361a4baae8bd99d8e9f99
