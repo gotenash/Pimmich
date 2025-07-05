@@ -780,16 +780,16 @@ def start_slideshow():
                 
                 try:
                     font_path = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
-                    font_size = int(config.get("clock_font_size", 72) * 0.5)
+                    font_size = int(config.get("clock_font_size", 72) * 0.6) # Augmenté de 0.5
                     message_font = pygame.font.Font(font_path, font_size)
-                    ip_font_size = int(config.get("clock_font_size", 72) * 0.65) # Police plus grande pour l'IP
+                    ip_font_size = int(config.get("clock_font_size", 72) * 0.8) # Augmenté de 0.65
                     ip_font = pygame.font.Font(font_path, ip_font_size)
-                    small_font_size = int(config.get("clock_font_size", 72) * 0.35)
+                    small_font_size = int(config.get("clock_font_size", 72) * 0.4) # Augmenté de 0.35
                     small_font = pygame.font.Font(font_path, small_font_size)
                 except Exception:
-                    message_font = pygame.font.SysFont("Arial", 40)
-                    ip_font = pygame.font.SysFont("Arial", 50)
-                    small_font = pygame.font.SysFont("Arial", 28)
+                    message_font = pygame.font.SysFont("Arial", 48)
+                    ip_font = pygame.font.SysFont("Arial", 64)
+                    small_font = pygame.font.SysFont("Arial", 32)
 
                 # --- Logo ---
                 logo_surface = None
@@ -810,7 +810,7 @@ def start_slideshow():
                 ip_address = get_local_ip()
                 messages = [
                     (message_font, "Aucune photo trouvée."),
-                    (ip_font, f"Configurez sur : http://{ip_address}:5000"),
+                    (ip_font, f"Configurez sur : http://{ip_address}"),
                     (small_font, "(Identifiants dans credentials.json à la racine de la SD)"),
                     (message_font, "Nouvelle tentative dans 60 secondes...")
                 ]

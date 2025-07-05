@@ -853,6 +853,66 @@ def test_stormglass_api():
     except requests.exceptions.RequestException as e:
         return jsonify({"success": False, "message": f"Erreur de connexion : {e}"})
 
+@app.route('/api/force_tide_update', methods=['POST'])
+@login_required
+def force_tide_update():
+    """Force la mise à jour des données de marée en appelant l'API et en écrivant dans le cache."""
+    config = load_config()
+    api_key = config.get("stormglass_api_key")
+    lat = config.get("tide_latitude")
+    lon = config.get("tide_longitude")
+    tide_cache_path = Path('cache/tides.json')
+
+    if not all([api_key, lat, lon]):
+        return jsonify({"success": False, "message": "Configuration StormGlass incomplète."})
+
+    try:
+        start_time_utc = datetime.utcnow()
+        end_time_utc = start_time_utc + timedelta(days=1)
+
+        headers = {'Authorization': api_key}
+        params = {'lat': lat, 'lng': lon, 'start': start_time_utc.isoformat(), 'end': end_time_utc.isoformat()}
+        
+        response = requests.get('https://api.stormglass.io/v2/tide/extremes/point', params=params, headers=headers, timeout=15)
+        response.raise_for_status()
+        
+        extremes_data = response.json().get('data', [])
+        now_utc = datetime.utcnow().replace(tzinfo=None)
+        future_extremes = [e for e in extremes_data if datetime.fromisoformat(e['time'].replace('Z', '+00:00')).replace(tzinfo=None) > now_utc]
+
+        next_high_raw = min((e for e in future_extremes if e['type'] == 'high'), key=lambda x: x['time'], default=None)
+        next_low_raw = min((e for e in future_extremes if e['type'] == 'low'), key=lambda x: x['time'], default=None)
+
+        tides_data = {}
+        if next_high_raw:
+            tides_data['next_high'] = {'time': datetime.fromisoformat(next_high_raw['time']).astimezone(), 'height': next_high_raw['height']}
+        if next_low_raw:
+            tides_data['next_low'] = {'time': datetime.fromisoformat(next_low_raw['time']).astimezone(), 'height': next_low_raw['height']}
+
+        if not tides_data:
+            return jsonify({"success": False, "message": "Aucune marée future trouvée par l'API."})
+
+        # Préparer les données pour le cache JSON (avec des chaînes ISO)
+        data_to_cache = {'data': {}, 'timestamp': datetime.now().isoformat()}
+        if tides_data.get('next_high'):
+            data_to_cache['data']['next_high'] = {'time': tides_data['next_high']['time'].isoformat(), 'height': tides_data['next_high']['height']}
+        if tides_data.get('next_low'):
+            data_to_cache['data']['next_low'] = {'time': tides_data['next_low']['time'].isoformat(), 'height': tides_data['next_low']['height']}
+        
+        tide_cache_path.parent.mkdir(exist_ok=True)
+        with open(tide_cache_path, 'w') as f:
+            json.dump(data_to_cache, f, indent=2)
+
+        return jsonify({"success": True, "message": "Données de marée mises à jour avec succès !"})
+
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 402:
+            return jsonify({"success": False, "message": "Quota API StormGlass dépassé."})
+        return jsonify({"success": False, "message": f"Erreur API ({e.response.status_code})."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur inattendue : {e}"})
+
+
 @app.route('/immich_update_status')
 @login_required
 def immich_update_status():

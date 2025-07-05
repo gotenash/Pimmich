@@ -291,8 +291,12 @@
         </div>
 
         <div class="mt-2 mb-4">
-            <button type="button" id="testStormglassApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm">Tester la connexion StormGlass</button>
+            <button type="button" id="testStormglassApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm inline-flex items-center"><i class="fas fa-plug mr-2"></i>Tester la connexion</button>
+            <button type="button" id="forceTideUpdateBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm inline-flex items-center"><i class="fas fa-sync-alt mr-2"></i>Forcer la mise à jour</button>
+        </div>
+        <div class="mb-4">
             <span id="stormglassApiTestResult" class="ml-4 font-medium"></span>
+            <span id="forceTideUpdateResult" class="ml-4 font-medium"></span>
         </div>
 
         <fieldset class="mt-6">
@@ -1276,6 +1280,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusSpan.textContent = result.message;
                 statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
 
+            } catch (error) {
+                statusSpan.textContent = "Erreur de communication avec le serveur.";
+                statusSpan.className = "ml-4 font-medium text-red-600";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // ----- FORCE TIDE UPDATE -----
+    const forceTideBtn = document.getElementById("forceTideUpdateBtn");
+    if (forceTideBtn) {
+        forceTideBtn.addEventListener("click", async () => {
+            const btn = forceTideBtn;
+            const statusSpan = document.getElementById("forceTideUpdateResult");
+
+            statusSpan.textContent = "Mise à jour en cours...";
+            statusSpan.className = "ml-4 font-medium text-blue-600";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/force_tide_update', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                statusSpan.textContent = result.message;
+                statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
+                
+                if (result.success) {
+                    fetchTideInfo(); // Rafraîchir l'affichage de l'état des marées
+                }
             } catch (error) {
                 statusSpan.textContent = "Erreur de communication avec le serveur.";
                 statusSpan.className = "ml-4 font-medium text-red-600";
