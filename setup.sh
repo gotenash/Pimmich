@@ -65,6 +65,13 @@ mkdir -p static/prepared
 mkdir -p static/pending_uploads
 echo "✅ Arborescence des dossiers créée."
 
+
+# Corriger les permissions même si script lancé avec sudo
+REAL_USER=$(logname)
+sudo chown -R "$REAL_USER:$REAL_USER" static
+chmod -R u+rwX static
+
+
 echo "=== [6/10] Création du fichier de configuration par défaut ==="
 CONFIG_DIR="config"
 CONFIG_FILE="$CONFIG_DIR/config.json"
