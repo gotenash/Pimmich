@@ -5,10 +5,10 @@
 # sudo apt update && sudo apt upgrade -y
 # echo "Mise à jour sautée pour une installation plus rapide."
 
-echo "=== [2/10] Installation des dépendances ==="
-sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient
+echo "=== [2/11] Installation des dépendances ==="
+sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager
 
-echo "=== [3/10] Installation et configuration de NGINX pour redirection sans :5000 ==="
+echo "=== [3/11] Installation et configuration de NGINX pour redirection sans :5000 ==="
 # Installer NGINX si ce n'est pas déjà fait
 if ! command -v nginx &> /dev/null; then
     echo "Installation de NGINX..."
@@ -51,13 +51,13 @@ fi
 sudo systemctl restart nginx
 echo "✅ NGINX redémarré et prêt"
 
-echo "=== [4/10] Création de l’environnement Python ==="
+echo "=== [4/11] Création de l’environnement Python ==="
 cd "$(dirname "$0")"
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-echo "=== [5/10] Création de l'arborescence des dossiers nécessaires ==="
+echo "=== [5/11] Création de l'arborescence des dossiers nécessaires ==="
 mkdir -p logs
 mkdir -p cache
 mkdir -p static/photos
@@ -70,7 +70,7 @@ REAL_USER=$(logname)
 sudo chown -R "$REAL_USER:$REAL_USER" static logs cache
 chmod -R u+rwX static logs cache
 
-echo "=== [6/10] Création du fichier de configuration par défaut ==="
+echo "=== [6/11] Création du fichier de configuration par défaut ==="
 CONFIG_DIR="config"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 mkdir -p "$CONFIG_DIR"
@@ -110,7 +110,7 @@ else
     echo "✅ Le fichier de configuration existe déjà."
 fi
 
-echo "=== [7/10] Création du fichier d'identification par défaut ==="
+echo "=== [7/11] Création du fichier d'identification par défaut ==="
 CREDENTIALS_FILE="/boot/firmware/credentials.json"
 
 if [ ! -f "$CREDENTIALS_FILE" ]; then
@@ -128,8 +128,12 @@ else
     echo "✅ Le fichier d'identification $CREDENTIALS_FILE existe déjà. Aucune modification."
 fi
 
+echo "=== [8/11] Configuration du démarrage en mode console (CLI) ==="
+sudo raspi-config nonint do_boot_behaviour B2
+echo "✅ Système configuré pour démarrer en mode console avec auto-login."
 
-echo "=== [8/10] Configuration du lancement automatique de Sway ==="
+
+echo "=== [9/11] Configuration du lancement automatique de Sway ==="
 BASH_PROFILE="/home/pi/.bash_profile"
 if ! grep -q 'exec sway' "$BASH_PROFILE"; then
     echo 'if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then' >> "$BASH_PROFILE"
@@ -140,7 +144,7 @@ else
     echo "✅ Sway déjà configuré pour se lancer automatiquement"
 fi
 
-echo "=== [9/10] Configuration du lancement automatique de Pimmich dans Sway ==="
+echo "=== [10/11] Configuration du lancement automatique de Pimmich dans Sway ==="
 SWAY_CONFIG_DIR="/home/pi/.config/sway"
 SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
 mkdir -p "$SWAY_CONFIG_DIR"
@@ -156,5 +160,5 @@ else
     echo "✅ start_pimmich.sh déjà présent dans la config sway"
 fi
 
-echo "=== [10/10] Installation terminée ==="
+echo "=== [11/11] Installation terminée ==="
 echo "✅ Installation terminée. Redémarrez pour lancer automatiquement Sway + Pimmich."

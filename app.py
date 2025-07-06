@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify, send_from_directory
 import os
 import json
 import re
@@ -1362,6 +1362,45 @@ def set_interface_state_api():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 # --- Lancement de l'application ---
+
+@app.route('/api/backup_settings')
+@login_required
+def backup_settings_api():
+    """Permet de télécharger le fichier de configuration actuel."""
+    try:
+        backup_name = f'pimmich_backup_{datetime.now().strftime("%Y-%m-%d")}.json'
+        return send_from_directory('config', 'config.json', as_attachment=True, download_name=backup_name)
+    except FileNotFoundError:
+        flash("Le fichier de configuration n'a pas été trouvé.", "danger")
+        return redirect(url_for('configure'))
+
+@app.route('/api/restore_settings', methods=['POST'])
+@login_required
+def restore_settings_api():
+    """Restaure la configuration à partir d'un fichier de sauvegarde."""
+    if 'backup_file' not in request.files:
+        flash("Aucun fichier de sauvegarde sélectionné.", "warning")
+        return redirect(url_for('configure'))
+
+    file = request.files['backup_file']
+    if file.filename == '':
+        flash("Aucun fichier de sauvegarde sélectionné.", "warning")
+        return redirect(url_for('configure'))
+
+    try:
+        # Lire et valider le contenu JSON
+        content = file.stream.read().decode("utf-8")
+        new_config_data = json.loads(content)
+
+        # Sauvegarder la nouvelle configuration
+        save_config(new_config_data)
+        flash("Configuration restaurée avec succès ! Le diaporama va redémarrer pour appliquer les changements.", "success")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        flash("Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON valide.", "danger")
+    except Exception as e:
+        flash(f"Erreur lors de la restauration : {e}", "danger")
+    
+    return redirect(url_for('configure'))
 
 @app.route('/api/system_info')
 @login_required
