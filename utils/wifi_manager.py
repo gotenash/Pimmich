@@ -1,85 +1,78 @@
 import subprocess
-import os
-import re
 import time
+import re
 
-WPA_SUPPLICANT_CONF = "/etc/wpa_supplicant/wpa_supplicant.conf"
-
-def _run_sudo_command(cmd_list):
-    """Exécute une commande avec sudo et gère les erreurs."""
+def get_wifi_status():
+    """
+    Récupère l'état actuel de la connexion Wi-Fi (SSID et adresse IP).
+    Retourne un dictionnaire avec les informations.
+    """
+    status = {"ssid": "Non connecté", "ip_address": "N/A", "is_connected": False}
     try:
-        print(f"[WiFi Manager] Exécution de la commande sudo: {' '.join(cmd_list)}")
-        result = subprocess.run(['sudo'] + cmd_list, capture_output=True, text=True, check=True, timeout=30)
-        print(f"[WiFi Manager] Commande réussie: {result.stdout}")
-        if result.stderr:
-            print(f"[WiFi Manager] Erreurs/Avertissements: {result.stderr}")
-        return True
+        # Utiliser nmcli pour obtenir un statut fiable
+        cmd = ['nmcli', '-t', '-f', 'GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS', 'dev', 'show', 'wlan0']
+        output = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+        
+        lines = output.split('\n')
+        state_line = lines[0]
+        conn_line = lines[1]
+        ip_line = lines[2]
+
+        if '100 (connecté)' in state_line or 'connected' in state_line:
+            status["is_connected"] = True
+            # Extraire le SSID
+            ssid_match = re.search(r'GENERAL.CONNECTION:(.*)', conn_line)
+            if ssid_match:
+                status["ssid"] = ssid_match.group(1)
+            
+            # Extraire l'IP
+            ip_match = re.search(r'IP4.ADDRESS\[1\]:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', ip_line)
+            if ip_match:
+                status["ip_address"] = ip_match.group(1)
+
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass # Les commandes échouent si non connecté, le statut par défaut est correct.
+    return status
+
+def set_wifi_config(ssid: str, password: str, country_code: str = "FR"):
+    """
+    Configure le pays du Wi-Fi, met à jour les identifiants dans wpa_supplicant.conf,
+    et se connecte en utilisant nmcli (NetworkManager).
+    """
+    if not country_code:
+        raise ValueError("Le code pays est obligatoire.")
+
+    # 1. Définir le pays du Wi-Fi via raspi-config
+    try:
+        print(f"Définition du pays Wi-Fi sur : {country_code}")
+        subprocess.run(
+            ['sudo', 'raspi-config', 'nonint', 'do_wifi_country', country_code],
+            check=True, capture_output=True, text=True, timeout=15
+        )
     except subprocess.CalledProcessError as e:
-        print(f"[WiFi Manager] Erreur d'exécution (code {e.returncode}): {e.stderr}")
-        raise Exception(f"La commande sudo a échoué: {e.stderr}")
+        raise Exception(f"Impossible de définir le pays Wi-Fi : {e.stderr}")
     except subprocess.TimeoutExpired:
-        print("[WiFi Manager] La commande sudo a expiré.")
-        raise Exception("La commande sudo a expiré.")
+        raise Exception("La commande raspi-config a expiré.")
     except FileNotFoundError:
-        print(f"[WiFi Manager] Commande non trouvée: {cmd_list[0]}. Est-elle installée et dans le PATH?")
-        raise Exception(f"Commande non trouvée: {cmd_list[0]}.")
-    except Exception as e:
-        print(f"[WiFi Manager] Erreur inattendue lors de l'exécution de la commande sudo: {e}")
-        raise Exception(f"Erreur inattendue: {e}")
+        raise Exception("La commande 'raspi-config' est introuvable. Ce script est-il exécuté sur un Raspberry Pi OS?")
 
-def set_wifi_config(ssid: str, password: str):
-    """
-    Configure le Wi-Fi du système.
-    Essaie d'abord avec nmcli, puis avec wpa_supplicant.conf.
-    """
-    print(f"[WiFi Manager] Tentative de configuration Wi-Fi pour SSID: {ssid}")
-
-    # 1. Essai avec nmcli (NetworkManager)
+    # 2. Se connecter en utilisant nmcli
     try:
-        print("[WiFi Manager] Tentative avec nmcli...")
-        # Supprimer la connexion existante si elle a le même SSID
-        _run_sudo_command(['nmcli', 'connection', 'delete', ssid])
-        # Ajouter et activer la nouvelle connexion
-        _run_sudo_command(['nmcli', 'device', 'wifi', 'connect', ssid, 'password', password])
-        print("[WiFi Manager] Configuration Wi-Fi appliquée avec nmcli.")
-        return
-    except Exception as e:
-        print(f"[WiFi Manager] Échec de nmcli: {e}. Fallback sur wpa_supplicant.conf.")
-
-    # 2. Fallback sur wpa_supplicant.conf
-    try:
-        print("[WiFi Manager] Tentative avec wpa_supplicant.conf...")
-        # Lire le contenu actuel
-        current_content = ""
-        if os.path.exists(WPA_SUPPLICANT_CONF):
-            with open(WPA_SUPPLICANT_CONF, 'r') as f:
-                current_content = f.read()
-
-        # Supprimer les blocs réseau existants pour ce SSID
-        new_content = re.sub(r'network={\s*ssid="' + re.escape(ssid) + r'".*?}', '', current_content, flags=re.DOTALL)
-
-        # Ajouter le nouveau bloc réseau
-        network_block = f"""
-network={{
-    ssid="{ssid}"
-    psk="{password}"
-}}
-"""
-        # Assurer que les lignes de contrôle sont présentes
-        if "ctrl_interface" not in new_content:
-            new_content = "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\nupdate_config=1\n" + new_content
-
-        new_content += network_block
-
-        # Écrire le nouveau contenu (nécessite sudo)
-        _run_sudo_command(['bash', '-c', f'echo "{new_content}" > {WPA_SUPPLICANT_CONF}'])
-        _run_sudo_command(['systemctl', 'restart', 'wpa_supplicant.service'])
-        print("[WiFi Manager] Configuration Wi-Fi appliquée avec wpa_supplicant.conf.")
-    except Exception as e:
-        print(f"[WiFi Manager] Échec total de la configuration Wi-Fi: {e}")
-        raise Exception(f"Impossible de configurer le Wi-Fi: {e}")
-
-if __name__ == "__main__":
-    # Exemple d'utilisation pour les tests (à exécuter avec sudo python3 wifi_manager.py)
-    # set_wifi_config("MonSSID", "MonMotDePasse")
-    print("Ce script est destiné à être importé. Exécutez-le avec des privilèges sudo pour les tests.")
+        print(f"Tentative de connexion au Wi-Fi '{ssid}' via nmcli...")
+        
+        # Supprimer l'ancienne connexion si elle existe pour forcer une nouvelle configuration
+        # Le `|| true` à la fin évite une erreur si la connexion n'existe pas.
+        subprocess.run(f"sudo nmcli connection delete '{ssid}' || true", shell=True, capture_output=True)
+        
+        # Créer la nouvelle connexion
+        cmd = ['sudo', 'nmcli', 'device', 'wifi', 'connect', ssid]
+        if password:
+            cmd.extend(['password', password])
+        
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True, timeout=30)
+        print(f"Connexion Wi-Fi réussie : {result.stdout}")
+        
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired) as e:
+        stderr = getattr(e, 'stderr', str(e))
+        print(f"Erreur lors de la connexion via nmcli : {stderr}")
+        raise Exception(f"La connexion Wi-Fi a échoué. Détails: {stderr}")

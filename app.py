@@ -18,7 +18,9 @@ from utils.download_album import download_and_extract_album
 from utils.auth import login_required
 from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow
 from utils.slideshow_manager import HDMI_OUTPUT # Pour la détection de résolution
-from utils.wifi_manager import set_wifi_config # Import the new utility
+from utils.auth_manager import change_password
+from utils.network_manager import get_interface_status, set_interface_state
+from utils.wifi_manager import set_wifi_config, get_wifi_status # Import the new utility
 from utils.prepare_all_photos import prepare_all_photos_with_progress
 from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
 from utils.import_samba import import_samba_photos
@@ -200,6 +202,7 @@ def create_default_config():
         "weather_api_key": "", # Re-added
         "weather_city": "Paris", # Re-added
         "wifi_ssid": "", # New: Wi-Fi SSID
+        "wifi_country": "FR", # New: Wi-Fi Country
         "wifi_password": "", # New: Wi-Fi Password
         "weather_units": "metric", # Re-added
         "skip_initial_auto_import": False, # New: Skip first auto import cycle on startup
@@ -1273,9 +1276,10 @@ def current_photo_status():
 def save_wifi_settings():
     ssid = request.form.get('wifi_ssid')
     password = request.form.get('wifi_password')
+    country = request.form.get('wifi_country') # Get the country code
 
-    if not ssid:
-        flash("Le SSID Wi-Fi ne peut pas être vide.", "danger")
+    if not ssid or not country: # Country is now required
+        flash("Le SSID et le pays Wi-Fi sont obligatoires.", "danger")
         return redirect(url_for('configure'))
 
     try:
@@ -1283,14 +1287,80 @@ def save_wifi_settings():
         config = load_config()
         config['wifi_ssid'] = ssid
         config['wifi_password'] = password
+        config['wifi_country'] = country # Save country to config
         save_config(config)
 
         # Appliquer les paramètres Wi-Fi au système
-        set_wifi_config(ssid, password)
-        flash("Paramètres Wi-Fi enregistrés et appliqués. Le Raspberry Pi va tenter de se connecter.", "success")
+        set_wifi_config(ssid, password, country) # Pass country to the function
+        flash("Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la connexion. Veuillez patienter une minute et vérifier le statut.", "success")
     except Exception as e:
         flash(f"Erreur lors de l'application des paramètres Wi-Fi : {e}", "danger")
     return redirect(url_for('configure'))
+
+@app.route('/api/wifi_status')
+@login_required
+def get_wifi_status_api():
+    """Retourne l'état actuel de la connexion Wi-Fi."""
+    status = get_wifi_status()
+    return jsonify({"success": True, **status})
+
+@app.route('/change_password', methods=['POST'])
+@login_required
+def change_password_route():
+    """Gère la modification du mot de passe de l'interface."""
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+
+    if not new_password or not confirm_password:
+        flash("Les deux champs de mot de passe sont requis.", "danger")
+        return redirect(url_for('configure'))
+
+    if new_password != confirm_password:
+        flash("Les mots de passe ne correspondent pas.", "danger")
+        return redirect(url_for('configure'))
+    
+    if len(new_password) < 6:
+        flash("Le mot de passe doit contenir au moins 6 caractères.", "warning")
+        return redirect(url_for('configure'))
+
+    try:
+        change_password(new_password)
+        flash("Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine connexion.", "success")
+    except Exception as e:
+        flash(f"Erreur lors du changement de mot de passe : {e}", "danger")
+
+    return redirect(url_for('configure'))
+
+@app.route('/api/interface_status/<interface_name>')
+@login_required
+def get_interface_status_api(interface_name):
+    """Retourne l'état d'une interface réseau spécifique."""
+    # Valider le nom de l'interface pour la sécurité
+    if not re.match(r'^[a-zA-Z0-9-]+$', interface_name):
+        return jsonify({"success": False, "message": "Nom d'interface invalide."}), 400
+    
+    status = get_interface_status(interface_name)
+    return jsonify({"success": True, **status})
+
+@app.route('/api/set_interface_state', methods=['POST'])
+@login_required
+def set_interface_state_api():
+    """Active ou désactive une interface réseau."""
+    data = request.get_json()
+    interface_name = data.get('interface')
+    state = data.get('state')
+
+    if not interface_name or not state in ['up', 'down']:
+        return jsonify({"success": False, "message": "Données invalides."}), 400
+    
+    if not re.match(r'^[a-zA-Z0-9-]+$', interface_name):
+        return jsonify({"success": False, "message": "Nom d'interface invalide."}), 400
+
+    try:
+        set_interface_state(interface_name, state)
+        return jsonify({"success": True, "message": f"L'interface {interface_name} a été passée à l'état '{state}'."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 # --- Lancement de l'application ---
 
 @app.route('/api/system_info')

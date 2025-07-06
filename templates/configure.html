@@ -619,9 +619,33 @@
 </div>
 
 <div id="tab-system" class="tabcontent">
-    <fieldset>
+    <fieldset class="mb-6">
+        <legend><h3>État de la connexion Wi-Fi</h3></legend>
+        <div id="wifi-status-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>État:</strong> <span id="wifi-connection-state" class="font-semibold">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Réseau (SSID):</strong> <span id="wifi-current-ssid">Chargement...</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>Adresse IP:</strong> <span id="wifi-ip-address">Chargement...</span>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="mt-6">
         <legend><h3>Configuration Wi-Fi</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">La sélection du pays est obligatoire pour activer l'interface Wi-Fi et respecter les réglementations locales sur les fréquences radio.</p>
         <form action="{{ url_for('save_wifi_settings') }}" method="post" id="wifi-config-form">
+            <div class="mb-4">
+                <label for="wifi_country" class="block text-sm font-medium text-gray-700">Pays (pour la réglementation Wi-Fi)</label>
+                <select id="wifi_country" name="wifi_country" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    {% set countries = [('FR', 'France'), ('US', 'États-Unis'), ('GB', 'Royaume-Uni'), ('DE', 'Allemagne'), ('ES', 'Espagne'), ('CA', 'Canada'), ('BE', 'Belgique'), ('CH', 'Suisse')] %}
+                    {% for code, name in countries %}
+                        <option value="{{ code }}" {% if config.get('wifi_country', 'FR') == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="mb-4">
                 <label for="wifi_ssid" class="block text-sm font-medium text-gray-700">SSID (Nom du réseau)</label>
                 <input type="text" id="wifi_ssid" name="wifi_ssid" value="{{ config.get('wifi_ssid', '') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
@@ -635,6 +659,24 @@
                 <i class="fas fa-save mr-2"></i>Appliquer les paramètres Wi-Fi
             </button>
         </form>
+        <p class="mt-3 text-xs text-gray-500">Note : Après avoir appliqué les paramètres, la connexion peut prendre jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à "Connecté", vérifiez le mot de passe puis essayez de redémarrer le système.</p>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>Gestion des Interfaces Réseau</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, c'est souvent un problème de priorité. Désactivez l'interface Ethernet pour forcer le système à utiliser exclusivement le Wi-Fi. Cette action redémarre le service réseau.</p>
+        
+        <!-- Interface Ethernet (eth0) -->
+        <div id="eth0-status-container" class="p-4 border rounded-lg bg-gray-50/50 flex items-center justify-between">
+            <div>
+                <h4 class="font-semibold text-gray-800">Interface Filaire (eth0)</h4>
+                <p class="text-sm"><strong>État:</strong> <span id="eth0-state" class="font-mono">Chargement...</span></p>
+                <p class="text-sm"><strong>Adresse IP:</strong> <span id="eth0-ip" class="font-mono">Chargement...</span></p>
+            </div>
+            <div>
+                <button id="toggle-eth0-btn" class="system-button text-white font-bold py-2 px-4 rounded" disabled>Chargement...</button>
+            </div>
+        </div>
     </fieldset>
 
     <!-- Bloc de scan Wi-Fi -->
@@ -649,6 +691,34 @@
             <!-- Les résultats du scan apparaîtront ici -->
         </div>
     </div>
+
+    <fieldset class="mt-6">
+        <legend><h3>Sécurité</h3></legend>
+        <form action="{{ url_for('change_password_route') }}" method="post" id="password-change-form" onsubmit="return validatePassword();">
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">Changer le mot de passe de l'interface</h4>
+            <div class="mb-4">
+                <label for="new_password" class="block text-sm font-medium text-gray-700">Nouveau mot de passe</label>
+                <input type="password" id="new_password" name="new_password" required minlength="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="6 caractères minimum">
+            </div>
+            <div class="mb-4">
+                <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmer le nouveau mot de passe</label>
+                <input type="password" id="confirm_password" name="confirm_password" required minlength="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <p id="password-error" class="mt-2 text-sm text-red-600 hidden">Les mots de passe ne correspondent pas.</p>
+            </div>
+            <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                <i class="fas fa-key mr-2"></i>Changer le mot de passe
+            </button>
+        </form>
+        <script>
+            function validatePassword() {
+                const newPassword = document.getElementById('new_password').value;
+                const confirmPassword = document.getElementById('confirm_password').value;
+                const errorP = document.getElementById('password-error');
+                if (newPassword !== confirmPassword) { errorP.classList.remove('hidden'); return false; }
+                errorP.classList.add('hidden'); return true;
+            }
+        </script>
+    </fieldset>
 
     <fieldset class="mt-6">
         <legend><h3>Contrôle du système</h3></legend>
@@ -1562,6 +1632,110 @@ document.addEventListener("DOMContentLoaded", () => {
     updateLivePreview();
 
     // --- Informations Système et Logs ---
+
+    // Fonction pour récupérer et afficher l'état du Wi-Fi
+    async function fetchWifiStatus() {
+        const stateSpan = document.getElementById('wifi-connection-state');
+        const ssidSpan = document.getElementById('wifi-current-ssid');
+        const ipSpan = document.getElementById('wifi-ip-address');
+
+        try {
+            const response = await fetch('/api/wifi_status');
+            const data = await response.json();
+            if (data.success) {
+                if (data.is_connected) {
+                    stateSpan.textContent = "Connecté";
+                    stateSpan.className = "text-green-600 font-semibold";
+                    ssidSpan.textContent = data.ssid;
+                    ipSpan.textContent = data.ip_address;
+                } else {
+                    stateSpan.textContent = "Non connecté";
+                    stateSpan.className = "text-red-600 font-semibold";
+                    ssidSpan.textContent = "N/A";
+                    ipSpan.textContent = "N/A";
+                }
+            } else {
+                throw new Error("Réponse de l'API invalide");
+            }
+        } catch (error) {
+            console.error("Erreur de communication avec l'API Wi-Fi:", error);
+            stateSpan.textContent = "Erreur de connexion";
+            stateSpan.className = "text-red-600 font-semibold";
+            ssidSpan.textContent = "N/A";
+            ipSpan.textContent = "N/A";
+        }
+    }
+
+    // --- Gestion des Interfaces Réseau ---
+    async function fetchInterfaceStatus(interfaceName) {
+        const stateSpan = document.getElementById(`${interfaceName}-state`);
+        const ipSpan = document.getElementById(`${interfaceName}-ip`);
+        const toggleBtn = document.getElementById(`toggle-${interfaceName}-btn`);
+
+        if (!stateSpan || !ipSpan || !toggleBtn) return;
+
+        try {
+            const response = await fetch(`/api/interface_status/${interfaceName}`);
+            const data = await response.json();
+
+            if (data.success) {
+                if (data.state === "UP") {
+                    stateSpan.textContent = "Activée";
+                    stateSpan.className = "font-mono text-green-600";
+                    ipSpan.textContent = data.ip_address;
+                    toggleBtn.textContent = "Désactiver";
+                    toggleBtn.className = "system-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded";
+                    toggleBtn.dataset.nextState = "down";
+                } else if (data.state === "DOWN") {
+                    stateSpan.textContent = "Désactivée";
+                    stateSpan.className = "font-mono text-gray-500";
+                    ipSpan.textContent = "N/A";
+                    toggleBtn.textContent = "Activer";
+                    toggleBtn.className = "system-button bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded";
+                    toggleBtn.dataset.nextState = "up";
+                } else { // NOT_FOUND
+                    stateSpan.textContent = "Non trouvée";
+                    stateSpan.className = "font-mono text-red-600";
+                    ipSpan.textContent = "N/A";
+                    toggleBtn.textContent = "Indisponible";
+                    toggleBtn.className = "system-button bg-gray-400 text-white font-bold py-2 px-4 rounded cursor-not-allowed";
+                    toggleBtn.disabled = true;
+                    return;
+                }
+                toggleBtn.disabled = false;
+            } else { throw new Error(data.message || "Réponse API invalide"); }
+        } catch (error) {
+            console.error(`Erreur de communication pour l'interface ${interfaceName}:`, error);
+            stateSpan.textContent = "Erreur"; ipSpan.textContent = "N/A";
+            toggleBtn.textContent = "Erreur"; toggleBtn.disabled = true;
+        }
+    }
+
+    const toggleEth0Btn = document.getElementById('toggle-eth0-btn');
+    if (toggleEth0Btn) {
+        toggleEth0Btn.addEventListener('click', async () => {
+            const interfaceName = 'eth0';
+            const nextState = toggleEth0Btn.dataset.nextState;
+
+            toggleEth0Btn.disabled = true;
+            toggleEth0Btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const response = await fetch('/api/set_interface_state', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ interface: interfaceName, state: nextState })
+                });
+                const result = await response.json();
+                if (!result.success) { alert(`Erreur: ${result.message}`); }
+                setTimeout(() => fetchInterfaceStatus(interfaceName), 1000);
+            } catch (error) {
+                alert("Erreur de communication avec le serveur.");
+                fetchInterfaceStatus(interfaceName);
+            }
+        });
+    }
+
     // Fonction pour récupérer et afficher les informations système
     async function fetchSystemInfo() {
         try {
@@ -1608,6 +1782,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mettre à jour les infos système toutes les 5 secondes
     setInterval(fetchSystemInfo, 5000);
+    setInterval(fetchWifiStatus, 5000);
+    setInterval(() => fetchInterfaceStatus('eth0'), 5000);
     // Mettre à jour les logs toutes les 10 secondes (ou sur demande)
     setInterval(fetchLogs, 10000);
 
@@ -1643,6 +1819,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Appel initial au chargement de la page pour les infos système et les logs
     fetchSystemInfo();
     fetchLogs();
+    fetchInterfaceStatus('eth0');
+    fetchWifiStatus();
 
     // --- Scan Wi-Fi ---
     const scanBtn = document.getElementById('scan-wifi-btn');

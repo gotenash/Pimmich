@@ -20,6 +20,12 @@ else
   echo "Socket sway détecté et exporté : $SOCK"
 fi
 
+# --- Pause de stabilisation ---
+# Au redémarrage (reboot), les services peuvent se lancer en parallèle.
+# Une petite pause ici permet de s'assurer que tout est stable (notamment le réseau) avant de lancer l'application.
+echo "Pause de 5 secondes pour la stabilisation du système..."
+sleep 5
+
 # Aller dans le dossier du projet
 cd /home/pi/pimmich || exit 1
 
