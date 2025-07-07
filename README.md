@@ -18,18 +18,30 @@
 - ✅ Paramètre de hauteur utile de l’écran (% d’écran utilisé)  
 - ✅ Correction de l’orientation via EXIF et préparation des images  
 
-## 🛠️ Juillet 2025 – Prochaine version
+## 🛠️ Juillet 2025 – Prochaine version (sortie prévue 14 juillet)
 
-- 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web  
-- 🗂️ Réorganisation de la page de configuration en onglets  
-- 🔁 Mise à jour automatique périodique de l’album Immich  
-- 📁 Support du protocole SMB pour accéder à des photos partagées en réseau  
+- ✅ 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web  
+- ✅ 🗂️ Réorganisation de la page de configuration en onglets  
+- ✅ 🔁 Mise à jour automatique périodique de l’album Immich  
+- ✅ 📁 Support du protocole SMB pour accéder à des photos partagées en réseau
+- ✅ ⏰🌤️ Affichage de l’heure et de la météo sur l’écran
+- ✅ Ajout NGINX, plus besoin de mettre le numéro du port (50000)
+- ✅ Ajout des filtres (NB, Sépia, POlaroid ...)
+- ✅ Ajout des différents boutons supprimer
+- ✅ Ajout d'une option de sauvegarde de la configuration
+- ✅ Ajout d'un menu changement du mot de passe
+- ✅ Ajout de la création du credenrials.json pendant le setup
+- ✅ Ajout effet de transition
+- ✅ Ajout détection automatoique de la résolution
+- ✅ Ajout de l'import à partir d'un smartphone (en admin et mode invité)
+- ✅ Interface de validation des photos proposées en mode invité
+- ✅ Ajout des logs dans l'onglet Système
+- ✅ Ajout des stats du Raspberry (température, stockage Ram, charge processeur)
 
+ 
 ## 💡 Idées pour les versions suivantes
 
-- 📱 Création d’une APK Android pour contrôler le cadre  
-- ⏰🌤️ Affichage de l’heure et de la météo sur l’écran  
-- 🧑‍🤝‍🧑 Partage multi-utilisateur (plusieurs comptes Immich)  
+- 📱 Création d’une APK Android pour contrôler le cadre     
 - 🌍 Traductions de l’interface (multi-langues)  
 
 
