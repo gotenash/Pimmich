@@ -5,10 +5,25 @@
 # sudo apt update && sudo apt upgrade -y
 # echo "Mise à jour sautée pour une installation plus rapide."
 
-echo "=== [2/11] Installation des dépendances ==="
+echo "=== [2/12] Installation des dépendances ==="
 sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager
 
-echo "=== [3/11] Installation et configuration de NGINX pour redirection sans :5000 ==="
+echo "=== [3/12] Désactivation de l'économie d'énergie Wi-Fi ==="
+CONF_FILE="/etc/NetworkManager/conf.d/99-disable-wifi-powersave.conf"
+if [ ! -f "$CONF_FILE" ]; then
+    echo "Création du fichier de configuration pour désactiver l'économie d'énergie Wi-Fi..."
+    sudo tee "$CONF_FILE" > /dev/null <<'EOL'
+[connection]
+wifi.powersave = 2
+EOL
+    echo "✅ Économie d'énergie Wi-Fi désactivée. Redémarrage de NetworkManager..."
+    sudo systemctl restart NetworkManager
+    sleep 2 # Petite pause pour laisser le service redémarrer
+else
+    echo "✅ L'économie d'énergie Wi-Fi est déjà désactivée."
+fi
+
+echo "=== [4/12] Installation et configuration de NGINX pour redirection sans :5000 ==="
 # Installer NGINX si ce n'est pas déjà fait
 if ! command -v nginx &> /dev/null; then
     echo "Installation de NGINX..."
@@ -51,13 +66,13 @@ fi
 sudo systemctl restart nginx
 echo "✅ NGINX redémarré et prêt"
 
-echo "=== [4/11] Création de l’environnement Python ==="
+echo "=== [5/12] Création de l’environnement Python ==="
 cd "$(dirname "$0")"
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt werkzeug
 
-echo "=== [5/11] Création de l'arborescence des dossiers nécessaires ==="
+echo "=== [6/12] Création de l'arborescence des dossiers nécessaires ==="
 mkdir -p logs
 mkdir -p cache
 mkdir -p static/photos
@@ -70,7 +85,7 @@ REAL_USER=$(logname)
 sudo chown -R "$REAL_USER:$REAL_USER" static logs cache
 chmod -R u+rwX static logs cache
 
-echo "=== [6/11] Création du fichier de configuration par défaut ==="
+echo "=== [7/12] Création du fichier de configuration par défaut ==="
 CONFIG_DIR="config"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 mkdir -p "$CONFIG_DIR"
@@ -110,30 +125,25 @@ else
     echo "✅ Le fichier de configuration existe déjà."
 fi
 
-echo "=== [7/11] Création du fichier d'identification par défaut ==="
+echo "=== [8/12] Création du fichier d'identification sécurisé ==="
 CREDENTIALS_FILE="/boot/firmware/credentials.json"
 
 if [ ! -f "$CREDENTIALS_FILE" ]; then
-    echo "Création du fichier d'identification par défaut : $CREDENTIALS_FILE"
-    echo "Utilisateur : admin / Mot de passe : pimmich"
-    # Utilisation de sudo avec bash -c pour gérer la redirection de droits
-    sudo bash -c "cat > '$CREDENTIALS_FILE'" << EOL
-{
-  "username": "admin",
-  "password": "pimmich"
-}
-EOL
-    echo "✅ Fichier credentials.json créé. Pensez à le modifier pour plus de sécurité."
+    echo "Génération d'un mot de passe aléatoire et création du fichier d'identification..."
+    # On utilise sudo pour exécuter le script python qui a besoin des droits pour écrire dans /boot/firmware
+    # Le script python est exécuté via l'interpréteur de l'environnement virtuel pour avoir accès à werkzeug.
+    # Le script affichera lui-même le mot de passe généré.
+    sudo venv/bin/python3 utils/create_initial_user.py --output "$CREDENTIALS_FILE"
 else
     echo "✅ Le fichier d'identification $CREDENTIALS_FILE existe déjà. Aucune modification."
 fi
 
-echo "=== [8/11] Configuration du démarrage en mode console (CLI) ==="
+echo "=== [9/12] Configuration du démarrage en mode console (CLI) ==="
 sudo raspi-config nonint do_boot_behaviour B2
 echo "✅ Système configuré pour démarrer en mode console avec auto-login."
 
 
-echo "=== [9/11] Configuration du lancement automatique de Sway ==="
+echo "=== [10/12] Configuration du lancement automatique de Sway ==="
 BASH_PROFILE="/home/pi/.bash_profile"
 if ! grep -q 'exec sway' "$BASH_PROFILE"; then
     echo 'if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then' >> "$BASH_PROFILE"
@@ -144,7 +154,7 @@ else
     echo "✅ Sway déjà configuré pour se lancer automatiquement"
 fi
 
-echo "=== [10/11] Configuration du lancement automatique de Pimmich dans Sway ==="
+echo "=== [11/12] Configuration du lancement automatique de Pimmich dans Sway ==="
 SWAY_CONFIG_DIR="/home/pi/.config/sway"
 SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
 mkdir -p "$SWAY_CONFIG_DIR"
@@ -160,5 +170,5 @@ else
     echo "✅ start_pimmich.sh déjà présent dans la config sway"
 fi
 
-echo "=== [11/11] Installation terminée ==="
+echo "=== [12/12] Installation terminée ==="
 echo "✅ Installation terminée. Redémarrez pour lancer automatiquement Sway + Pimmich."

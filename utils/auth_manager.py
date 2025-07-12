@@ -1,11 +1,12 @@
 import json
 import subprocess
+from werkzeug.security import generate_password_hash
 
 CREDENTIALS_PATH = '/boot/firmware/credentials.json'
 
 def change_password(new_password: str):
     """
-    Met à jour le mot de passe dans le fichier credentials.json.
+    Met à jour le mot de passe dans le fichier credentials.json en le hachant.
     Nécessite des droits sudo pour écrire dans /boot/firmware/.
     """
     if not new_password:
@@ -20,8 +21,10 @@ def change_password(new_password: str):
         print(f"Avertissement: Impossible de lire {CREDENTIALS_PATH} ({e}). Un nouveau sera créé.")
         credentials = {'username': 'admin'}
 
-    # Mettre à jour le mot de passe
-    credentials['password'] = new_password
+    # Mettre à jour le mot de passe avec un hash sécurisé
+    credentials['password_hash'] = generate_password_hash(new_password)
+    # Supprimer l'ancien mot de passe en clair s'il existe
+    credentials.pop('password', None)
 
     # Préparer le contenu à écrire
     new_content = json.dumps(credentials, indent=2)

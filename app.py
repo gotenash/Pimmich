@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify, g
 from werkzeug.utils import secure_filename
 from pathlib import Path
+from werkzeug.security import check_password_hash
 
 from utils.download_album import download_and_extract_album
 from utils.auth import login_required
@@ -152,12 +153,25 @@ def load_credentials():
     try:
         with open(CREDENTIALS_PATH, 'r') as f:
             return json.load(f)
-    except FileNotFoundError:
-        return {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        # Fallback if file is missing or corrupt. setup.sh should create it.
+        # The hash is for the default password 'pimmich'.
+        return {"username": "admin", "password_hash": "pbkdf2:sha256:600000$YgWJtLgqgBqYvRzS$b2185c72e38933b3c655b7a748c928b1b88b1d62480579f4a1f9b1b1c8e8c8d2"}
 
 def check_credentials(username, password):
     credentials = load_credentials()
-    return username == credentials.get("username") and password == credentials.get("password")
+    stored_username = credentials.get("username")
+    stored_hash = credentials.get("password_hash")
+
+    if not stored_username or not stored_hash:
+        # Handle legacy plaintext password for backward compatibility
+        stored_password = credentials.get("password")
+        if stored_password and username == stored_username and password == stored_password:
+            print("AVERTISSEMENT: Le mot de passe est stocké en clair. Veuillez le changer pour le sécuriser.")
+            return True
+        return False
+
+    return username == stored_username and check_password_hash(stored_hash, password)
 def create_default_config():
     """Crée et retourne un dictionnaire de configuration par défaut."""
     return {
