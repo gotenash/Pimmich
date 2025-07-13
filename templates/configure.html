@@ -309,6 +309,23 @@
             </div>
         </fieldset>
     </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><strong>Fuseau Horaire</strong></legend>
+        <div class="p-3 bg-gray-100 rounded-lg border">
+            <p><strong>Fuseau horaire actuel du système :</strong> <span class="font-mono">{{ config.get('timezone', 'Non défini') }}</span></p>
+            {% if config.get('timezone_source') == 'fallback' %}
+            <div class="mt-2 p-3 text-sm text-yellow-800 bg-yellow-100 rounded-lg" role="alert">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Attention :</strong> La détection automatique du fuseau horaire a échoué lors de l'installation. Le système est configuré sur <strong>UTC</strong>. L'heure affichée peut être incorrecte.
+                <br>
+                Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi (via SSH) et en exécutant la commande : <code class="bg-gray-200 text-black p-1 rounded text-xs">sudo timedatectl set-timezone Europe/Paris</code> (remplacez par votre région/ville).
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-600 mt-1">Le fuseau horaire a été configuré automatiquement lors de l'installation.</p>
+            {% endif %}
+        </div>
+    </fieldset>
 </div>
 
 
@@ -1095,14 +1112,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 displayMessage(statusDiv, data.message, data.type);
 
-                if (data.type === 'done' || data.type === 'error') {
+                if (data.type === 'done') {
+                    eventSource.close();
+                    displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
+                    setTimeout(() => { location.reload(); }, 2000);
+                } else if (data.type === 'error') {
                     eventSource.close();
                     setTimeout(() => {
                         btn.disabled = false;
                         btn.textContent = "Importer depuis la clé USB";
                         btn.classList.remove("opacity-50", "cursor-not-allowed");
-                        progressContainer.classList.add("hidden");
-                        statusDiv.innerHTML = "";
                     }, 5000);
                 }
             } catch (e) {
@@ -1150,14 +1169,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 displayMessage(statusDiv, data.message, data.type);
 
-                if (data.type === 'done' || data.type === 'error') {
+                if (data.type === 'done') {
+                    eventSource.close();
+                    displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
+                    setTimeout(() => { location.reload(); }, 2000);
+                } else if (data.type === 'error') {
                     eventSource.close();
                     setTimeout(() => {
                         btn.disabled = false;
                         btn.textContent = "Importer les photos depuis Immich";
                         btn.classList.remove("opacity-50", "cursor-not-allowed");
-                        progressContainer.classList.add("hidden");
-                        statusDiv.innerHTML = "";
                     }, 5000);
                 }
             } catch (e) {
@@ -1205,14 +1226,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 displayMessage(statusDiv, data.message, data.type);
 
-                if (data.type === 'done' || data.type === 'error') {
+                if (data.type === 'done') {
+                    eventSource.close();
+                    displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
+                    setTimeout(() => { location.reload(); }, 2000);
+                } else if (data.type === 'error') {
                     eventSource.close();
                     setTimeout(() => {
                         btn.disabled = false;
                         btn.textContent = "Importer depuis Samba";
                         btn.classList.remove("opacity-50", "cursor-not-allowed");
-                        progressContainer.classList.add("hidden");
-                        statusDiv.innerHTML = "";
                     }, 5000);
                 }
             } catch (e) {
@@ -1429,6 +1452,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const progressContainer = document.getElementById('smartphone-progress-container');
         const statusDiv = document.getElementById('smartphone-import-status');
         const allImportButtons = document.querySelectorAll('.import-button, #import-smartphone-btn');
+        let hasErrorOccurred = false; // Flag to track errors
 
         // Check if files were selected
         if (!formData.has('photos') || !formData.get('photos').name) {
@@ -1462,18 +1486,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             function processStream() {
                 reader.read().then(({ done, value }) => {
-                    if (done) {
-                        // Re-enable buttons after a delay
-                        setTimeout(() => {
-                            allImportButtons.forEach(b => {
-                                b.disabled = false;
-                                b.classList.remove("opacity-50", "cursor-not-allowed");
-                            });
-                            btn.innerHTML = '<i class="fas fa-upload"></i> Envoyer les photos';
-                            progressContainer.classList.add('hidden');
-                            statusDiv.innerHTML = "";
-                        }, 5000);
-                        return;
+                    if (done) { // Stream finished
+                        if (!hasErrorOccurred) {
+                            displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
+                            setTimeout(() => { location.reload(); }, 2000);
+                        } else {
+                            // Re-enable buttons after a delay if there was an error
+                            setTimeout(() => {
+                                allImportButtons.forEach(b => {
+                                    b.disabled = false;
+                                    b.classList.remove("opacity-50", "cursor-not-allowed");
+                                });
+                                btn.innerHTML = '<i class="fas fa-upload"></i> Envoyer les photos';
+                            }, 5000);
+                        }
+                        return; // End the stream processing
                     }
 
                     // Process the stream chunk
@@ -1486,8 +1513,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                 progressBar.style.width = `${data.percent || 0}%`;
                                 progressBar.textContent = `${data.percent || 0}%`;
                                 displayMessage(statusDiv, data.message, data.type);
+                                if (data.type === 'error') {
+                                    hasErrorOccurred = true;
+                                }
                             } catch (e) {
                                 displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+                                hasErrorOccurred = true;
                             }
                         }
                     });
