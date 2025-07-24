@@ -1,0 +1,1416 @@
+# Spanish translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-07-22 18:39+0200\n"
+"PO-Revision-Date: 2025-07-23 13:35+0200\n"
+"Last-Translator: \n"
+"Language-Team: es <LL@li.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+"X-Generator: Poedit 3.6\n"
+
+#: app.py:418 app.py:423
+msgid "Aucun fichier sélectionné."
+msgstr "No hay archivos seleccionados."
+
+#: app.py:439
+#, python-format
+msgid "%(count)s photo(s) envoyée(s) pour validation avec succès !"
+msgstr "¡%(count)s fotos enviadas exitosamente para validación!"
+
+#: app.py:530
+msgid "Connexion réussie"
+msgstr "Conexión exitosa"
+
+#: app.py:533
+msgid "Identifiants invalides"
+msgstr "Credenciales no válidas"
+
+#: app.py:539
+msgid "Déconnexion réussie"
+msgstr "Cerrar sesión exitosamente"
+
+#: app.py:623
+msgid "Configuration enregistrée et diaporama relancé"
+msgstr "Configuración guardada y presentación de diapositivas reiniciada"
+
+#: app.py:1338
+msgid "Le SSID et le pays Wi-Fi sont obligatoires."
+msgstr "Se requieren SSID y país de Wi-Fi."
+
+#: app.py:1351
+msgid ""
+"Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la "
+"connexion. Veuillez patienter une minute et vérifier le statut."
+msgstr ""
+"Configuración de Wi-Fi aplicada. Se ha reiniciado el servicio de red para "
+"forzar la conexión. Espere un minuto y verifique el estado."
+
+#: app.py:1353
+#, python-format
+msgid "Erreur lors de l'application des paramètres Wi-Fi : %(error)s"
+msgstr "Error al aplicar la configuración de Wi-Fi: %(error)s"
+
+#: app.py:1371
+msgid "Les deux champs de mot de passe sont requis."
+msgstr "Ambos campos de contraseña son obligatorios."
+
+#: app.py:1375 templates/configure.html:767
+msgid "Les mots de passe ne correspondent pas."
+msgstr "Las contraseñas no coinciden."
+
+#: app.py:1379
+msgid "Le mot de passe doit contenir au moins 6 caractères."
+msgstr ""
+"Contraseñas nLa contraseña debe contener al menos 6 caracteres.e no coinciden."
+
+#: app.py:1384
+msgid ""
+"Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine "
+"connexion."
+msgstr ""
+"Contraseña actualizada correctamente. La necesitarás para tu próximo inicio de "
+"sesión."
+
+#: app.py:1386
+#, python-format
+msgid "Erreur lors du changement de mot de passe : %(error)s"
+msgstr "Error al cambiar contraseña: %(error)s"
+
+#: app.py:1430
+msgid "Le fichier de configuration n'a pas été trouvé."
+msgstr "No se encontró el archivo de configuración."
+
+#: app.py:1438 app.py:1443
+msgid "Aucun fichier de sauvegarde sélectionné."
+msgstr "No hay ningún archivo guardado seleccionado."
+
+#: app.py:1453
+msgid ""
+"Configuration restaurée avec succès ! Le diaporama va redémarrer pour "
+"appliquer les changements."
+msgstr ""
+"¡Configuración restaurada correctamente! La presentación se reiniciará para "
+"aplicar los cambios."
+
+#: app.py:1455
+msgid ""
+"Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON "
+"valide."
+msgstr ""
+"Archivo de copia de seguridad no válido o dañado. Este no es un archivo JSON "
+"válido."
+
+#: app.py:1457
+#, python-format
+msgid "Erreur lors de la restauration : %(error)s"
+msgstr "Error al restaurar: %(error)s"
+
+#: templates/configure.html:5
+msgid "Configuration"
+msgstr "Configuración"
+
+#: templates/configure.html:55
+msgid "Configuration du cadre photo connecté"
+msgstr "Configuración del marco de fotos conectado"
+
+#: templates/configure.html:58 templates/login.html:70 templates/upload.html:66
+msgid "Langue"
+msgstr "Idioma"
+
+#: templates/configure.html:65
+msgid "Se déconnecter"
+msgstr "Finalizar la sesión"
+
+#: templates/configure.html:71
+msgid "Affichage"
+msgstr "Mostrar"
+
+#: templates/configure.html:72
+msgid "Heure, Météo et Marées"
+msgstr "Tiempo, clima y mareas"
+
+#: templates/configure.html:73
+msgid "Sources des photos"
+msgstr "Fuentes de fotos"
+
+#: templates/configure.html:74
+msgid "Aperçu"
+msgstr "Avance"
+
+#: templates/configure.html:75 templates/configure.html:472
+msgid "Actions"
+msgstr "Comportamiento"
+
+#: templates/configure.html:76
+msgid "Validation"
+msgstr "Validación"
+
+#: templates/configure.html:77
+msgid "Système"
+msgstr "Sistema"
+
+#: templates/configure.html:84
+msgid "Paramètres d'affichage"
+msgstr "Configuración de pantalla"
+
+#: templates/configure.html:86
+msgid "Durée d'affichage (en secondes) :"
+msgstr "Duración de la visualización (en segundos):"
+
+#: templates/configure.html:89
+msgid "Heure de début d'activité (HH:MM) :"
+msgstr "Hora de inicio de la actividad (HH:MM):"
+
+#: templates/configure.html:92
+msgid "Heure de fin d'activité (HH:MM) :"
+msgstr "Hora de finalización de la actividad (HH:MM):"
+
+#: templates/configure.html:95
+#, python-format
+msgid "Hauteur utile de l'écran (%% affiché) :"
+msgstr "Altura de pantalla útil (%% mostrado):"
+
+#: templates/configure.html:100
+msgid "Largeur d'affichage cible (px) :"
+msgstr "Ancho de visualización de destino (px):"
+
+#: templates/configure.html:102
+msgid "Hauteur d'affichage cible (px) :"
+msgstr "Altura de visualización de destino (px):"
+
+#: templates/configure.html:105
+msgid "Détecter la résolution de l'écran actif"
+msgstr "Detectar la resolución de la pantalla activa"
+
+#: templates/configure.html:105
+msgid "Détecter"
+msgstr "Detectar"
+
+#: templates/configure.html:110
+msgid "Activer l'effet Pan/Zoom sur les photos"
+msgstr "Habilitar el efecto Pan/Zoom en las fotos"
+
+#: templates/configure.html:114
+#, python-format
+msgid "Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :"
+msgstr "Amplitud del zoom (por ejemplo: 1,15 para un zoom del 15 %%):"
+
+#: templates/configure.html:120
+msgid "Activer l'effet de transition entre les photos"
+msgstr "Habilitar el efecto de transición entre fotos"
+
+#: templates/configure.html:124
+msgid "Durée de transition (secondes) :"
+msgstr "Duración de la transición (segundos):"
+
+#: templates/configure.html:128
+msgid "Type de transition :"
+msgstr "Tipo de transición:"
+
+#: templates/configure.html:130
+msgid "Fondu enchaîné"
+msgstr "Fundido cruzado"
+
+#: templates/configure.html:131
+msgid "Glisser depuis la gauche"
+msgstr "Deslizar desde la izquierda"
+
+#: templates/configure.html:132
+msgid "Glisser depuis la droite"
+msgstr "Desliza desde la derecha"
+
+#: templates/configure.html:133
+msgid "Glisser depuis le bas"
+msgstr "Deslice desde abajo"
+
+#: templates/configure.html:134
+msgid "Glisser depuis le haut"
+msgstr "Desliza desde arriba"
+
+#: templates/configure.html:140
+msgid "Activer le son pour les vidéos"
+msgstr "Habilitar sonido para videos"
+
+#: templates/configure.html:144
+msgid "Sortie audio :"
+msgstr "Salida de audio:"
+
+#: templates/configure.html:146
+msgid "Automatique"
+msgstr "Automático"
+
+#: templates/configure.html:147
+msgid "HDMI"
+msgstr "HDMI"
+
+#: templates/configure.html:148
+msgid "Jack 3.5mm (Casque)"
+msgstr "Conector de 3,5 mm (auriculares)"
+
+#: templates/configure.html:152
+msgid "Volume :"
+msgstr "Volumen :"
+
+#: templates/configure.html:163
+msgid "Affichage de l'heure"
+msgstr "Visualización de la hora"
+
+#: templates/configure.html:169
+msgid "Afficher l'heure"
+msgstr "Tiempo de la funcion"
+
+#: templates/configure.html:174
+msgid "Taille de la police :"
+msgstr "Tamaño de fuente:"
+
+#: templates/configure.html:179 templates/configure.html:313
+msgid "Décalage horizontal (px) :"
+msgstr "Desplazamiento horizontal (px):"
+
+#: templates/configure.html:184 templates/configure.html:318
+msgid "Décalage vertical (px) :"
+msgstr "Desplazamiento vertical (px):"
+
+#: templates/configure.html:189
+msgid "Couleur du texte (hex) :"
+msgstr "Color del texto (hexadecimal):"
+
+#: templates/configure.html:194
+msgid "Couleur du contour (hex) :"
+msgstr "Color del contorno (hexadecimal):"
+
+#: templates/configure.html:199
+msgid "Position de l'heure :"
+msgstr "Posición horaria:"
+
+#: templates/configure.html:201
+msgid "Gauche"
+msgstr "Izquierda"
+
+#: templates/configure.html:202
+msgid "Centre"
+msgstr "Centro"
+
+#: templates/configure.html:203
+msgid "Droite"
+msgstr "Derecho"
+
+#: templates/configure.html:208
+msgid "Police :"
+msgstr "Fuente :"
+
+#: templates/configure.html:223
+msgid "Afficher un fond derrière l'heure/date/météo"
+msgstr "Mostrar un fondo detrás de la hora/fecha/clima"
+
+#: templates/configure.html:227
+msgid "Couleur du fond (hex RGBA) :"
+msgstr "Color de fondo (hex RGBA):"
+
+#: templates/configure.html:233
+msgid "Affichage de la date"
+msgstr "Visualización de fecha"
+
+#: templates/configure.html:237
+msgid "Afficher la date (sous l'heure)"
+msgstr "Mostrar fecha (debajo de la hora)"
+
+#: templates/configure.html:241
+msgid "Format de la date :"
+msgstr "Formato de fecha:"
+
+#: templates/configure.html:247
+msgid "Affichage de la météo (OpenWeatherMap)"
+msgstr "Visualización del tiempo (OpenWeatherMap)"
+
+#: templates/configure.html:252
+msgid "Afficher la météo"
+msgstr "Mostrar el tiempo"
+
+#: templates/configure.html:257
+msgid "Ville :"
+msgstr "Ciudad :"
+
+#: templates/configure.html:262
+msgid "Clé API :"
+msgstr "Clave API:"
+
+#: templates/configure.html:267
+msgid "Tester la clé API et la ville"
+msgstr "Probar la clave API y la ciudad"
+
+#: templates/configure.html:272
+msgid "Unités :"
+msgstr "Unidades:"
+
+#: templates/configure.html:274
+msgid "Celsius"
+msgstr "Celsius"
+
+#: templates/configure.html:275
+msgid "Fahrenheit"
+msgstr "Fahrenheit"
+
+#: templates/configure.html:280
+msgid "Intervalle de MàJ (min) :"
+msgstr "Intervalo de actualización (min):"
+
+#: templates/configure.html:286
+msgid "Affichage des marées (StormGlass Tide API)"
+msgstr "Visualización de mareas (API StormGlass Tide)"
+
+#: templates/configure.html:287
+msgid "Utilise l'API de"
+msgstr "Utiliza la API de"
+
+#: templates/configure.html:287
+msgid ""
+"Une clé API est requise. Vous pouvez trouver les coordonnées de votre port sur "
+"des sites comme"
+msgstr ""
+"Se requiere una clave API. Puede encontrar las coordenadas de su puerto en "
+"sitios como"
+
+#: templates/configure.html:288
+msgid ""
+"Note : Cette API fournit les hauteurs de marée, mais pas le coefficient de "
+"marée."
+msgstr ""
+"Nota: Esta API proporciona alturas de marea, pero no el coeficiente de marea."
+
+#: templates/configure.html:293
+msgid "Afficher les informations de marée"
+msgstr "Mostrar información de mareas"
+
+#: templates/configure.html:298
+msgid "Latitude (ex: 48.3904) :"
+msgstr "Latitud (ej: 48.3904):"
+
+#: templates/configure.html:303
+msgid "Longitude (ex: -4.4861) :"
+msgstr "Longitud (ej: -4.4861):"
+
+#: templates/configure.html:308
+msgid "Clé API StormGlass :"
+msgstr "Clave API de StormGlass:"
+
+#: templates/configure.html:323 templates/configure.html:434
+msgid "Tester la connexion"
+msgstr "Pruebe la conexión"
+
+#: templates/configure.html:324
+msgid "Forcer la mise à jour"
+msgstr "Forzar actualización"
+
+#: templates/configure.html:332
+msgid "État Actuel des Marées"
+msgstr "Estado actual de las mareas"
+
+#: templates/configure.html:334
+msgid "Dernière mise à jour des données :"
+msgstr "Última actualización de datos:"
+
+#: templates/configure.html:334 templates/configure.html:335
+#: templates/configure.html:336 templates/configure.html:337
+#: templates/configure.html:687 templates/configure.html:690
+#: templates/configure.html:693 templates/configure.html:734
+#: templates/configure.html:735 templates/configure.html:738
+#: templates/configure.html:815 templates/configure.html:818
+#: templates/configure.html:821 templates/configure.html:824
+#: templates/configure.html:865
+msgid "Chargement..."
+msgstr "Chargement..."
+
+#: templates/configure.html:335
+msgid "Prochaine Pleine Mer :"
+msgstr "Próxima alta mar:"
+
+#: templates/configure.html:336
+msgid "Prochaine Basse Mer :"
+msgstr "Próxima marea baja:"
+
+#: templates/configure.html:337
+msgid "État de l'API :"
+msgstr "Estado de la API:"
+
+#: templates/configure.html:343
+msgid "Fuseau Horaire"
+msgstr "Huso horario"
+
+#: templates/configure.html:345
+msgid "Fuseau horaire actuel du système :"
+msgstr "Zona horaria actual del sistema:"
+
+#: templates/configure.html:345
+msgid "Non défini"
+msgstr "Indefinido"
+
+#: templates/configure.html:349
+msgid "Attention :"
+msgstr "Atención :"
+
+#: templates/configure.html:349
+msgid ""
+"La détection automatique du fuseau horaire a échoué lors de l'installation. Le "
+"système est configuré sur <strong>UTC</strong>. L'heure affichée peut être "
+"incorrecte."
+msgstr ""
+"La detección automática de zona horaria falló durante la instalación. El "
+"sistema está configurado en <strong>UTC</strong>. La hora mostrada podría ser "
+"incorrecta."
+
+#: templates/configure.html:351
+msgid ""
+"Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi (via "
+"SSH) et en exécutant la commande :"
+msgstr ""
+"Puedes solucionarlo manualmente iniciando sesión en Raspberry Pi (a través de "
+"SSH) y ejecutando el comando:"
+
+#: templates/configure.html:351
+msgid "(remplacez par votre région/ville)."
+msgstr "(reemplace con su región/ciudad)."
+
+#: templates/configure.html:354
+msgid "Le fuseau horaire a été configuré automatiquement lors de l'installation."
+msgstr "La zona horaria se configuró automáticamente durante la instalación."
+
+#: templates/configure.html:363
+msgid "Configuration de l'album photo Immich"
+msgstr "Configuración del álbum de fotos de Immich"
+
+#: templates/configure.html:367
+msgid "Nom technique de l'album Immich :"
+msgstr "Nombre técnico del álbum de Immich:"
+
+#: templates/configure.html:371
+msgid "URL du serveur Immich :"
+msgstr "URL del servidor Immich:"
+
+#: templates/configure.html:374
+msgid "Token d'accès Immich :"
+msgstr "Token de acceso de Immich:"
+
+#: templates/configure.html:378
+msgid "Mise à jour automatique (Immich)"
+msgstr "Actualización automática (Immich)"
+
+#: templates/configure.html:381 templates/configure.html:442
+msgid "Activer la mise à jour automatique"
+msgstr "Habilitar actualización automática"
+
+#: templates/configure.html:383 templates/configure.html:444
+msgid "Intervalle de mise à jour (heures):"
+msgstr "Intervalo de actualización (horas):"
+
+#: templates/configure.html:387 templates/configure.html:448
+msgid "État du service :"
+msgstr "Estado del servicio:"
+
+#: templates/configure.html:388 templates/configure.html:449
+msgid "Dernière mise à jour :"
+msgstr "Última actualización:"
+
+#: templates/configure.html:389 templates/configure.html:450
+msgid "Prochaine mise à jour :"
+msgstr "Próxima actualización:"
+
+#: templates/configure.html:396
+msgid "Sources à afficher dans le diaporama"
+msgstr "Fuentes para mostrar en la presentación de diapositivas"
+
+#: templates/configure.html:397
+msgid ""
+"Sélectionnez les sources de photos à inclure dans le diaporama. Les photos "
+"seront mélangées entre les sources sélectionnées."
+msgstr ""
+"Seleccione las fuentes de fotos que desea incluir en la presentación. Las "
+"fotos se mezclarán entre las fuentes seleccionadas."
+
+#: templates/configure.html:401
+msgid "Photos Immich"
+msgstr "Fotos de immich"
+
+#: templates/configure.html:405
+msgid "Photos USB"
+msgstr "USB Fotos"
+
+#: templates/configure.html:409
+msgid "Photos Samba"
+msgstr "Fotos de samba"
+
+#: templates/configure.html:413
+msgid "Photos Smartphone"
+msgstr "Fotos de teléfonos inteligentes"
+
+#: templates/configure.html:417
+msgid "Configuration du partage Samba (Windows)"
+msgstr "Configuración del uso compartido de Samba (Windows)"
+
+#: templates/configure.html:418
+msgid "Serveur :"
+msgstr "Servidor :"
+
+#: templates/configure.html:419
+msgid "ex: 192.168.1.50 ou MON-NAS"
+msgstr "ej.: 192.168.1.50 o MON-NAS"
+
+#: templates/configure.html:421
+msgid "Nom du partage :"
+msgstr "Nombre compartido:"
+
+#: templates/configure.html:422
+msgid "ex: Photos"
+msgstr "p.ej.: Fotos"
+
+#: templates/configure.html:424
+msgid "Chemin dans le partage (optionnel) :"
+msgstr "Ruta en el recurso compartido (opcional):"
+
+#: templates/configure.html:425
+msgid "ex: Famille/2024"
+msgstr "ej: Familia/2024"
+
+#: templates/configure.html:427
+msgid "Nom d'utilisateur (optionnel) :"
+msgstr "Nombre de usuario (opcional):"
+
+#: templates/configure.html:430
+msgid "Mot de passe (optionnel) :"
+msgstr "Contraseña (opcional):"
+
+#: templates/configure.html:439
+msgid "Mise à jour automatique (Samba)"
+msgstr "Actualización automática (Samba)"
+
+#: templates/configure.html:456
+msgid "Options de démarrage"
+msgstr "Opciones de arranque"
+
+#: templates/configure.html:459
+msgid "Ignorer le premier import automatique au démarrage"
+msgstr "Omitir la primera importación automática al iniciar"
+
+#: templates/configure.html:461
+msgid ""
+"Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne "
+"se lanceront pas immédiatement après un redémarrage du cadre, mais attendront "
+"le prochain cycle programmé."
+msgstr ""
+"Si esta opción está marcada, las actualizaciones automáticas (Immich, Samba) "
+"no se iniciarán inmediatamente después de reiniciar el marco, sino que "
+"esperarán hasta el próximo ciclo programado."
+
+#: templates/configure.html:466
+msgid "Enregistrer les modifications"
+msgstr "Guardar cambios"
+
+#: templates/configure.html:475
+msgid "Aperçu en direct"
+msgstr "Vista previa en vivo"
+
+#: templates/configure.html:477
+msgid "Le diaporama est arrêté."
+msgstr "La presentación de diapositivas se detiene."
+
+#: templates/configure.html:478
+msgid "Photo en cours"
+msgstr "Foto en progreso"
+
+#: templates/configure.html:483
+msgid "Gestion du diaporama"
+msgstr "Gestión de presentaciones de diapositivas"
+
+#: templates/configure.html:487
+msgid "Arrêter le diaporama"
+msgstr "Detener la presentación de diapositivas"
+
+#: templates/configure.html:489
+msgid "Démarrer le diaporama"
+msgstr "Iniciar presentación de diapositivas"
+
+#: templates/configure.html:496
+msgid "Importation des photos"
+msgstr "Importando fotos"
+
+#: templates/configure.html:498
+msgid "Importer depuis la clé USB"
+msgstr "Importar desde unidad USB"
+
+#: templates/configure.html:506
+msgid "Importer depuis Immich"
+msgstr "Importación desde Immich"
+
+#: templates/configure.html:514
+msgid "Importer depuis Samba"
+msgstr "Importar desde Samba"
+
+#: templates/configure.html:523
+msgid "Importer depuis un Smartphone"
+msgstr "Importar desde un teléfono inteligente"
+
+#: templates/configure.html:524
+msgid "Envoyez des photos directement depuis votre téléphone via le navigateur."
+msgstr "Envía fotos directamente desde tu teléfono a través del navegador."
+
+#: templates/configure.html:527
+msgid "Envoyer les photos"
+msgstr "enviar fotos"
+
+#: templates/configure.html:540
+msgid "Photos en attente de validation"
+msgstr "Fotos en espera de validación"
+
+#: templates/configure.html:542
+msgid ""
+"Approuvez ou rejetez les photos envoyées. Les photos approuvées seront "
+"ajoutées à la source \"Smartphone\"."
+msgstr ""
+"Aprueba o rechaza las fotos enviadas. Las fotos aprobadas se añadirán a la "
+"fuente \"Smartphone\"."
+
+#: templates/configure.html:543 templates/configure.html:838
+msgid "Actualiser"
+msgstr "Refrescar"
+
+#: templates/configure.html:606
+msgid "Aperçu des photos préparées"
+msgstr "Vista previa de fotos preparadas"
+
+#: templates/configure.html:607
+msgid ""
+"Voici les photos qui sont prêtes à être affichées par le diaporama, classées "
+"par source. Cliquez sur une photo pour l'agrandir."
+msgstr ""
+"Aquí están las fotos listas para mostrarse en la presentación, ordenadas por "
+"origen. Haga clic en una foto para ampliarla."
+
+#: templates/configure.html:616
+#, python-format
+msgid "Supprimer toutes les photos de la source '%(source)s'"
+msgstr "Eliminar todas las fotos de la fuente '%(source)s'"
+
+#: templates/configure.html:618
+msgid "Tout supprimer"
+msgstr "Eiminar todo"
+
+#: templates/configure.html:645 templates/configure.html:646
+#, python-format
+msgid "Aperçu de %(media)s"
+msgstr "Vista previa de %(media)s"
+
+#: templates/configure.html:657
+msgid "Filtre..."
+msgstr "Filtrado..."
+
+#: templates/configure.html:658
+msgid "Noir & Blanc"
+msgstr "Blanco y negro"
+
+#: templates/configure.html:659
+msgid "Sépia"
+msgstr "Sepia"
+
+#: templates/configure.html:660
+msgid "Vignette"
+msgstr "Uña del pulgar"
+
+#: templates/configure.html:661
+msgid "Vintage"
+msgstr "Aniguo"
+
+#: templates/configure.html:663
+msgid "Polaroid"
+msgstr "Polaroid"
+
+#: templates/configure.html:665
+msgid "Original"
+msgstr "Original"
+
+#: templates/configure.html:667
+msgid "Supprimer cette photo"
+msgstr "Eliminar esta foto"
+
+#: templates/configure.html:677
+msgid ""
+"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet "
+"\"Actions\"."
+msgstr ""
+"No se encontraron fotos preparadas. Sube una desde la pestaña \"Acciones\"."
+
+#: templates/configure.html:684
+msgid "État de la connexion Wi-Fi"
+msgstr "Estado de la conexión Wi-Fi"
+
+#: templates/configure.html:687 templates/configure.html:734
+msgid "État:"
+msgstr "Estado :"
+
+#: templates/configure.html:690
+msgid "Réseau (SSID):"
+msgstr "Red (SSID):"
+
+#: templates/configure.html:693 templates/configure.html:735
+msgid "Adresse IP:"
+msgstr "dirección IP:"
+
+#: templates/configure.html:698
+msgid "Configuration Wi-Fi"
+msgstr "configuración wifi"
+
+#: templates/configure.html:699
+msgid ""
+"La sélection du pays est obligatoire pour activer l'interface Wi-Fi et "
+"respecter les réglementations locales sur les fréquences radio."
+msgstr ""
+"La selección del país es obligatoria para habilitar la interfaz Wi-Fi y "
+"cumplir con las regulaciones de radiofrecuencia locales."
+
+#: templates/configure.html:702
+msgid "Pays (pour la réglementation Wi-Fi)"
+msgstr "País (para regulaciones de Wi-Fi)"
+
+#: templates/configure.html:704
+msgid "France"
+msgstr "Francia"
+
+#: templates/configure.html:704
+msgid "États-Unis"
+msgstr "Estados unidos"
+
+#: templates/configure.html:704
+msgid "Royaume-Uni"
+msgstr "Reino Unido"
+
+#: templates/configure.html:704
+msgid "Allemagne"
+msgstr "Alemania"
+
+#: templates/configure.html:704
+msgid "Espagne"
+msgstr "España"
+
+#: templates/configure.html:704
+msgid "Canada"
+msgstr "Canadá"
+
+#: templates/configure.html:704
+msgid "Belgique"
+msgstr "Bélgica"
+
+#: templates/configure.html:704
+msgid "Suisse"
+msgstr "Suizo"
+
+#: templates/configure.html:711
+msgid "SSID (Nom du réseau)"
+msgstr "SSID (nombre de red)"
+
+#: templates/configure.html:715 templates/login.html:56
+msgid "Mot de passe"
+msgstr "Contraseña"
+
+#: templates/configure.html:717
+msgid "Laissez vide si le réseau est ouvert."
+msgstr "Déjelo en blanco si la red está abierta."
+
+#: templates/configure.html:720
+msgid "Appliquer les paramètres Wi-Fi"
+msgstr "Aplicar configuración de Wi-Fi"
+
+#: templates/configure.html:723
+msgid ""
+"Note : Après avoir appliqué les paramètres, la connexion peut prendre jusqu'à "
+"une minute. Si le statut de connexion ci-dessus ne passe pas à \"Connecté\", "
+"vérifiez le mot de passe puis essayez de redémarrer le système."
+msgstr ""
+"Nota: Después de aplicar la configuración, el inicio de sesión puede tardar "
+"hasta un minuto. Si el estado de inicio de sesión anterior no cambia a "
+"\"Conectado\", verifique la contraseña y luego intente reiniciar el sistema."
+
+#: templates/configure.html:727
+msgid "Gestion des Interfaces Réseau"
+msgstr "Gestión de interfaz de red"
+
+#: templates/configure.html:728
+msgid ""
+"Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, c'est "
+"souvent un problème de priorité. Désactivez l'interface Ethernet pour forcer "
+"le système à utiliser exclusivement le Wi-Fi. Cette action redémarre le "
+"service réseau."
+msgstr ""
+"Si el Wi-Fi no se conecta aunque haya un cable Ethernet conectado, suele ser "
+"un problema prioritario. Desactive la interfaz Ethernet para que el sistema "
+"use exclusivamente Wi-Fi. Esto reinicia el servicio de red."
+
+#: templates/configure.html:733
+msgid "Interface Filaire (eth0)"
+msgstr "Interfaz cableada (eth0)"
+
+#: templates/configure.html:745
+msgid "Réseaux Wi-Fi à proximité"
+msgstr "Redes Wi-Fi cercanas"
+
+#: templates/configure.html:746
+msgid ""
+"Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. Cliquer "
+"sur un réseau dans la liste remplira automatiquement le champ SSID ci-dessus."
+msgstr ""
+"Haga clic en el botón para buscar redes Wi-Fi disponibles. Al hacer clic en "
+"una red de la lista, se completará automáticamente el campo SSID de arriba."
+
+#: templates/configure.html:749 templates/configure.html:869
+msgid "Lancer le scan"
+msgstr "Iniciar el escaneo"
+
+#: templates/configure.html:757 templates/configure.html:873
+msgid "Sécurité"
+msgstr "Securidad"
+
+#: templates/configure.html:759
+msgid "Changer le mot de passe de l'interface"
+msgstr "Cambiar la contraseña de la interfaz"
+
+#: templates/configure.html:761
+msgid "Nouveau mot de passe"
+msgstr "Nueva contraseña"
+
+#: templates/configure.html:762
+msgid "6 caractères minimum"
+msgstr "6 caracteres mínimo"
+
+#: templates/configure.html:765
+msgid "Confirmer le nouveau mot de passe"
+msgstr "Confirmar nueva contraseña"
+
+#: templates/configure.html:770
+msgid "Changer le mot de passe"
+msgstr "Cambiar la contraseña"
+
+#: templates/configure.html:776
+msgid "Sauvegarde et Restauration"
+msgstr "Copia de seguridad y restauración"
+
+#: templates/configure.html:777
+msgid ""
+"Sauvegardez votre configuration (API, partages, affichage...) dans un fichier. "
+"Vous pourrez le restaurer plus tard ou sur une nouvelle installation."
+msgstr ""
+"Guarde su configuración (API, recursos compartidos, visualización, etc.) en un "
+"archivo. Puede restaurarla más tarde o en una nueva instalación."
+
+#: templates/configure.html:781
+msgid "Sauvegarder la configuration"
+msgstr "Guardar configuración"
+
+#: templates/configure.html:783
+msgid "Télécharger la sauvegarde"
+msgstr "Descargar copia de seguridad"
+
+#: templates/configure.html:788
+msgid "Restaurer une configuration"
+msgstr "Restaurar una configuración"
+
+#: templates/configure.html:789
+msgid ""
+"Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du "
+"fichier de sauvegarde."
+msgstr ""
+"¿Está seguro? La configuración actual se sobrescribirá con el contenido del "
+"archivo de copia de seguridad."
+
+#: templates/configure.html:791
+msgid "Restaurer"
+msgstr "Restaurar"
+
+#: templates/configure.html:798
+msgid "Contrôle du système"
+msgstr "Control del sistema"
+
+#: templates/configure.html:799
+msgid "Êtes-vous sûr de vouloir REDÉMARRER le système ?"
+msgstr "¿Está seguro que desea REINICIAR el sistema?"
+
+#: templates/configure.html:801
+msgid "Redémarrer le système"
+msgstr "Reiniciar el sistema"
+
+#: templates/configure.html:804
+msgid "Êtes-vous sûr de vouloir ÉTEINDRE le système ?"
+msgstr "¿Está seguro que desea apagar el sistema?"
+
+#: templates/configure.html:806
+msgid "Éteindre le système"
+msgstr "Apague el sistema"
+
+#: templates/configure.html:812
+msgid "Informations Système"
+msgstr "Información del sistema"
+
+#: templates/configure.html:815
+msgid "Température CPU:"
+msgstr "Temperatura de la CPU:"
+
+#: templates/configure.html:818
+msgid "Utilisation CPU:"
+msgstr "Uso de CPU:"
+
+#: templates/configure.html:821
+msgid "RAM:"
+msgstr "RAM:"
+
+#: templates/configure.html:824
+msgid "Stockage:"
+msgstr "Almacenamiento:"
+
+#: templates/configure.html:830
+msgid "Logs Système"
+msgstr "Registros del sistema"
+
+#: templates/configure.html:832
+msgid "Sélectionner un log :"
+msgstr "Seleccione un registro:"
+
+#: templates/configure.html:834
+msgid "app.py (Serveur Web)"
+msgstr "app.py (Servidor web)"
+
+#: templates/configure.html:835
+msgid "local_slideshow.py (Diaporama - Sortie Standard)"
+msgstr "local_slideshow.py (Presentación de diapositivas - Salida estándar)"
+
+#: templates/configure.html:836
+msgid "local_slideshow.py (Diaporama - Erreurs)"
+msgstr "local_slideshow.py (Presentación de diapositivas - Errores)"
+
+#: templates/configure.html:839
+msgid "Effacer les logs"
+msgstr "Borrar registros"
+
+#: templates/configure.html:845
+msgid "Crédits"
+msgstr "Créditos"
+
+#: templates/configure.html:848
+msgid "Auteurs : Gotenash et Shenron"
+msgstr "Autores: Gotenash y Shenron"
+
+#: templates/configure.html:852
+msgid "Projet réalisé dans le cadre du Gadgetaulab"
+msgstr "Proyecto realizado en el marco del Gadgetaulab"
+
+#: templates/configure.html:866
+msgid "Erreur"
+msgstr "Error"
+
+#: templates/configure.html:867
+msgid "N/A"
+msgstr "N/A"
+
+#: templates/configure.html:868
+msgid "Scan en cours..."
+msgstr "Escaneo en progreso..."
+
+#: templates/configure.html:870
+msgid "Aucun réseau Wi-Fi trouvé."
+msgstr "No se encontró ninguna red Wi-Fi."
+
+#: templates/configure.html:871
+msgid "Erreur de communication avec le serveur:"
+msgstr "Error de comunicación con el servidor:"
+
+#: templates/configure.html:872
+msgid "SSID"
+msgstr "SSID"
+
+#: templates/configure.html:874
+msgid "Signal"
+msgstr "Señal"
+
+#: templates/configure.html:875
+msgid "Aucune"
+msgstr "Ninguno"
+
+#: templates/configure.html:876
+msgid "Cliquer pour sélectionner ce réseau"
+msgstr "Haga clic para seleccionar esta red"
+
+#: templates/configure.html:1890
+msgid "Erreur lors de la récupération des infos système:"
+msgstr "Error al recuperar información del sistema:"
+
+#: templates/configure.html:1897
+msgid "Erreur de communication avec l'API système:"
+msgstr "Error de comunicación con la API del sistema:"
+
+#: templates/configure.html:1915
+msgid "Erreur:"
+msgstr "Error:"
+
+#: templates/configure.html:1919
+msgid "Erreur de connexion à l'API des logs."
+msgstr "Error al conectarse a la API de registros."
+
+#: templates/configure.html:1938
+msgid ""
+"Êtes-vous sûr de vouloir effacer le contenu du log \"__LOG_NAME__\" ? Cette "
+"action est irréversible."
+msgstr ""
+"¿Está seguro de que desea eliminar el contenido del registro \"__LOG_NAME__\"? "
+"Esta acción es irreversible."
+
+#: templates/configure.html:1953
+msgid "Erreur lors de l'effacement du log :"
+msgstr "Error al borrar el registro:"
+
+#: templates/configure.html:1956
+msgid "Erreur de connexion à l'API pour effacer les logs."
+msgstr "Error al conectarse a la API para borrar los registros."
+
+#: templates/login.html:5
+msgid "Connexion"
+msgstr "Conexión"
+
+#: templates/login.html:51
+msgid "Utilisateur"
+msgstr "Usuario"
+
+#: templates/login.html:62
+msgid "Se connecter"
+msgstr "Acceso"
+
+#: templates/login.html:67
+msgid "Envoyer des photos (Invité)"
+msgstr "Enviar fotos (Invitado)"
+
+#: templates/upload.html:5
+msgid "Envoyer des photos"
+msgstr "Enviar fotos"
+
+#: templates/upload.html:48
+msgid "Envoyer des photos pour le cadre"
+msgstr "Envía fotos para el marco"
+
+#: templates/upload.html:49
+msgid "Les photos seront soumises à validation avant d'être affichées."
+msgstr "Las fotografías estarán sujetas a validación antes de ser mostradas."
+
+#: templates/upload.html:58
+msgid "Envoyer"
+msgstr "Enviar"
+
+#: templates/upload.html:63
+msgid "Retour à la connexion administrateur"
+msgstr "Volver al inicio de sesión de administrador"
+
+#: venv/lib/python3.11/site-packages/click/_termui_impl.py:600
+#, python-brace-format
+msgid "{editor}: Editing failed"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/_termui_impl.py:604
+#, python-brace-format
+msgid "{editor}: Editing failed: {e}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1084
+#: venv/lib/python3.11/site-packages/click/core.py:1121
+#, python-brace-format
+msgid "{text} {deprecated_message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1140
+msgid "Options"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1202
+#, python-brace-format
+msgid "Got unexpected extra argument ({args})"
+msgid_plural "Got unexpected extra arguments ({args})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1221
+#, python-brace-format
+msgid "DeprecationWarning: The command {name!r} is deprecated.{extra_message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1405
+msgid "Aborted!"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1779
+msgid "Commands"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1810
+msgid "Missing command."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1888
+#, python-brace-format
+msgid "No such command {name!r}."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2303
+msgid "Value must be an iterable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2324
+#, python-brace-format
+msgid "Takes {nargs} values but 1 was given."
+msgid_plural "Takes {nargs} values but {len} were given."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2404
+#, python-brace-format
+msgid ""
+"DeprecationWarning: The {param_type} {name!r} is deprecated.{extra_message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2807
+#, python-brace-format
+msgid "env var: {var}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2810
+#, python-brace-format
+msgid "default: {default}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2814
+msgid "required"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2870
+msgid "(dynamic)"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/decorators.py:465
+#, python-format
+msgid "%(prog)s, version %(version)s"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/decorators.py:522
+msgid "Show the version and exit."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/decorators.py:548
+msgid "Show this message and exit."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:50
+#: venv/lib/python3.11/site-packages/click/exceptions.py:89
+#, python-brace-format
+msgid "Error: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:81
+#, python-brace-format
+msgid "Try '{command} {option}' for help."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:130
+#, python-brace-format
+msgid "Invalid value: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:132
+#, python-brace-format
+msgid "Invalid value for {param_hint}: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:190
+msgid "Missing argument"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:192
+msgid "Missing option"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:194
+msgid "Missing parameter"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:196
+#, python-brace-format
+msgid "Missing {param_type}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:203
+#, python-brace-format
+msgid "Missing parameter: {param_name}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:223
+#, python-brace-format
+msgid "No such option: {name}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:235
+#, python-brace-format
+msgid "Did you mean {possibility}?"
+msgid_plural "(Possible options: {possibilities})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:282
+msgid "unknown error"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:289
+#, python-brace-format
+msgid "Could not open file {filename!r}: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/parser.py:200
+#, python-brace-format
+msgid "Argument {name!r} takes {nargs} values."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/parser.py:383
+#, python-brace-format
+msgid "Option {name!r} does not take a value."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/parser.py:444
+#, python-brace-format
+msgid "Option {name!r} requires an argument."
+msgid_plural "Option {name!r} requires {nargs} arguments."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/shell_completion.py:326
+msgid "Shell completion is not supported for Bash versions older than 4.4."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/shell_completion.py:333
+msgid "Couldn't detect Bash version, shell completion is not supported."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:162
+msgid "Repeat for confirmation"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:178
+msgid "Error: The value you entered was invalid."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:180
+#, python-brace-format
+msgid "Error: {e.message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:191
+msgid "Error: The two entered values do not match."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:247
+msgid "Error: invalid input"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:866
+msgid "Press any key to continue..."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:332
+#, python-brace-format
+msgid ""
+"Choose from:\n"
+"\t{choices}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:369
+#, python-brace-format
+msgid "{value!r} is not {choice}."
+msgid_plural "{value!r} is not one of {choices}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:460
+#, python-brace-format
+msgid "{value!r} does not match the format {format}."
+msgid_plural "{value!r} does not match the formats {formats}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:482
+#, python-brace-format
+msgid "{value!r} is not a valid {number_type}."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:538
+#, python-brace-format
+msgid "{value} is not in the range {range}."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:679
+#, python-brace-format
+msgid "{value!r} is not a valid boolean."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:703
+#, python-brace-format
+msgid "{value!r} is not a valid UUID."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:893
+msgid "file"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:895
+msgid "directory"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:897
+msgid "path"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:944
+#, python-brace-format
+msgid "{name} {filename!r} does not exist."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:953
+#, python-brace-format
+msgid "{name} {filename!r} is a file."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:961
+#, python-brace-format
+msgid "{name} {filename!r} is a directory."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:970
+#, python-brace-format
+msgid "{name} {filename!r} is not readable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:979
+#, python-brace-format
+msgid "{name} {filename!r} is not writable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:988
+#, python-brace-format
+msgid "{name} {filename!r} is not executable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:1055
+#, python-brace-format
+msgid "{len_type} values are required, but {len_value} was given."
+msgid_plural "{len_type} values are required, but {len_value} were given."
+msgstr[0] ""
+msgstr[1] ""
