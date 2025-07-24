@@ -7,3 +7,4 @@ pillow-heif
 smbprotocol
 werkzeug
 Flask-Babel
+piexif
