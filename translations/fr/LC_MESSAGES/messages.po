@@ -1,0 +1,1111 @@
+# French translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-07-21 19:39+0200\n"
+"PO-Revision-Date: 2025-07-22 08:50+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app.py:414 app.py:419
+msgid "Aucun fichier sélectionné."
+msgstr "Aucun fichier sélectionné."
+
+#: app.py:435
+#, python-format
+msgid "%(count)s photo(s) envoyée(s) pour validation avec succès !"
+msgstr "%(count)s photo(s) envoyée(s) pour validation avec succès !"
+
+#: app.py:526
+msgid "Connexion réussie"
+msgstr "Connexion réussie"
+
+#: app.py:529
+msgid "Identifiants invalides"
+msgstr "Identifiants invalides"
+
+#: app.py:535
+msgid "Déconnexion réussie"
+msgstr "Déconnexion réussie"
+
+#: app.py:619
+msgid "Configuration enregistrée et diaporama relancé"
+msgstr "Configuration enregistrée et diaporama relancé"
+
+#: app.py:1334
+msgid "Le SSID et le pays Wi-Fi sont obligatoires."
+msgstr "Le SSID et le pays Wi-Fi sont obligatoires."
+
+#: app.py:1347
+msgid ""
+"Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer"
+" la connexion. Veuillez patienter une minute et vérifier le statut."
+msgstr "Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la connexion. Veuillez patienter une minute et vérifier le statut."
+
+#: app.py:1349
+#, python-format
+msgid "Erreur lors de l'application des paramètres Wi-Fi : %(error)s"
+msgstr "Erreur lors de l'application des paramètres Wi-Fi : %(error)s"
+
+#: app.py:1367
+msgid "Les deux champs de mot de passe sont requis."
+msgstr "Les deux champs de mot de passe sont requis."
+
+#: app.py:1371 templates/configure.html:766
+msgid "Les mots de passe ne correspondent pas."
+msgstr "Les mots de passe ne correspondent pas."
+
+#: app.py:1375
+msgid "Le mot de passe doit contenir au moins 6 caractères."
+msgstr "Le mot de passe doit contenir au moins 6 caractères."
+
+#: app.py:1380
+msgid ""
+"Mot de passe mis à jour avec succès. Il sera nécessaire pour votre "
+"prochaine connexion."
+msgstr "Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine connexion."
+
+#: app.py:1382
+#, python-format
+msgid "Erreur lors du changement de mot de passe : %(error)s"
+msgstr "Erreur lors du changement de mot de passe : %(error)s"
+
+#: app.py:1426
+msgid "Le fichier de configuration n'a pas été trouvé."
+msgstr "Le fichier de configuration n'a pas été trouvé."
+
+#: app.py:1434 app.py:1439
+msgid "Aucun fichier de sauvegarde sélectionné."
+msgstr "Aucun fichier de sauvegarde sélectionné."
+
+#: app.py:1449
+msgid ""
+"Configuration restaurée avec succès ! Le diaporama va redémarrer pour "
+"appliquer les changements."
+msgstr "Configuration restaurée avec succès ! Le diaporama va redémarrer pour appliquer les changements."
+
+#: app.py:1451
+msgid ""
+"Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON "
+"valide."
+msgstr "Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON valide."
+
+#: app.py:1453
+#, python-format
+msgid "Erreur lors de la restauration : %(error)s"
+msgstr "Erreur lors de la restauration : %(error)s"
+
+#: templates/configure.html:5
+msgid "Configuration"
+msgstr "Configuration"
+
+#: templates/configure.html:55
+msgid "Configuration du cadre photo connecté"
+msgstr "Configuration du cadre photo connecté"
+
+#: templates/configure.html:58
+msgid "Langue"
+msgstr "Langue"
+
+#: templates/configure.html:64
+msgid "Se déconnecter"
+msgstr "Se déconnecter"
+
+#: templates/configure.html:70
+msgid "Affichage"
+msgstr "Affichage"
+
+#: templates/configure.html:71
+msgid "Heure, Météo et Marées"
+msgstr "Heure, Météo et Marées"
+
+#: templates/configure.html:72
+msgid "Sources des photos"
+msgstr "Sources des photos"
+
+#: templates/configure.html:73
+msgid "Aperçu"
+msgstr "Aperçu"
+
+#: templates/configure.html:74 templates/configure.html:471
+msgid "Actions"
+msgstr "Actions"
+
+#: templates/configure.html:75
+msgid "Validation"
+msgstr "Validation"
+
+#: templates/configure.html:76
+msgid "Système"
+msgstr "Système"
+
+#: templates/configure.html:83
+msgid "Paramètres d'affichage"
+msgstr "Paramètres d'affichage"
+
+#: templates/configure.html:85
+msgid "Durée d'affichage (en secondes) :"
+msgstr "Durée d'affichage (en secondes) :"
+
+#: templates/configure.html:88
+msgid "Heure de début d'activité (HH:MM) :"
+msgstr "Heure de début d'activité (HH:MM) :"
+
+#: templates/configure.html:91
+msgid "Heure de fin d'activité (HH:MM) :"
+msgstr "Heure de fin d'activité (HH:MM) :"
+
+#: templates/configure.html:94
+msgid "Hauteur utile de l'écran (%% affiché) :"
+msgstr "Hauteur utile de l'écran (%% affiché) :"
+
+#: templates/configure.html:99
+msgid "Largeur d'affichage cible (px) :"
+msgstr "Largeur d'affichage cible (px) :"
+
+#: templates/configure.html:101
+msgid "Hauteur d'affichage cible (px) :"
+msgstr "Hauteur d'affichage cible (px) :"
+
+#: templates/configure.html:104
+msgid "Détecter la résolution de l'écran actif"
+msgstr "Détecter la résolution de l'écran actif"
+
+#: templates/configure.html:104
+msgid "Détecter"
+msgstr "Détecter"
+
+#: templates/configure.html:109
+msgid "Activer l'effet Pan/Zoom sur les photos"
+msgstr "Activer l'effet Pan/Zoom sur les photos"
+
+#: templates/configure.html:113
+msgid "Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :"
+msgstr "Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :"
+
+#: templates/configure.html:119
+msgid "Activer l'effet de transition entre les photos"
+msgstr "Activer l'effet de transition entre les photos"
+
+#: templates/configure.html:123
+msgid "Durée de transition (secondes) :"
+msgstr "Durée de transition (secondes) :"
+
+#: templates/configure.html:127
+msgid "Type de transition :"
+msgstr "Type de transition :"
+
+#: templates/configure.html:129
+msgid "Fondu enchaîné"
+msgstr "Fondu enchaîné"
+
+#: templates/configure.html:130
+msgid "Glisser depuis la gauche"
+msgstr "Glisser depuis la gauche"
+
+#: templates/configure.html:131
+msgid "Glisser depuis la droite"
+msgstr "Glisser depuis la droite"
+
+#: templates/configure.html:132
+msgid "Glisser depuis le bas"
+msgstr "Glisser depuis le bas"
+
+#: templates/configure.html:133
+msgid "Glisser depuis le haut"
+msgstr "Glisser depuis le haut"
+
+#: templates/configure.html:139
+msgid "Activer le son pour les vidéos"
+msgstr "Activer le son pour les vidéos"
+
+#: templates/configure.html:143
+msgid "Sortie audio :"
+msgstr "Sortie audio :"
+
+#: templates/configure.html:145
+msgid "Automatique"
+msgstr "Automatique"
+
+#: templates/configure.html:146
+msgid "HDMI"
+msgstr "HDMI"
+
+#: templates/configure.html:147
+msgid "Jack 3.5mm (Casque)"
+msgstr "Jack 3.5mm (Casque)"
+
+#: templates/configure.html:151
+msgid "Volume :"
+msgstr "Volume :"
+
+#: templates/configure.html:162
+msgid "Affichage de l'heure"
+msgstr "Affichage de l'heure"
+
+#: templates/configure.html:168
+msgid "Afficher l'heure"
+msgstr "Afficher l'heure"
+
+#: templates/configure.html:173
+msgid "Taille de la police :"
+msgstr "Taille de la police :"
+
+#: templates/configure.html:178
+msgid "Décalage horizontal (px) :"
+msgstr "Décalage horizontal (px) :"
+
+#: templates/configure.html:183
+msgid "Décalage vertical (px) :"
+msgstr "Décalage vertical (px) :"
+
+#: templates/configure.html:188
+msgid "Couleur du texte (hex) :"
+msgstr "Couleur du texte (hex) :"
+
+#: templates/configure.html:193
+msgid "Couleur du contour (hex) :"
+msgstr "Couleur du contour (hex) :"
+
+#: templates/configure.html:198
+msgid "Position de l'heure :"
+msgstr "Position de l'heure :"
+
+#: templates/configure.html:200
+msgid "Gauche"
+msgstr "Gauche"
+
+#: templates/configure.html:201
+msgid "Centre"
+msgstr "Centre"
+
+#: templates/configure.html:202
+msgid "Droite"
+msgstr "Droite"
+
+#: templates/configure.html:207
+msgid "Police :"
+msgstr "Police :"
+
+#: templates/configure.html:222
+msgid "Afficher un fond derrière l'heure/date/météo"
+msgstr "Afficher un fond derrière l'heure/date/météo"
+
+#: templates/configure.html:226
+msgid "Couleur du fond (hex RGBA) :"
+msgstr "Couleur du fond (hex RGBA) :"
+
+#: templates/configure.html:232
+msgid "Affichage de la date"
+msgstr "Affichage de la date"
+
+#: templates/configure.html:236
+msgid "Afficher la date (sous l'heure)"
+msgstr "Afficher la date (sous l'heure)"
+
+#: templates/configure.html:240
+msgid "Format de la date :"
+msgstr "Format de la date :"
+
+#: templates/configure.html:246
+msgid "Affichage de la météo (OpenWeatherMap)"
+msgstr "Affichage de la météo (OpenWeatherMap)"
+
+#: templates/configure.html:251
+msgid "Afficher la météo"
+msgstr "Afficher la météo"
+
+#: templates/configure.html:256
+msgid "Ville :"
+msgstr "Ville :"
+
+#: templates/configure.html:261
+msgid "Clé API :"
+msgstr "Clé API :"
+
+#: templates/configure.html:266
+msgid "Tester la clé API et la ville"
+msgstr "Tester la clé API et la ville"
+
+#: templates/configure.html:271
+msgid "Unités :"
+msgstr "Unités :"
+
+#: templates/configure.html:273
+msgid "Celsius"
+msgstr "Celsius"
+
+#: templates/configure.html:274
+msgid "Fahrenheit"
+msgstr "Fahrenheit"
+
+#: templates/configure.html:279
+msgid "Intervalle de MàJ (min) :"
+msgstr "Intervalle de MàJ (min) :"
+
+#: templates/configure.html:474
+msgid "Aperçu en direct"
+msgstr "Aperçu en direct"
+
+#: templates/configure.html:476
+msgid "Le diaporama est arrêté."
+msgstr "Le diaporama est arrêté."
+
+#: templates/configure.html:477
+msgid "Photo en cours"
+msgstr "Photo en cours"
+
+#: templates/configure.html:482
+msgid "Gestion du diaporama"
+msgstr "Gestion du diaporama"
+
+#: templates/configure.html:486
+msgid "Arrêter le diaporama"
+msgstr "Arrêter le diaporama"
+
+#: templates/configure.html:488
+msgid "Démarrer le diaporama"
+msgstr "Démarrer le diaporama"
+
+#: templates/configure.html:495
+msgid "Importation des photos"
+msgstr "Importation des photos"
+
+#: templates/configure.html:497
+msgid "Importer depuis la clé USB"
+msgstr "Importer depuis la clé USB"
+
+#: templates/configure.html:505
+msgid "Importer depuis Immich"
+msgstr "Importer depuis Immich"
+
+#: templates/configure.html:513
+msgid "Importer depuis Samba"
+msgstr "Importer depuis Samba"
+
+#: templates/configure.html:522
+msgid "Importer depuis un Smartphone"
+msgstr "Importer depuis un Smartphone"
+
+#: templates/configure.html:523
+msgid "Envoyez des photos directement depuis votre téléphone via le navigateur."
+msgstr "Envoyez des photos directement depuis votre téléphone via le navigateur."
+
+#: templates/configure.html:526
+msgid "Envoyer les photos"
+msgstr "Envoyer les photos"
+
+#: templates/configure.html:539
+msgid "Photos en attente de validation"
+msgstr "Photos en attente de validation"
+
+#: templates/configure.html:541
+msgid ""
+"Approuvez ou rejetez les photos envoyées. Les photos approuvées seront "
+"ajoutées à la source \"Smartphone\"."
+msgstr "Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées à la source \"Smartphone\"."
+
+#: templates/configure.html:542 templates/configure.html:837
+msgid "Actualiser"
+msgstr "Actualiser"
+
+#: templates/configure.html:605
+msgid "Aperçu des photos préparées"
+msgstr "Aperçu des photos préparées"
+
+#: templates/configure.html:606
+msgid ""
+"Voici les photos qui sont prêtes à être affichées par le diaporama, "
+"classées par source. Cliquez sur une photo pour l'agrandir."
+msgstr "Voici les photos qui sont prêtes à être affichées par le diaporama, classées par source. Cliquez sur une photo pour l'agrandir."
+
+#: templates/configure.html:615
+#, python-format
+msgid "Supprimer toutes les photos de la source '%(source)s'"
+msgstr "Supprimer toutes les photos de la source '%(source)s'"
+
+#: templates/configure.html:617
+msgid "Tout supprimer"
+msgstr "Tout supprimer"
+
+#: templates/configure.html:644 templates/configure.html:645
+#, python-format
+msgid "Aperçu de %(media)s"
+msgstr "Aperçu de %(media)s"
+
+#: templates/configure.html:656
+msgid "Filtre..."
+msgstr "Filtre..."
+
+#: templates/configure.html:657
+msgid "Noir & Blanc"
+msgstr "Noir & Blanc"
+
+#: templates/configure.html:658
+msgid "Sépia"
+msgstr "Sépia"
+
+#: templates/configure.html:659
+msgid "Vignette"
+msgstr "Vignette"
+
+#: templates/configure.html:660
+msgid "Vintage"
+msgstr "Vintage"
+
+#: templates/configure.html:662
+msgid "Polaroid"
+msgstr "Polaroid"
+
+#: templates/configure.html:664
+msgid "Original"
+msgstr "Original"
+
+#: templates/configure.html:666
+msgid "Supprimer cette photo"
+msgstr "Supprimer cette photo"
+
+#: templates/configure.html:676
+msgid ""
+"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis "
+"l'onglet \"Actions\"."
+msgstr "Aucune photo préparée n'a été trouvée. Veuillez en importer
+
+#: templates/configure.html:683
+msgid "État de la connexion Wi-Fi"
+msgstr ""
+
+#: templates/configure.html:686 templates/configure.html:733
+msgid "État:"
+msgstr ""
+
+#: templates/configure.html:686 templates/configure.html:689
+#: templates/configure.html:692 templates/configure.html:733
+#: templates/configure.html:734 templates/configure.html:737
+#: templates/configure.html:814 templates/configure.html:817
+#: templates/configure.html:820 templates/configure.html:823
+#: templates/configure.html:864
+msgid "Chargement..."
+msgstr ""
+
+#: templates/configure.html:689
+msgid "Réseau (SSID):"
+msgstr ""
+
+#: templates/configure.html:692 templates/configure.html:734
+msgid "Adresse IP:"
+msgstr ""
+
+#: templates/configure.html:697
+msgid "Configuration Wi-Fi"
+msgstr ""
+
+#: templates/configure.html:698
+msgid ""
+"La sélection du pays est obligatoire pour activer l'interface Wi-Fi et "
+"respecter les réglementations locales sur les fréquences radio."
+msgstr ""
+
+#: templates/configure.html:701
+msgid "Pays (pour la réglementation Wi-Fi)"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "France"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "États-Unis"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "Royaume-Uni"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "Allemagne"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "Espagne"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "Canada"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "Belgique"
+msgstr ""
+
+#: templates/configure.html:703
+msgid "Suisse"
+msgstr ""
+
+#: templates/configure.html:710
+msgid "SSID (Nom du réseau)"
+msgstr ""
+
+#: templates/configure.html:714
+msgid "Mot de passe"
+msgstr ""
+
+#: templates/configure.html:716
+msgid "Laissez vide si le réseau est ouvert."
+msgstr ""
+
+#: templates/configure.html:719
+msgid "Appliquer les paramètres Wi-Fi"
+msgstr ""
+
+#: templates/configure.html:722
+msgid ""
+"Note : Après avoir appliqué les paramètres, la connexion peut prendre "
+"jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à "
+"\"Connecté\", vérifiez le mot de passe puis essayez de redémarrer le "
+"système."
+msgstr ""
+
+#: templates/configure.html:726
+msgid "Gestion des Interfaces Réseau"
+msgstr ""
+
+#: templates/configure.html:727
+msgid ""
+"Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, "
+"c'est souvent un problème de priorité. Désactivez l'interface Ethernet "
+"pour forcer le système à utiliser exclusivement le Wi-Fi. Cette action "
+"redémarre le service réseau."
+msgstr ""
+
+#: templates/configure.html:732
+msgid "Interface Filaire (eth0)"
+msgstr ""
+
+#: templates/configure.html:744
+msgid "Réseaux Wi-Fi à proximité"
+msgstr ""
+
+#: templates/configure.html:745
+msgid ""
+"Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. "
+"Cliquer sur un réseau dans la liste remplira automatiquement le champ "
+"SSID ci-dessus."
+msgstr ""
+
+#: templates/configure.html:748 templates/configure.html:868
+msgid "Lancer le scan"
+msgstr ""
+
+#: templates/configure.html:756 templates/configure.html:872
+msgid "Sécurité"
+msgstr ""
+
+#: templates/configure.html:758
+msgid "Changer le mot de passe de l'interface"
+msgstr ""
+
+#: templates/configure.html:760
+msgid "Nouveau mot de passe"
+msgstr ""
+
+#: templates/configure.html:761
+msgid "6 caractères minimum"
+msgstr ""
+
+#: templates/configure.html:764
+msgid "Confirmer le nouveau mot de passe"
+msgstr ""
+
+#: templates/configure.html:769
+msgid "Changer le mot de passe"
+msgstr ""
+
+#: templates/configure.html:775
+msgid "Sauvegarde et Restauration"
+msgstr ""
+
+#: templates/configure.html:776
+msgid ""
+"Sauvegardez votre configuration (API, partages, affichage...) dans un "
+"fichier. Vous pourrez le restaurer plus tard ou sur une nouvelle "
+"installation."
+msgstr ""
+
+#: templates/configure.html:780
+msgid "Sauvegarder la configuration"
+msgstr ""
+
+#: templates/configure.html:782
+msgid "Télécharger la sauvegarde"
+msgstr ""
+
+#: templates/configure.html:787
+msgid "Restaurer une configuration"
+msgstr ""
+
+#: templates/configure.html:788
+msgid ""
+"Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du "
+"fichier de sauvegarde."
+msgstr ""
+
+#: templates/configure.html:790
+msgid "Restaurer"
+msgstr ""
+
+#: templates/configure.html:797
+msgid "Contrôle du système"
+msgstr ""
+
+#: templates/configure.html:798
+msgid "Êtes-vous sûr de vouloir REDÉMARRER le système ?"
+msgstr ""
+
+#: templates/configure.html:800
+msgid "Redémarrer le système"
+msgstr ""
+
+#: templates/configure.html:803
+msgid "Êtes-vous sûr de vouloir ÉTEINDRE le système ?"
+msgstr ""
+
+#: templates/configure.html:805
+msgid "Éteindre le système"
+msgstr ""
+
+#: templates/configure.html:811
+msgid "Informations Système"
+msgstr ""
+
+#: templates/configure.html:814
+msgid "Température CPU:"
+msgstr ""
+
+#: templates/configure.html:817
+msgid "Utilisation CPU:"
+msgstr ""
+
+#: templates/configure.html:820
+msgid "RAM:"
+msgstr ""
+
+#: templates/configure.html:823
+msgid "Stockage:"
+msgstr ""
+
+#: templates/configure.html:829
+msgid "Logs Système"
+msgstr ""
+
+#: templates/configure.html:831
+msgid "Sélectionner un log :"
+msgstr ""
+
+#: templates/configure.html:833
+msgid "app.py (Serveur Web)"
+msgstr ""
+
+#: templates/configure.html:834
+msgid "local_slideshow.py (Diaporama - Sortie Standard)"
+msgstr ""
+
+#: templates/configure.html:835
+msgid "local_slideshow.py (Diaporama - Erreurs)"
+msgstr ""
+
+#: templates/configure.html:838
+msgid "Effacer les logs"
+msgstr ""
+
+#: templates/configure.html:844
+msgid "Crédits"
+msgstr ""
+
+#: templates/configure.html:847
+msgid "Auteurs : Gotenash et Shenron"
+msgstr ""
+
+#: templates/configure.html:851
+msgid "Projet réalisé dans le cadre du Gadgetaulab"
+msgstr ""
+
+#: templates/configure.html:865
+msgid "Erreur"
+msgstr ""
+
+#: templates/configure.html:866
+msgid "N/A"
+msgstr ""
+
+#: templates/configure.html:867
+msgid "Scan en cours..."
+msgstr ""
+
+#: templates/configure.html:869
+msgid "Aucun réseau Wi-Fi trouvé."
+msgstr ""
+
+#: templates/configure.html:870
+msgid "Erreur de communication avec le serveur:"
+msgstr ""
+
+#: templates/configure.html:871
+msgid "SSID"
+msgstr ""
+
+#: templates/configure.html:873
+msgid "Signal"
+msgstr ""
+
+#: templates/configure.html:874
+msgid "Aucune"
+msgstr ""
+
+#: templates/configure.html:875
+msgid "Cliquer pour sélectionner ce réseau"
+msgstr ""
+
+#: templates/configure.html:1889
+msgid "Erreur lors de la récupération des infos système:"
+msgstr ""
+
+#: templates/configure.html:1896
+msgid "Erreur de communication avec l'API système:"
+msgstr ""
+
+#: templates/configure.html:1914
+msgid "Erreur:"
+msgstr ""
+
+#: templates/configure.html:1918
+msgid "Erreur de connexion à l'API des logs."
+msgstr ""
+
+#: templates/configure.html:1937
+#, python-format
+msgid ""
+"Êtes-vous sûr de vouloir effacer le contenu du log \"%(logName)s\" ? "
+"Cette action est irréversible."
+msgstr ""
+
+#: templates/configure.html:1952
+msgid "Erreur lors de l'effacement du log :"
+msgstr ""
+
+#: templates/configure.html:1955
+msgid "Erreur de connexion à l'API pour effacer les logs."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/_termui_impl.py:600
+#, python-brace-format
+msgid "{editor}: Editing failed"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/_termui_impl.py:604
+#, python-brace-format
+msgid "{editor}: Editing failed: {e}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1084
+#: venv/lib/python3.11/site-packages/click/core.py:1121
+#, python-brace-format
+msgid "{text} {deprecated_message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1140
+msgid "Options"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1202
+#, python-brace-format
+msgid "Got unexpected extra argument ({args})"
+msgid_plural "Got unexpected extra arguments ({args})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1221
+#, python-brace-format
+msgid "DeprecationWarning: The command {name!r} is deprecated.{extra_message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1405
+msgid "Aborted!"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1779
+msgid "Commands"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1810
+msgid "Missing command."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:1888
+#, python-brace-format
+msgid "No such command {name!r}."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2303
+msgid "Value must be an iterable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2324
+#, python-brace-format
+msgid "Takes {nargs} values but 1 was given."
+msgid_plural "Takes {nargs} values but {len} were given."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2404
+#, python-brace-format
+msgid ""
+"DeprecationWarning: The {param_type} {name!r} is "
+"deprecated.{extra_message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2807
+#, python-brace-format
+msgid "env var: {var}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2810
+#, python-brace-format
+msgid "default: {default}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2814
+msgid "required"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/core.py:2870
+msgid "(dynamic)"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/decorators.py:465
+#, python-format
+msgid "%(prog)s, version %(version)s"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/decorators.py:522
+msgid "Show the version and exit."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/decorators.py:548
+msgid "Show this message and exit."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:50
+#: venv/lib/python3.11/site-packages/click/exceptions.py:89
+#, python-brace-format
+msgid "Error: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:81
+#, python-brace-format
+msgid "Try '{command} {option}' for help."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:130
+#, python-brace-format
+msgid "Invalid value: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:132
+#, python-brace-format
+msgid "Invalid value for {param_hint}: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:190
+msgid "Missing argument"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:192
+msgid "Missing option"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:194
+msgid "Missing parameter"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:196
+#, python-brace-format
+msgid "Missing {param_type}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:203
+#, python-brace-format
+msgid "Missing parameter: {param_name}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:223
+#, python-brace-format
+msgid "No such option: {name}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:235
+#, python-brace-format
+msgid "Did you mean {possibility}?"
+msgid_plural "(Possible options: {possibilities})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:282
+msgid "unknown error"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/exceptions.py:289
+#, python-brace-format
+msgid "Could not open file {filename!r}: {message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/parser.py:200
+#, python-brace-format
+msgid "Argument {name!r} takes {nargs} values."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/parser.py:383
+#, python-brace-format
+msgid "Option {name!r} does not take a value."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/parser.py:444
+#, python-brace-format
+msgid "Option {name!r} requires an argument."
+msgid_plural "Option {name!r} requires {nargs} arguments."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/shell_completion.py:326
+msgid "Shell completion is not supported for Bash versions older than 4.4."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/shell_completion.py:333
+msgid "Couldn't detect Bash version, shell completion is not supported."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:162
+msgid "Repeat for confirmation"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:178
+msgid "Error: The value you entered was invalid."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:180
+#, python-brace-format
+msgid "Error: {e.message}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:191
+msgid "Error: The two entered values do not match."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:247
+msgid "Error: invalid input"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/termui.py:866
+msgid "Press any key to continue..."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:332
+#, python-brace-format
+msgid ""
+"Choose from:\n"
+"\t{choices}"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:369
+#, python-brace-format
+msgid "{value!r} is not {choice}."
+msgid_plural "{value!r} is not one of {choices}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:460
+#, python-brace-format
+msgid "{value!r} does not match the format {format}."
+msgid_plural "{value!r} does not match the formats {formats}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:482
+#, python-brace-format
+msgid "{value!r} is not a valid {number_type}."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:538
+#, python-brace-format
+msgid "{value} is not in the range {range}."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:679
+#, python-brace-format
+msgid "{value!r} is not a valid boolean."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:703
+#, python-brace-format
+msgid "{value!r} is not a valid UUID."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:893
+msgid "file"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:895
+msgid "directory"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:897
+msgid "path"
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:944
+#, python-brace-format
+msgid "{name} {filename!r} does not exist."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:953
+#, python-brace-format
+msgid "{name} {filename!r} is a file."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:961
+#, python-brace-format
+msgid "{name} {filename!r} is a directory."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:970
+#, python-brace-format
+msgid "{name} {filename!r} is not readable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:979
+#, python-brace-format
+msgid "{name} {filename!r} is not writable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:988
+#, python-brace-format
+msgid "{name} {filename!r} is not executable."
+msgstr ""
+
+#: venv/lib/python3.11/site-packages/click/types.py:1055
+#, python-brace-format
+msgid "{len_type} values are required, but {len_value} was given."
+msgid_plural "{len_type} values are required, but {len_value} were given."
+msgstr[0] ""
+msgstr[1] ""

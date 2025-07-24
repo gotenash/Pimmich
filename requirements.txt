@@ -5,5 +5,5 @@ pygame
 psutil
 pillow-heif
 smbprotocol
-piexif
-
+werkzeug
+Flask-Babel

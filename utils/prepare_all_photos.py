@@ -1,6 +1,7 @@
 import os
 from PIL import Image, ImageFilter # Import ImageFilter for blurring
 import pillow_heif
+import subprocess
 from utils.config import load_config # Import load_config to get screen_height_percent
 import piexif
 from utils.image_filters import create_polaroid_effect
@@ -12,6 +13,7 @@ SOURCE_DIR = "static/photos"
 # Default target output resolution for prepared images (fallback if screen resolution cannot be detected)
 DEFAULT_OUTPUT_WIDTH = 1920
 DEFAULT_OUTPUT_HEIGHT = 1080
+VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
 def prepare_photo(source_path, dest_path, output_width, output_height):
     """Prépare une photo pour l'affichage avec redimensionnement, rotation EXIF et fond flou."""
@@ -136,6 +138,38 @@ def prepare_photo(source_path, dest_path, output_width, output_height):
         # Re-raise with more context
         raise Exception(f"Erreur lors du traitement de l'image '{os.path.basename(source_path)}': {e}")
 
+def prepare_video(source_path, dest_path, output_width, output_height):
+    """Prépare une vidéo pour l'affichage et génère sa vignette."""
+    
+    # --- 1. Préparer la vidéo ---
+    try:
+        # Commande ffmpeg pour redimensionner la vidéo tout en gardant le ratio.
+        # On conserve systématiquement la piste audio et on la ré-encode en AAC pour une compatibilité maximale.
+        command = [
+            'ffmpeg', '-i', source_path, '-vf', f"scale='min({output_width},iw)':'min({output_height},ih)':force_original_aspect_ratio=decrease,pad={output_width}:{output_height}:(ow-iw)/2:(oh-ih)/2",
+            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23',
+            '-c:a', 'aac', '-b:a', '128k', # Conserver et ré-encoder l'audio
+            '-y', dest_path
+        ]
+
+        subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as video_e:
+        raise Exception(f"Erreur lors du traitement de la vidéo '{os.path.basename(source_path)}' avec ffmpeg: {video_e}")
+
+    # --- 2. Générer la vignette à partir de la vidéo source ---
+    try:
+        dest_path_obj = Path(dest_path)
+        thumbnail_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_thumbnail.jpg")
+        
+        # Commande ffmpeg pour extraire une image à la 1ère seconde
+        thumb_command = [
+            'ffmpeg', '-i', source_path, '-ss', '00:00:01.000', '-vframes', '1', '-q:v', '2', str(thumbnail_path), '-y'
+        ]
+        subprocess.run(thumb_command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as thumb_e:
+        # Ne pas bloquer tout le processus si la vignette échoue, juste afficher un avertissement.
+        print(f"[Vignette] Avertissement: Impossible de créer la vignette pour {os.path.basename(source_path)}: {thumb_e}")
+
 def prepare_all_photos_with_progress(screen_width=None, screen_height=None, source_type="unknown"):
     """Prépare les photos et retourne des objets structurés (dict) pour le suivi."""
     # Déterminer la résolution de sortie réelle, en utilisant les valeurs par défaut si non fournies
@@ -153,7 +187,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     # --- Nouvelle logique de synchronisation intelligente ---
 
     # 1. Obtenir les noms de base des photos sources (sans extension)
-    source_files = {f: os.path.splitext(f)[0] for f in os.listdir(SOURCE_DIR) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif'))}
+    source_files = {f: os.path.splitext(f)[0] for f in os.listdir(SOURCE_DIR) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif') + VIDEO_EXTENSIONS)}
     source_basenames = set(source_files.values())
 
     # 2. Obtenir les noms de base des photos déjà préparées
@@ -196,15 +230,25 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     for i, filename in enumerate(files_to_prepare, start=1):
         src_path = os.path.join(SOURCE_DIR, filename)
         
-        base_name = os.path.splitext(filename)[0]
-        dest_filename = f"{base_name}.jpg"
-        dest_path = PREPARED_SOURCE_DIR / dest_filename
-        
         try:
-            prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height)
+            base_name, extension = os.path.splitext(filename)
+            
+            if extension.lower() in VIDEO_EXTENSIONS:
+                # C'est une vidéo
+                dest_filename = f"{base_name}.mp4"
+                dest_path = PREPARED_SOURCE_DIR / dest_filename
+                prepare_video(src_path, str(dest_path), actual_output_width, actual_output_height)
+                message_type = "vidéo"
+            else:
+                # C'est une image
+                dest_filename = f"{base_name}.jpg"
+                dest_path = PREPARED_SOURCE_DIR / dest_filename
+                prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height)
+                message_type = "photo"
+
             percent = int((i / total) * 100)
             yield {
-                "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent, "message": f"Nouvelle photo préparée : {filename} ({i}/{total})",
+                "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent, "message": f"Nouveau média préparé ({message_type}) : {filename} ({i}/{total})",
                 "current": i, "total": total
             }
         except Exception as e:

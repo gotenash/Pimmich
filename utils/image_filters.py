@@ -102,6 +102,14 @@ def apply_filter_to_image(image_path_str, filter_name):
         mask = ImageOps.invert(mask)
         black_layer = Image.new('RGB', img.size, (0, 0, 0))
         img_to_save = Image.composite(img, black_layer, mask)
+    elif filter_name == 'vintage':
+        # 1. Réduire la saturation des couleurs pour un look délavé
+        enhancer = ImageEnhance.Color(img)
+        img_vintage = enhancer.enhance(0.5) # 0.0: N&B, 1.0: original
+        
+        # 2. Appliquer une teinte jaune/orangée pour simuler le vieillissement du papier
+        sepia_tint = Image.new('RGB', img_vintage.size, (255, 240, 192)) # Teinte sépia clair
+        img_to_save = Image.blend(img_vintage, sepia_tint, alpha=0.3) # alpha contrôle l'intensité
     else:
         raise ValueError(f"Filtre inconnu : '{filter_name}'")
 

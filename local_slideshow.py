@@ -5,14 +5,18 @@ import pygame
 import traceback
 import requests
 from PIL import Image
+import re
 import socket
 import subprocess, sys
+import glob
 import collections
 from datetime import datetime, timedelta
 import json
+import psutil
 from pathlib import Path
 from utils.text_drawer import draw_text_with_outline
 from utils.slideshow_manager import HDMI_OUTPUT # Importer la constante centralisée
+from utils.config_manager import load_config
 
 # Définition des chemins
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,63 +27,7 @@ FILTER_STATES_PATH = os.path.join(BASE_DIR, 'config', 'filter_states.json')
 TIDES_CACHE_FILE = Path(BASE_DIR) / 'cache' / 'tides.json'
 _icon_cache = {} # Cache pour les icônes météo chargées
 
-# --- Configuration ---
-def create_default_config():
-    """Crée et retourne un dictionnaire de configuration par défaut, miroir de app.py."""
-    return {
-        "display_duration": 10,
-        "active_start": "07:00",
-        "active_end": "22:00",
-        "pan_zoom_factor": 1.15,
-        "pan_zoom_enabled": False,
-        "transition_enabled": True,
-        "transition_type": "fade",
-        "transition_duration": 1.0,
-        "display_sources": ["immich"],
-        "show_clock": True,
-        "clock_format": "%H:%M",
-        "clock_color": "#FFFFFF",
-        "clock_outline_color": "#000000",
-        "clock_font_size": 72,
-        "clock_font_path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "clock_offset_x": 0,
-        "clock_offset_y": 0,
-        "clock_position": "center",
-        "clock_background_enabled": False,
-        "clock_background_color": "#00000080",
-        "show_date": True,
-        "date_format": "%A %d %B %Y",
-        "show_weather": True,
-        "weather_api_key": "",
-        "weather_city": "Paris",
-        "weather_units": "metric",
-        "weather_update_interval_minutes": 60,
-        "show_tides": False,
-        "tide_latitude": "",
-        "tide_longitude": "",
-        "stormglass_api_key": "",
-        "tide_offset_x": 0,
-        "tide_offset_y": 0,
-    }
-
-# Charger la configuration
-def read_config():
-    """Charge la configuration, en fusionnant avec les valeurs par défaut."""
-    config = create_default_config()
-    try:
-        with open(CONFIG_PATH, "r") as f:
-            loaded_config = json.load(f)
-        # Met à jour les valeurs par défaut avec celles du fichier
-        for key in config:
-            if key in loaded_config:
-                config[key] = loaded_config[key]
-    except FileNotFoundError:
-        print(f"Fichier de configuration '{CONFIG_PATH}' non trouvé. Utilisation des défauts.")
-    except json.JSONDecodeError:
-        print(f"ERREUR: Le fichier de configuration '{CONFIG_PATH}' est corrompu. Utilisation des défauts.")
-    except Exception as e:
-        print(f"Erreur lecture config.json : {e}. Utilisation des défauts.")
-    return config
+VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
 def load_filter_states():
     """Charge les états des filtres depuis un fichier JSON."""
@@ -348,6 +296,9 @@ def set_display_power(on: bool):
     global _hdmi_state
     if _hdmi_state == on:
         return
+    if not _hdmi_output:
+        # Ne rien faire si aucune sortie n'a été détectée
+        return
     cmd = ['swaymsg', 'output', _hdmi_output, 'enable' if on else 'disable']
     try:
         subprocess.run(cmd, check=True, capture_output=True)
@@ -355,6 +306,39 @@ def set_display_power(on: bool):
         print(f"Écran {'activé' if on else 'désactivé'} via swaymsg ({_hdmi_output})")
     except Exception as e:
         print(f"Erreur changement état écran via swaymsg : {e}")
+
+try:
+    import RPi.GPIO as GPIO
+    GPIO.setmode(GPIO.BCM) # Utiliser la numérotation BCM des pins
+    GPIO_AVAILABLE = True
+except ImportError:
+    print("RPi.GPIO non disponible. Le contrôle du ventilateur est désactivé.")
+    GPIO_AVAILABLE = False
+
+def set_gpio_output(pin, state):
+    """
+    Définit l'état (HIGH/True ou LOW/False) d'un pin GPIO en sortie.
+
+    Args:
+        pin (int): Le numéro du pin GPIO (en numérotation BCM).
+        state (bool): True pour HIGH (3.3V), False pour LOW (0V).
+
+    Returns:
+        None
+    """
+    if GPIO_AVAILABLE:
+        try:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, GPIO.HIGH if state else GPIO.LOW)
+        except Exception as e:
+            print(f"Erreur lors de la manipulation du GPIO {pin}: {e}")
+
+def control_fan(temperature, threshold=55, pin=14):
+    if temperature >= threshold:
+        set_gpio_output(pin, True)
+        # print(f"Ventilateur activé (température : {temperature}°C, seuil : {threshold}°C)") # Commenté pour réduire le bruit dans les logs
+    else:
+        set_gpio_output(pin, False)
 
 # Helper function to parse hex colors (including alpha)
 def parse_color(hex_color):
@@ -699,11 +683,105 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
         print(f"Erreur affichage photo avec pan/zoom : {e}")
         traceback.print_exc()
 
+def fade_to_black(screen, previous_surface, duration, clock):
+    """Effectue un fondu au noir sur la surface donnée."""
+    num_frames = int(duration * 60)
+    if num_frames == 0: num_frames = 1
+    
+    black_surface = pygame.Surface(screen.get_size()).convert()
+    black_surface.fill((0, 0, 0))
+
+    for i in range(num_frames + 1):
+        progress = i / num_frames
+        alpha = int(255 * progress)
+        black_surface.set_alpha(alpha)
+        
+        screen.blit(previous_surface, (0, 0))
+        screen.blit(black_surface, (0, 0))
+        pygame.display.flip()
+        clock.tick(60)
+
+def display_video(screen, video_path, screen_width, screen_height, config, main_font, previous_surface, clock):
+    """Affiche une vidéo en plein écran en utilisant le lecteur externe mpv."""
+    audio_enabled = config.get("video_audio_enabled", False)
+    audio_output = config.get("video_audio_output", "auto")
+    audio_volume = int(config.get("video_audio_volume", 100))
+    transition_duration = float(config.get("transition_duration", 1.0))
+
+    # Libérer le mixer de Pygame avant de lancer la vidéo pour éviter les conflits
+    if audio_enabled:
+        print("[Slideshow] Quitting pygame.mixer to free audio device for mpv.")
+        pygame.mixer.quit()
+
+    try:
+        # 1. Fondu au noir avant de lancer la vidéo
+        if previous_surface:
+            fade_to_black(screen, previous_surface, transition_duration / 2, clock)
+
+        print(f"[Slideshow] Preparing video (Audio: {'On' if audio_enabled else 'Off'}, Output: {audio_output}, Volume: {audio_volume}%): {video_path}")
+        # On réaffiche la souris au cas où l'utilisateur voudrait interagir avec mpv (barre de progression, etc.)
+        pygame.mouse.set_visible(True)
+        
+        # --- NOUVEAU: Forcer le volume système avec amixer ---
+        if audio_enabled:
+            print(f"[Audio] Forcing system volume to {audio_volume}% using amixer.")
+            # Liste des contrôles de volume à maximiser.
+            # On ignore les erreurs si un contrôle n'existe pas (check=False).
+            for control in ['Master', 'PCM', 'Headphone', 'HDMI']:
+                try:
+                    subprocess.run(['amixer', 'sset', control, f'{audio_volume}%', 'unmute'], check=False, capture_output=True, text=True)
+                except FileNotFoundError:
+                    print("AVERTISSEMENT: La commande 'amixer' est introuvable. Impossible de régler le volume système.")
+                    break # Inutile de continuer si amixer n'est pas là
+        
+        # Commande pour mpv
+        # --ao=pulse: Utilise la couche de compatibilité PulseAudio de PipeWire, qui est souvent plus robuste
+        command = ['mpv', '--no-config', '--ao=pulse', '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop', video_path]
+        
+        if audio_enabled:
+            command.extend([f'--volume={audio_volume}', '--no-mute'])
+            # --- NOUVELLE LOGIQUE : Noms de périphériques hardcodés pour PulseAudio ---
+            device_name = None
+            if audio_output == 'hdmi':
+                # Le nom du périphérique HDMI pour PulseAudio sur un RPi 4/5
+                device_name = 'alsa_output.platform-vc4-hdmi-0.stereo-fallback'
+                print(f"[Audio] Tentative d'utilisation du périphérique HDMI : {device_name}")
+            elif audio_output == 'jack':
+                # Le nom du périphérique Jack 3.5mm pour PulseAudio sur un RPi 4
+                device_name = 'alsa_output.platform-bcm2835_audio.stereo-fallback'
+                print(f"[Audio] Tentative d'utilisation du périphérique Jack : {device_name}")
+            
+            if device_name:
+                command.append(f'--audio-device={device_name}')
+        else:
+             command.append('--no-audio')
+        
+        print(f"[Slideshow] Executing mpv command: {' '.join(command)}")
+        subprocess.run(command, check=True, capture_output=True, text=True)
+
+    except FileNotFoundError:
+        print(f"ERREUR: Commande introuvable. Assurez-vous que 'mpv' et 'amixer' (alsa-utils) sont installés.")
+    except subprocess.CalledProcessError as e:
+        print(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. Stderr: {e.stderr}")
+        print(f"Sortie standard de mpv (peut contenir des infos utiles): {e.stdout}")
+    except Exception as e:
+        print(f"Erreur inattendue lors de la lecture de la vidéo {video_path}: {e}")
+    finally:
+        # --- Ré-initialiser le mixer de Pygame après la lecture vidéo ---
+        # C'est crucial pour que Pygame puisse potentiellement jouer des sons plus tard,
+        # et pour maintenir un état cohérent.
+        if audio_enabled:
+            print("[Slideshow] Re-initializing pygame.mixer.")
+            try:
+                pygame.mixer.init()
+            except pygame.error as e:
+                print(f"AVERTISSEMENT: Impossible de réinitialiser pygame.mixer: {e}")
+
 # Boucle principale du diaporama
 def start_slideshow():
     try: # Global try-except block for robust error handling
         print("[Slideshow] Starting slideshow initialization.")
-        config = read_config()
+        config = load_config() # Utilise le gestionnaire centralisé
         print(f"[Slideshow] Config loaded. show_clock: {config.get('show_clock')}, show_weather: {config.get('show_weather')}")
 
         pygame.init()
@@ -737,7 +815,7 @@ def start_slideshow():
 
         print("[Slideshow] Entering main slideshow loop.")
         while True:
-            config = read_config() # Recharger la config à chaque itération pour prendre en compte les changements
+            config = load_config() # Recharger la config à chaque itération
             filter_states = load_filter_states() # Charger les préférences de filtre
             start_time = config.get("active_start", "06:00")
             end_time = config.get("active_end", "20:00")
@@ -754,8 +832,8 @@ def start_slideshow():
             for source in display_sources:
                 source_dir = PREPARED_BASE_DIR / source
                 if source_dir.is_dir():
-                    # Obtenir les photos de base (non-polaroid)
-                    base_photos = [f for f in source_dir.iterdir() if f.is_file() and f.suffix.lower() in ('.jpg', '.jpeg', '.png') and not f.name.endswith('_polaroid.jpg')]
+                    # Obtenir les médias de base (non-polaroid et non-vignette)
+                    base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith('_polaroid.jpg') and not f.name.endswith('_thumbnail.jpg')]
                     
                     for photo_path_obj in base_photos:
                         # Créer le chemin relatif utilisé comme clé dans le fichier d'états
@@ -846,15 +924,36 @@ def start_slideshow():
                     if os.path.exists(CURRENT_PHOTO_FILE):
                         os.remove(CURRENT_PHOTO_FILE)
 
-                    screen.fill((0, 0, 0))
-                    pygame.display.flip()
                     set_display_power(False)
                     while not is_within_active_hours(start_time, end_time):
                         time.sleep(60)
-                    break # Sortir de la boucle for pour relancer la boucle while et recharger les photos
+                    
+                    # --- NOUVEAU : Réinitialisation de l'affichage après la veille ---
+                    print("[Slideshow] Période active détectée. Réveil de l'écran et réinitialisation de Pygame...")
+                    set_display_power(True)
+                    time.sleep(1) # Pause cruciale pour laisser le temps à l'écran de se stabiliser
+                    
+                    # Réinitialiser le module d'affichage de Pygame pour obtenir une nouvelle référence valide
+                    pygame.display.init()
+                    info = pygame.display.Info()
+                    SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                    pygame.mouse.set_visible(False)
+                    print(f"[Slideshow] Affichage Pygame réinitialisé à {SCREEN_WIDTH}x{SCREEN_HEIGHT}.")
+                    
+                    break # Sortir de la boucle 'for' pour relancer la boucle 'while' et recharger la liste de photos
 
                 set_display_power(True)
+
                 print(f"[Slideshow] Preparing to display: {photo_path}")
+                
+                # --- Contrôle du ventilateur ---
+                if GPIO_AVAILABLE:
+                    try:
+                        temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
+                        control_fan(temp)
+                    except Exception as e:
+                        print(f"Erreur lors de la lecture de la température ou du contrôle du ventilateur : {e}")
 
                 # Écrire le chemin de la photo actuelle dans le fichier d'état
                 try:
@@ -865,39 +964,54 @@ def start_slideshow():
                 except Exception as e:
                     print(f"Erreur écriture fichier photo actuelle : {e}")
 
+                # Vérifier si le fichier est une vidéo ou une image
+                is_video = any(photo_path.lower().endswith(ext) for ext in VIDEO_EXTENSIONS)
 
-                current_pil_image = None # Initialize to None to ensure it's always defined
-                try:
-                    # Perform transition if it's not the first photo and transition is enabled
-                    if previous_photo_surface is not None and transition_enabled and transition_duration > 0 and transition_type != "none": # Added transition_type check
-                        current_pil_image = perform_transition(screen, previous_photo_surface, photo_path, transition_duration, SCREEN_WIDTH, SCREEN_HEIGHT, main_font_loaded, config, transition_type)
-                    else:
-                        # For the first image or no transition, just load and blit it directly
-                        current_pil_image = Image.open(photo_path)
-                        if current_pil_image.mode != 'RGB': current_pil_image = current_pil_image.convert('RGB')
-                        # For the first image, we need to blit it directly before pan/zoom takes over
-                        # This blit is only for the initial display, not part of pan/zoom animation
-                        screen.blit(pygame.image.fromstring(current_pil_image.tobytes(), current_pil_image.size, current_pil_image.mode), (0,0))
-                        draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
-                        pygame.display.flip()
-                except FileNotFoundError:
-                    print(f"[Slideshow] Photo non trouvée, elle a peut-être été supprimée : {photo_path}. Passage à la suivante.")
-                    # On s'assure de ne pas utiliser une ancienne surface pour la prochaine transition
-                    previous_photo_surface = None 
-                    continue # Passe à la photo suivante dans la boucle
-                except Exception as e:
-                    print(f"[Slideshow] Error loading or transitioning to photo {photo_path}: {e}")
-                    traceback.print_exc()
-                    current_pil_image = None # Explicitly set to None on error
-
-                if current_pil_image: # Only proceed if image was successfully loaded
-                    # Now display the photo with pan/zoom or statically for its duration
-                    display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                if is_video:
+                    display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
                     
-                    # Capture the current screen content for the next transition
+                    # --- FIX: Ré-appliquer le mode plein écran après la lecture vidéo ---
+                    print("[Slideshow] Re-asserting fullscreen mode after video playback.")
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                    pygame.mouse.set_visible(False) # Cacher à nouveau la souris
+                    screen.fill((0, 0, 0)) # Nettoyer l'écran pour éviter les flashs
+                    pygame.display.flip()
+                    
+                    # On définit la surface précédente sur l'écran noir actuel pour une transition en fondu.
                     previous_photo_surface = screen.copy()
-                else:
-                    print(f"[Slideshow] Skipping photo {photo_path} due to loading error.")
+                else: # C'est une image
+                    current_pil_image = None # Initialize to None to ensure it's always defined
+                    try:
+                        # Perform transition if it's not the first photo and transition is enabled
+                        if previous_photo_surface is not None and transition_enabled and transition_duration > 0 and transition_type != "none": # Added transition_type check
+                            current_pil_image = perform_transition(screen, previous_photo_surface, photo_path, transition_duration, SCREEN_WIDTH, SCREEN_HEIGHT, main_font_loaded, config, transition_type)
+                        else:
+                            # For the first image or no transition, just load and blit it directly
+                            current_pil_image = Image.open(photo_path)
+                            if current_pil_image.mode != 'RGB': current_pil_image = current_pil_image.convert('RGB')
+                            # For the first image, we need to blit it directly before pan/zoom takes over
+                            # This blit is only for the initial display, not part of pan/zoom animation
+                            screen.blit(pygame.image.fromstring(current_pil_image.tobytes(), current_pil_image.size, current_pil_image.mode), (0,0))
+                            draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                            pygame.display.flip()
+                    except FileNotFoundError:
+                        print(f"[Slideshow] Média non trouvé, il a peut-être été supprimé : {photo_path}. Passage au suivant.")
+                        previous_photo_surface = None 
+                        continue # Passe au média suivant dans la boucle
+                    except Image.UnidentifiedImageError:
+                        print(f"[Slideshow] Média corrompu ou non identifiable : {photo_path}. Passage au suivant.")
+                        previous_photo_surface = None 
+                        continue # Passe au média suivant dans la boucle
+                    except Exception as e:
+                        print(f"[Slideshow] Error loading or transitioning to photo {photo_path}: {e}")
+                        traceback.print_exc()
+                        current_pil_image = None # Explicitly set to None on error
+
+                    if current_pil_image: # Only proceed if image was successfully loaded
+                        display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                        previous_photo_surface = screen.copy()
+                    else:
+                        print(f"[Slideshow] Skipping photo {photo_path} due to loading error.")
 
     except KeyboardInterrupt:
         print("Arrêt manuel du diaporama.")
@@ -910,6 +1024,9 @@ def start_slideshow():
         if os.path.exists(CURRENT_PHOTO_FILE):
             os.remove(CURRENT_PHOTO_FILE)
         pygame.quit()
+        if GPIO_AVAILABLE:
+            GPIO.cleanup()
+        print("[Slideshow] Pygame exited cleanly.")
 
 if __name__ == "__main__":
     start_slideshow()

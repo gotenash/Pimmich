@@ -92,17 +92,6 @@ A terme il y aura deux possibilités d'installer Pimmich une img prêt à l'empl
 - Python 
 - Clavier + écran pour la première configuration, ou SSH
 
-### Création du fichier credentials.json
-
-À la racine de la carte SD, crée un fichier credentials.json contenant les identifiants pour accéder à la page de configuration :
-
-```json
-{
-  "username": "votre_nom_utilisateur",
-  "password": "votre_mot_de_passe"
-}
-```
-
 
 ### Installation à partir du dépôt
 

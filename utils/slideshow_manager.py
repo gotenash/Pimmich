@@ -3,9 +3,42 @@ import subprocess
 import sys
 import signal
 import psutil
+import json
+import glob
 
 PID_FILE = "/tmp/pimmich_slideshow.pid"
-HDMI_OUTPUT = "HDMI-A-1"
+
+def get_active_output_name():
+    """
+    Détecte le nom de la sortie d'affichage active via swaymsg.
+    Retourne le nom (ex: "HDMI-A-1") ou None si non trouvé.
+    """
+    try:
+        # Assurer que SWAYSOCK est défini pour communiquer avec Sway
+        if "SWAYSOCK" not in os.environ:
+            user_id = os.getuid()
+            sock_path_pattern = f"/run/user/{user_id}/sway-ipc.*"
+            socks = glob.glob(sock_path_pattern)
+            if socks:
+                os.environ["SWAYSOCK"] = socks[0]
+            else:
+                print("AVERTISSEMENT: SWAYSOCK non trouvé, impossible de contrôler l'écran.")
+                return None
+
+        result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True, env=os.environ)
+        outputs = json.loads(result.stdout)
+        
+        for output in outputs:
+            if output.get('active', False):
+                print(f"Sortie active détectée : {output.get('name')}")
+                return output.get('name')
+        return None
+    except Exception as e:
+        print(f"Erreur lors de la détection de la sortie active : {e}.")
+        return None
+
+HDMI_OUTPUT = get_active_output_name()
+_log_files = {} # Dictionnaire pour garder les références aux fichiers de log ouverts
 
 def is_slideshow_running():
     if not os.path.exists(PID_FILE):
@@ -34,7 +67,8 @@ def start_slideshow():
         return
 
     # Active la sortie HDMI via swaymsg
-    subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "enable"])
+    if HDMI_OUTPUT:
+        subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "enable"])
 
     # Préparer l’environnement Wayland/Sway
     env = os.environ.copy()
@@ -43,8 +77,11 @@ def start_slideshow():
 
     # Créer le dossier de logs et rediriger la sortie du diaporama pour le débogage
     os.makedirs("logs", exist_ok=True)
-    stdout_log = open("logs/slideshow_stdout.log", "a")
-    stderr_log = open("logs/slideshow_stderr.log", "a")
+    try:
+        stdout_log = open("logs/slideshow_stdout.log", "a")
+        stderr_log = open("logs/slideshow_stderr.log", "a")
+    except IOError as e:
+        print(f"ERREUR: Impossible d'ouvrir les fichiers de log: {e}")
 
     # Utiliser le même exécutable python que celui qui lance l'application web
     # pour garantir que le diaporama s'exécute dans le même environnement (venv).
@@ -60,6 +97,9 @@ def start_slideshow():
     # Sauvegarde le PID du nouveau processus
     with open(PID_FILE, "w") as f:
         f.write(str(proc.pid))
+    
+    # Garder une référence aux fichiers de log pour qu'ils ne soient pas fermés
+    _log_files[proc.pid] = (stdout_log, stderr_log)
 
 
 def stop_slideshow():
@@ -68,7 +108,14 @@ def stop_slideshow():
         try:
             with open(PID_FILE, "r") as f:
                 pid = int(f.read())
+            
+            # Fermer les fichiers de log associés à ce PID
+            if pid in _log_files:
+                _log_files[pid][0].close() # stdout
+                _log_files[pid][1].close() # stderr
+                del _log_files[pid]
             os.kill(pid, signal.SIGTERM)
+
         except Exception:
             pass
         try:
@@ -85,4 +132,5 @@ def stop_slideshow():
             continue
 
     # 3. Éteindre l’écran proprement
-    subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "disable"])
+    if HDMI_OUTPUT:
+        subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "disable"])

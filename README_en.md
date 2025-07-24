@@ -83,19 +83,6 @@ Eventually, two installation methods will be available:
 
 ---
 
-### Create `credentials.json`
-
-At the root of your SD card, create a file named `credentials.json` to define the login credentials for accessing the configuration page:
-
-```json
-{
-  "username": "your_username",
-  "password": "your_password"
-}
-```
-
----
-
 ### Install from Repository
 
 #### Clone the repository

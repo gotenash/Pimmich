@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ get_locale() }}">
 <head>
     <meta charset="UTF-8">
-    <title>Configuration - Pimmich</title>
+    <title>{{ _('Configuration') }} - Pimmich</title>
      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
@@ -52,78 +52,107 @@
   <!-- Contenu principal -->
   <div class="relative z-10 container mx-auto p-4 bg-white/80 backdrop-blur-md rounded-xl shadow-xl mt-8">
     <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo mx-auto mb-4">
-    <h2 class="text-center text-2xl font-semibold mb-4">Configuration du cadre photo connecté</h2>
-        <div class="logout-link">
-            <a href="/logout">Se déconnecter</a>
+    <h2 class="text-center text-2xl font-semibold mb-4">{{ _('Configuration du cadre photo connecté') }}</h2>
+        <div class="flex justify-between items-center mb-4">
+            <div class="language-selector text-sm">
+                <span class="font-semibold">{{ _('Langue') }}:</span>
+                {% set current_lang = get_locale() %}
+                <a href="?lang=fr" class="{% if current_lang == 'fr' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">FR</a> |
+                <a href="?lang=en" class="{% if current_lang == 'en' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">EN</a> |
+                <a href="?lang=es" class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
+            </div>
+            <div class="logout-link">
+                <a href="/logout">{{ _('Se déconnecter') }}</a>
+            </div>
         </div>
         
 
 <div class="tabs">
-  <button class="tablink active" onclick="openTab(event, 'tab-affichage')">Affichage</button>
-  <button class="tablink" onclick="openTab(event, 'tab-heure')">Heure, Météo et Marées</button>
-  <button class="tablink" onclick="openTab(event, 'tab-sources')">Sources des photos</button>
-  <button class="tablink" onclick="openTab(event, 'tab-apercu')">Aperçu</button>
-  <button class="tablink" onclick="openTab(event, 'tab-actions')">Actions</button>
-  <button class="tablink" onclick="openTab(event, 'tab-validation')">Validation <span id="pending-count-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
-  <button class="tablink" onclick="openTab(event, 'tab-system')">Système</button>
+  <button class="tablink active" onclick="openTab(event, 'tab-affichage')">{{ _('Affichage') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-heure')">{{ _('Heure, Météo et Marées') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-sources')">{{ _('Sources des photos') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-apercu')">{{ _('Aperçu') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-actions')">{{ _('Actions') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-validation')">{{ _('Validation') }} <span id="pending-count-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
+  <button class="tablink" onclick="openTab(event, 'tab-system')">{{ _('Système') }}</button>
 </div>
 
 <form method="POST" action="/configure">
 
 <div id="tab-affichage" class="tabcontent" style="display:block">
     <fieldset>
-        <legend><h3>Paramètres d'affichage</h3></legend>
+        <legend><h3>{{ _("Paramètres d'affichage") }}</h3></legend>
 
-        <label for="display_duration">Durée d'affichage (en secondes) :</label>
+        <label for="display_duration">{{ _("Durée d'affichage (en secondes) :") }}</label>
         <input type="number" id="display_duration" name="display_duration" value="{{ config.display_duration }}" required>
 
-        <label for="active_start">Heure de début d'activité (HH:MM) :</label>
+        <label for="active_start">{{ _("Heure de début d'activité (HH:MM) :") }}</label>
         <input type="time" id="active_start" name="active_start" value="{{ config.active_start }}">
 
-        <label for="active_end">Heure de fin d'activité (HH:MM) :</label>
+        <label for="active_end">{{ _("Heure de fin d'activité (HH:MM) :") }}</label>
         <input type="time" id="active_end" name="active_end" value="{{ config.active_end }}">
 
-        <label for="screen_height_percent">Hauteur utile de l'écran (% affiché) :</label>
+        <label for="screen_height_percent">{{ _("Hauteur utile de l'écran (%% affiché) :") }}</label>
         <input type="number" id="screen_height_percent" name="screen_height_percent" min="10" max="100" value="{{ config.screen_height_percent }}">
 
         <div class="flex items-center mt-2">
             <div class="flex-grow">
-                <label for="display_width">Largeur d'affichage cible (px) :</label>
+                <label for="display_width">{{ _("Largeur d'affichage cible (px) :") }}</label>
                 <input type="number" id="display_width" name="display_width" value="{{ config.get('display_width', 1920) }}">
-                <label for="display_height" class="mt-2">Hauteur d'affichage cible (px) :</label>
+                <label for="display_height" class="mt-2">{{ _("Hauteur d'affichage cible (px) :") }}</label>
                 <input type="number" id="display_height" name="display_height" value="{{ config.get('display_height', 1080) }}">
             </div>
-            <button type="button" id="detect-resolution-btn" class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded text-sm" title="Détecter la résolution de l'écran actif">Détecter</button>
+            <button type="button" id="detect-resolution-btn" class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded text-sm" title="{{ _('Détecter la résolution de l\'écran actif') }}">{{ _('Détecter') }}</button>
         </div>
         <div style="margin-top: 16px;">
             <label>
                 <input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False) %}checked{% endif %}>
-                Activer l'effet Pan/Zoom sur les photos
+                {{ _("Activer l'effet Pan/Zoom sur les photos") }}
             </label>
         </div>
         <div style="display: flex; align-items: center; margin-top: 8px;">
-            <label for="pan_zoom_factor" style="min-width: 200px;">Amplitude du zoom (ex: 1.15 pour 15% de zoom) :</label>
+            <label for="pan_zoom_factor" style="min-width: 200px;">{{ _("Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :") }}</label>
             <input type="number" step="0.01" id="pan_zoom_factor" name="pan_zoom_factor" value="{{ config.get('pan_zoom_factor', 1.15) }}">
         </div>
         <div style="margin-top: 16px;">
             <label>
                 <input type="checkbox" name="transition_enabled" {% if config.get('transition_enabled', True) %}checked{% endif %}>
-                Activer l'effet de transition entre les photos
+                {{ _("Activer l'effet de transition entre les photos") }}
             </label>
         </div>
         <div style="display: flex; align-items: center; margin-top: 8px;">
-            <label for="transition_duration" style="min-width: 200px;">Durée de transition (secondes) :</label>
+            <label for="transition_duration" style="min-width: 200px;">{{ _("Durée de transition (secondes) :") }}</label>
             <input type="number" step="0.1" id="transition_duration" name="transition_duration" value="{{ config.get('transition_duration', 1.0) }}">
         </div>
         <div style="display: flex; align-items: center; margin-top: 8px;">
-            <label for="transition_type" style="min-width: 200px;">Type de transition :</label>
+            <label for="transition_type" style="min-width: 200px;">{{ _("Type de transition :") }}</label>
             <select name="transition_type" id="transition_type">
-                <option value="fade" {% if config.get('transition_type') == 'fade' %}selected{% endif %}>Fondu enchaîné</option>
-                <option value="slide_left" {% if config.get('transition_type') == 'slide_left' %}selected{% endif %}>Glisser depuis la gauche</option>
-                <option value="slide_right" {% if config.get('transition_type') == 'slide_right' %}selected{% endif %}>Glisser depuis la droite</option>
-                <option value="slide_up" {% if config.get('transition_type') == 'slide_up' %}selected{% endif %}>Glisser depuis le bas</option>
-                <option value="slide_down" {% if config.get('transition_type') == 'slide_down' %}selected{% endif %}>Glisser depuis le haut</option>
+                <option value="fade" {% if config.get('transition_type') == 'fade' %}selected{% endif %}>{{ _('Fondu enchaîné') }}</option>
+                <option value="slide_left" {% if config.get('transition_type') == 'slide_left' %}selected{% endif %}>{{ _('Glisser depuis la gauche') }}</option>
+                <option value="slide_right" {% if config.get('transition_type') == 'slide_right' %}selected{% endif %}>{{ _('Glisser depuis la droite') }}</option>
+                <option value="slide_up" {% if config.get('transition_type') == 'slide_up' %}selected{% endif %}>{{ _('Glisser depuis le bas') }}</option>
+                <option value="slide_down" {% if config.get('transition_type') == 'slide_down' %}selected{% endif %}>{{ _('Glisser depuis le haut') }}</option>
             </select>
+        </div>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" id="video_audio_enabled" name="video_audio_enabled" {% if config.get('video_audio_enabled', False) %}checked{% endif %}>
+                {{ _("Activer le son pour les vidéos") }}
+            </label>
+        </div>
+        <div id="audio-output-selector" style="display: flex; align-items: center; margin-top: 8px; {% if not config.get('video_audio_enabled', False) %}display: none;{% endif %}">
+            <label for="video_audio_output" style="min-width: 200px;">{{ _("Sortie audio :") }}</label>
+            <select name="video_audio_output" id="video_audio_output">
+                <option value="auto" {% if config.get('video_audio_output') == 'auto' %}selected{% endif %}>{{ _('Automatique') }}</option>
+                <option value="hdmi" {% if config.get('video_audio_output') == 'hdmi' %}selected{% endif %}>{{ _('HDMI') }}</option>
+                <option value="jack" {% if config.get('video_audio_output') == 'jack' %}selected{% endif %}>{{ _('Jack 3.5mm (Casque)') }}</option>
+            </select>
+        </div>
+        <div id="audio-volume-selector" style="display: flex; align-items: center; margin-top: 8px; {% if not config.get('video_audio_enabled', False) %}display: none;{% endif %}">
+            <label for="video_audio_volume" style="min-width: 200px;">{{ _("Volume :") }}</label>
+            <input type="range" id="video_audio_volume_slider" min="0" max="100" value="{{ config.get('video_audio_volume', 100) }}" class="w-1/2">
+            <input type="number" id="video_audio_volume" name="video_audio_volume" min="0" max="100" value="{{ config.get('video_audio_volume', 100) }}" class="w-16 ml-2 text-center">
+            <span class="ml-1">%</span>
         </div>
     </fieldset>
 </div>
@@ -131,52 +160,52 @@
                     
 <div id="tab-heure" class="tabcontent">
     <fieldset>
-        <legend><strong>Affichage de l'heure</strong></legend>
+        <legend><strong>{{ _("Affichage de l'heure") }}</strong></legend>
 
                     
                       <div style="margin-bottom: 8px;">
                         <label>
                           <input type="checkbox" name="show_clock" {% if config.get('show_clock', False) %}checked{% endif %}>
-                          Afficher l'heure
+                          {{ _("Afficher l'heure") }}
                         </label>
                       </div>
                     
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_font_size" style="min-width: 200px;">Taille de la police :</label>
+                        <label for="clock_font_size" style="min-width: 200px;">{{ _("Taille de la police :") }}</label>
                         <input type="number" name="clock_font_size" value="{{ config.get('clock_font_size', 48) }}">
                       </div>
                     
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_offset_x" style="min-width: 200px;">Décalage horizontal (px) :</label>
+                        <label for="clock_offset_x" style="min-width: 200px;">{{ _("Décalage horizontal (px) :") }}</label>
                         <input type="number" name="clock_offset_x" value="{{ config.get('clock_offset_x', 30) }}">
                       </div>
                     
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_offset_y" style="min-width: 200px;">Décalage vertical (px) :</label>
+                        <label for="clock_offset_y" style="min-width: 200px;">{{ _("Décalage vertical (px) :") }}</label>
                         <input type="number" name="clock_offset_y" value="{{ config.get('clock_offset_y', 30) }}">
                       </div>
                     
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_color" style="min-width: 200px;">Couleur du texte (hex) :</label>
+                        <label for="clock_color" style="min-width: 200px;">{{ _("Couleur du texte (hex) :") }}</label>
                         <input type="text" name="clock_color" value="{{ config.get('clock_color', '#FFFFFF') }}">
                       </div>
                     
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_outline_color" style="min-width: 200px;">Couleur du contour (hex) :</label>
+                        <label for="clock_outline_color" style="min-width: 200px;">{{ _("Couleur du contour (hex) :") }}</label>
                         <input type="text" name="clock_outline_color" value="{{ config.get('clock_outline_color', '#000000') }}">
                       </div>
                     
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_position" style="min-width: 200px;">Position de l'heure :</label>
+                        <label for="clock_position" style="min-width: 200px;">{{ _("Position de l'heure :") }}</label>
                         <select name="clock_position">
-                          <option value="left" {% if config.get('clock_position') == 'left' %}selected{% endif %}>Gauche</option>
-                          <option value="center" {% if config.get('clock_position') == 'center' %}selected{% endif %}>Centre</option>
-                          <option value="right" {% if config.get('clock_position') == 'right' %}selected{% endif %}>Droite</option>
+                          <option value="left" {% if config.get('clock_position') == 'left' %}selected{% endif %}>{{ _('Gauche') }}</option>
+                          <option value="center" {% if config.get('clock_position') == 'center' %}selected{% endif %}>{{ _('Centre') }}</option>
+                          <option value="right" {% if config.get('clock_position') == 'right' %}selected{% endif %}>{{ _('Droite') }}</option>
                         </select>
                       </div>
                     
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_font_path" style="min-width: 200px;">Police :</label>
+                        <label for="clock_font_path" style="min-width: 200px;">{{ _("Police :") }}</label>
                         <select name="clock_font_path">
                           {% set fonts = [
                               ('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 'DejaVu Sans Bold'),
@@ -191,108 +220,108 @@
                       <div style="margin-bottom: 8px;">
                         <label>
                           <input type="checkbox" name="clock_background_enabled" {% if config.get('clock_background_enabled', False) %}checked{% endif %}>
-                          Afficher un fond derrière l'heure/date/météo
+                          {{ _("Afficher un fond derrière l'heure/date/météo") }}
                         </label>
                       </div>
                       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <label for="clock_background_color" style="min-width: 200px;">Couleur du fond (hex RGBA) :</label>
+                        <label for="clock_background_color" style="min-width: 200px;">{{ _("Couleur du fond (hex RGBA) :") }}</label>
                         <input type="text" name="clock_background_color" value="{{ config.get('clock_background_color', '#00000080') }}">
                       </div>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><strong>Affichage de la date</strong></legend>
+        <legend><strong>{{ _("Affichage de la date") }}</strong></legend>
         <div style="margin-bottom: 8px;">
             <label>
                 <input type="checkbox" name="show_date" {% if config.get('show_date', False) %}checked{% endif %}>
-                Afficher la date (sous l'heure)
+                {{ _("Afficher la date (sous l'heure)") }}
             </label>
         </div>
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="date_format" style="min-width: 200px;">Format de la date :</label>
+            <label for="date_format" style="min-width: 200px;">{{ _("Format de la date :") }}</label>
             <input type="text" name="date_format" value="{{ config.get('date_format', '%A %d %B %Y') }}">
         </div>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><strong>Affichage de la météo (OpenWeatherMap)</strong></legend>
+        <legend><strong>{{ _("Affichage de la météo (OpenWeatherMap)") }}</strong></legend>
 
         <div style="margin-bottom: 8px;">
             <label>
                 <input type="checkbox" name="show_weather" {% if config.get('show_weather', False) %}checked{% endif %}>
-                Afficher la météo
+                {{ _("Afficher la météo") }}
             </label>
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="weather_city" style="min-width: 200px;">Ville :</label>
+            <label for="weather_city" style="min-width: 200px;">{{ _("Ville :") }}</label>
             <input type="text" id="weather_city" name="weather_city" value="{{ config.get('weather_city', 'Paris') }}">
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="weather_api_key" style="min-width: 200px;">Clé API :</label>
+            <label for="weather_api_key" style="min-width: 200px;">{{ _("Clé API :") }}</label>
             <input type="text" id="weather_api_key" name="weather_api_key" value="{{ config.get('weather_api_key', '') }}">
         </div>
         
         <div class="mt-2 mb-4">
-            <button type="button" id="testWeatherApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm">Tester la clé API et la ville</button>
+            <button type="button" id="testWeatherApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm">{{ _("Tester la clé API et la ville") }}</button>
             <span id="weatherApiTestResult" class="ml-4 font-medium"></span>
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="weather_units" style="min-width: 200px;">Unités :</label>
-            <select name="weather_units">
-                <option value="metric" {% if config.get('weather_units') == 'metric' %}selected{% endif %}>Celsius</option>
-                <option value="imperial" {% if config.get('weather_units') == 'imperial' %}selected{% endif %}>Fahrenheit</option>
+            <label for="weather_units" style="min-width: 200px;">{{ _("Unités :") }}</label>
+            <select name="weather_units" id="weather_units">
+                <option value="metric" {% if config.get('weather_units') == 'metric' %}selected{% endif %}>{{ _('Celsius') }}</option>
+                <option value="imperial" {% if config.get('weather_units') == 'imperial' %}selected{% endif %}>{{ _('Fahrenheit') }}</option>
             </select>
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="weather_update_interval_minutes" style="min-width: 200px;">Intervalle de MàJ (min) :</label>
+            <label for="weather_update_interval_minutes" style="min-width: 200px;">{{ _("Intervalle de MàJ (min) :") }}</label>
             <input type="number" name="weather_update_interval_minutes" value="{{ config.get('weather_update_interval_minutes', 30) }}">
         </div>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><strong>Affichage des marées (StormGlass Tide API)</strong></legend>
-        <p class="text-sm text-gray-600 mb-3">Utilise l'API de <a href="https://stormglass.io/" target="_blank" class="text-blue-600 hover:underline">StormGlass</a>. Une clé API est requise. Vous pouvez trouver les coordonnées de votre port sur des sites comme <a href="https://www.latlong.net/" target="_blank" class="text-blue-600 hover:underline">latlong.net</a>.</p>
-        <p class="text-sm text-gray-600 mb-3">Note : Cette API fournit les hauteurs de marée, mais pas le coefficient de marée.</p>
+        <legend><strong>{{ _("Affichage des marées (StormGlass Tide API)") }}</strong></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Utilise l'API de") }} <a href="https://stormglass.io/" target="_blank" class="text-blue-600 hover:underline">StormGlass</a>. {{ _("Une clé API est requise. Vous pouvez trouver les coordonnées de votre port sur des sites comme") }} <a href="https://www.latlong.net/" target="_blank" class="text-blue-600 hover:underline">latlong.net</a>.</p>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Note : Cette API fournit les hauteurs de marée, mais pas le coefficient de marée.") }}</p>
 
         <div style="margin-bottom: 8px;">
             <label>
                 <input type="checkbox" name="show_tides" {% if config.get('show_tides', False) %}checked{% endif %}>
-                Afficher les informations de marée
+                {{ _("Afficher les informations de marée") }}
             </label>
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="tide_latitude" style="min-width: 200px;">Latitude (ex: 48.3904) :</label>
+            <label for="tide_latitude" style="min-width: 200px;">{{ _("Latitude (ex: 48.3904) :") }}</label>
             <input type="text" id="tide_latitude" name="tide_latitude" value="{{ config.get('tide_latitude', '') }}">
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="tide_longitude" style="min-width: 200px;">Longitude (ex: -4.4861) :</label>
+            <label for="tide_longitude" style="min-width: 200px;">{{ _("Longitude (ex: -4.4861) :") }}</label>
             <input type="text" id="tide_longitude" name="tide_longitude" value="{{ config.get('tide_longitude', '') }}">
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="stormglass_api_key" style="min-width: 200px;">Clé API StormGlass :</label>
+            <label for="stormglass_api_key" style="min-width: 200px;">{{ _("Clé API StormGlass :") }}</label>
             <input type="text" id="stormglass_api_key" name="stormglass_api_key" value="{{ config.get('stormglass_api_key', '') }}">
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="tide_offset_x" style="min-width: 200px;">Décalage horizontal (px) :</label>
+            <label for="tide_offset_x" style="min-width: 200px;">{{ _("Décalage horizontal (px) :") }}</label>
             <input type="number" id="tide_offset_x" name="tide_offset_x" value="{{ config.get('tide_offset_x', 0) }}">
         </div>
 
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <label for="tide_offset_y" style="min-width: 200px;">Décalage vertical (px) :</label>
+            <label for="tide_offset_y" style="min-width: 200px;">{{ _("Décalage vertical (px) :") }}</label>
             <input type="number" id="tide_offset_y" name="tide_offset_y" value="{{ config.get('tide_offset_y', 0) }}">
         </div>
 
         <div class="mt-2 mb-4">
-            <button type="button" id="testStormglassApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm inline-flex items-center"><i class="fas fa-plug mr-2"></i>Tester la connexion</button>
-            <button type="button" id="forceTideUpdateBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm inline-flex items-center"><i class="fas fa-sync-alt mr-2"></i>Forcer la mise à jour</button>
+            <button type="button" id="testStormglassApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm inline-flex items-center"><i class="fas fa-plug mr-2"></i>{{ _("Tester la connexion") }}</button>
+            <button type="button" id="forceTideUpdateBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm inline-flex items-center"><i class="fas fa-sync-alt mr-2"></i>{{ _("Forcer la mise à jour") }}</button>
         </div>
         <div class="mb-4">
             <span id="stormglassApiTestResult" class="ml-4 font-medium"></span>
@@ -300,29 +329,29 @@
         </div>
 
         <fieldset class="mt-6">
-            <legend><strong>État Actuel des Marées</strong></legend>
+            <legend><strong>{{ _("État Actuel des Marées") }}</strong></legend>
             <div id="tide-status-container" class="p-3 bg-gray-100 rounded-lg border text-sm">
-                <p><strong>Dernière mise à jour des données :</strong> <span id="tide-last-update" class="font-mono">Chargement...</span></p>
-                <p><strong>Prochaine Pleine Mer :</strong> <span id="tide-next-high" class="font-mono">Chargement...</span></p>
-                <p><strong>Prochaine Basse Mer :</strong> <span id="tide-next-low" class="font-mono">Chargement...</span></p>
-                <p><strong>État de l'API :</strong> <span id="tide-api-status" class="font-mono text-gray-500">Chargement...</span></p>
+                <p><strong>{{ _("Dernière mise à jour des données :") }}</strong> <span id="tide-last-update" class="font-mono">{{ _("Chargement...") }}</span></p>
+                <p><strong>{{ _("Prochaine Pleine Mer :") }}</strong> <span id="tide-next-high" class="font-mono">{{ _("Chargement...") }}</span></p>
+                <p><strong>{{ _("Prochaine Basse Mer :") }}</strong> <span id="tide-next-low" class="font-mono">{{ _("Chargement...") }}</span></p>
+                <p><strong>{{ _("État de l'API :") }}</strong> <span id="tide-api-status" class="font-mono text-gray-500">{{ _("Chargement...") }}</span></p>
             </div>
         </fieldset>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><strong>Fuseau Horaire</strong></legend>
+        <legend><strong>{{ _("Fuseau Horaire") }}</strong></legend>
         <div class="p-3 bg-gray-100 rounded-lg border">
-            <p><strong>Fuseau horaire actuel du système :</strong> <span class="font-mono">{{ config.get('timezone', 'Non défini') }}</span></p>
+            <p><strong>{{ _("Fuseau horaire actuel du système :") }}</strong> <span class="font-mono">{{ config.get('timezone', _('Non défini')) }}</span></p>
             {% if config.get('timezone_source') == 'fallback' %}
             <div class="mt-2 p-3 text-sm text-yellow-800 bg-yellow-100 rounded-lg" role="alert">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
-                <strong>Attention :</strong> La détection automatique du fuseau horaire a échoué lors de l'installation. Le système est configuré sur <strong>UTC</strong>. L'heure affichée peut être incorrecte.
+                <strong>{{ _("Attention :") }}</strong> {{ _("La détection automatique du fuseau horaire a échoué lors de l'installation. Le système est configuré sur <strong>UTC</strong>. L'heure affichée peut être incorrecte.")|safe }}
                 <br>
-                Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi (via SSH) et en exécutant la commande : <code class="bg-gray-200 text-black p-1 rounded text-xs">sudo timedatectl set-timezone Europe/Paris</code> (remplacez par votre région/ville).
+                {{ _("Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi (via SSH) et en exécutant la commande :") }} <code class="bg-gray-200 text-black p-1 rounded text-xs">sudo timedatectl set-timezone Europe/Paris</code> {{ _("(remplacez par votre région/ville).") }}
             </div>
             {% else %}
-            <p class="text-sm text-gray-600 mt-1">Le fuseau horaire a été configuré automatiquement lors de l'installation.</p>
+            <p class="text-sm text-gray-600 mt-1">{{ _("Le fuseau horaire a été configuré automatiquement lors de l'installation.") }}</p>
             {% endif %}
         </div>
     </fieldset>
@@ -331,142 +360,142 @@
 
 <div id="tab-sources" class="tabcontent">
     <fieldset>
-        <legend><h3>Configuration de l'album photo Immich</h3></legend>
+        <legend><h3>{{ _("Configuration de l'album photo Immich") }}</h3></legend>
                    
 
                         
-                        <label for="album_name">Nom technique de l'album Immich :</label>
+                        <label for="album_name">{{ _("Nom technique de l'album Immich :") }}</label>
                         <input type="text" id="album_name" name="album_name" value="{{ config.album_name }}">
 
 
-                        <label for="immich_url">URL du serveur Immich :</label>
+                        <label for="immich_url">{{ _("URL du serveur Immich :") }}</label>
                         <input type="url" id="immich_url" name="immich_url" value="{{ config.immich_url }}">
 
-                        <label for="immich_token">Token d'accès Immich :</label>
+                        <label for="immich_token">{{ _("Token d'accès Immich :") }}</label>
                         <input type="text" id="immich_token" name="immich_token" value="{{ config.immich_token }}">
 
                         <hr class="my-4">
-                        <h5 class="text-lg font-semibold mt-2">Mise à jour automatique (Immich)</h5>
+                        <h5 class="text-lg font-semibold mt-2">{{ _("Mise à jour automatique (Immich)") }}</h5>
                         <div class="form-check form-switch my-3">
                             <input class="form-check-input" type="checkbox" id="immich_auto_update" name="immich_auto_update" {% if config.get('immich_auto_update') %}checked{% endif %}>
-                            <label class="form-check-label" for="immich_auto_update">Activer la mise à jour automatique</label>
+                            <label class="form-check-label" for="immich_auto_update">{{ _("Activer la mise à jour automatique") }}</label>
                         </div>
-                        <label for="immich_update_interval_hours">Intervalle de mise à jour (heures):</label>
+                        <label for="immich_update_interval_hours">{{ _("Intervalle de mise à jour (heures):") }}</label>
                         <input type="number" id="immich_update_interval_hours" name="immich_update_interval_hours" value="{{ config.get('immich_update_interval_hours', 24) }}" min="1">
 
                         <div id="immich-worker-status-container" class="mt-4 p-3 bg-gray-100 rounded-lg border">
-                            <p><strong>État du service :</strong> <span id="immich-worker-status-message" class="font-mono">...</span></p>
-                            <p><strong>Dernière mise à jour :</strong> <span id="immich-last-update-time" class="font-mono">...</span></p>
-                            <p><strong>Prochaine mise à jour :</strong> <span id="immich-next-update-time" class="font-mono">...</span></p>
+                            <p><strong>{{ _("État du service :") }}</strong> <span id="immich-worker-status-message" class="font-mono">...</span></p>
+                            <p><strong>{{ _("Dernière mise à jour :") }}</strong> <span id="immich-last-update-time" class="font-mono">...</span></p>
+                            <p><strong>{{ _("Prochaine mise à jour :") }}</strong> <span id="immich-next-update-time" class="font-mono">...</span></p>
                         </div>
 
 
     </fieldset>
 
     <fieldset class="mt-4">
-        <legend><h3>Sources à afficher dans le diaporama</h3></legend>
-        <p class="mb-3 text-gray-700">Sélectionnez les sources de photos à inclure dans le diaporama. Les photos seront mélangées entre les sources sélectionnées.</p>
+        <legend><h3>{{ _("Sources à afficher dans le diaporama") }}</h3></legend>
+        <p class="mb-3 text-gray-700">{{ _("Sélectionnez les sources de photos à inclure dans le diaporama. Les photos seront mélangées entre les sources sélectionnées.") }}</p>
 
         <div class="form-check form-switch my-2">
             <input class="form-check-input" type="checkbox" id="display_source_immich" name="display_sources" value="immich" {% if 'immich' in config.display_sources %}checked{% endif %}>
-            <label class="form-check-label" for="display_source_immich">Photos Immich</label>
+            <label class="form-check-label" for="display_source_immich">{{ _("Photos Immich") }}</label>
         </div>
         <div class="form-check form-switch my-2">
             <input class="form-check-input" type="checkbox" id="display_source_usb" name="display_sources" value="usb" {% if 'usb' in config.display_sources %}checked{% endif %}>
-            <label class="form-check-label" for="display_source_usb">Photos USB</label>
+            <label class="form-check-label" for="display_source_usb">{{ _("Photos USB") }}</label>
         </div>
         <div class="form-check form-switch my-2">
             <input class="form-check-input" type="checkbox" id="display_source_samba" name="display_sources" value="samba" {% if 'samba' in config.display_sources %}checked{% endif %}>
-            <label class="form-check-label" for="display_source_samba">Photos Samba</label>
+            <label class="form-check-label" for="display_source_samba">{{ _("Photos Samba") }}</label>
         </div>
         <div class="form-check form-switch my-2">
             <input class="form-check-input" type="checkbox" id="display_source_smartphone" name="display_sources" value="smartphone" {% if 'smartphone' in config.display_sources %}checked{% endif %}>
-            <label class="form-check-label" for="display_source_smartphone">Photos Smartphone</label>
+            <label class="form-check-label" for="display_source_smartphone">{{ _("Photos Smartphone") }}</label>
         </div>
     </fieldset>
     <fieldset class="mt-4">
-        <legend><h3>Configuration du partage Samba (Windows)</h3></legend>
-        <label for="smb_host">Serveur :</label>
-        <input type="text" id="smb_host" name="smb_host" value="{{ config.get('smb_host', '') }}" placeholder="ex: 192.168.1.50 ou MON-NAS">
+        <legend><h3>{{ _("Configuration du partage Samba (Windows)") }}</h3></legend>
+        <label for="smb_host">{{ _("Serveur :") }}</label>
+        <input type="text" id="smb_host" name="smb_host" value="{{ config.get('smb_host', '') }}" placeholder="{{ _('ex: 192.168.1.50 ou MON-NAS') }}">
 
-        <label for="smb_share">Nom du partage :</label>
-        <input type="text" id="smb_share" name="smb_share" value="{{ config.get('smb_share', '') }}" placeholder="ex: Photos">
+        <label for="smb_share">{{ _("Nom du partage :") }}</label>
+        <input type="text" id="smb_share" name="smb_share" value="{{ config.get('smb_share', '') }}" placeholder="{{ _('ex: Photos') }}">
 
-        <label for="smb_path">Chemin dans le partage (optionnel) :</label>
-        <input type="text" id="smb_path" name="smb_path" value="{{ config.get('smb_path', '') }}" placeholder="ex: Famille/2024">
+        <label for="smb_path">{{ _("Chemin dans le partage (optionnel) :") }}</label>
+        <input type="text" id="smb_path" name="smb_path" value="{{ config.get('smb_path', '') }}" placeholder="{{ _('ex: Famille/2024') }}">
 
-        <label for="smb_user">Nom d'utilisateur (optionnel) :</label>
+        <label for="smb_user">{{ _("Nom d'utilisateur (optionnel) :") }}</label>
         <input type="text" id="smb_user" name="smb_user" value="{{ config.get('smb_user', '') }}">
 
-        <label for="smb_password">Mot de passe (optionnel) :</label>
+        <label for="smb_password">{{ _("Mot de passe (optionnel) :") }}</label>
         <input type="password" id="smb_password" name="smb_password" value="{{ config.get('smb_password', '') }}">
 
         <div class="mt-4">
-            <button type="button" id="samba-test-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Tester la connexion</button>
+            <button type="button" id="samba-test-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">{{ _("Tester la connexion") }}</button>
             <span id="samba-test-status" class="ml-4 font-medium"></span>
         </div>
 
         <hr class="my-4">
-        <h5 class="text-lg font-semibold mt-2">Mise à jour automatique (Samba)</h5>
+        <h5 class="text-lg font-semibold mt-2">{{ _("Mise à jour automatique (Samba)") }}</h5>
         <div class="form-check form-switch my-3">
             <input class="form-check-input" type="checkbox" id="smb_auto_update" name="smb_auto_update" {% if config.get('smb_auto_update') %}checked{% endif %}>
-            <label class="form-check-label" for="smb_auto_update">Activer la mise à jour automatique</label>
+            <label class="form-check-label" for="smb_auto_update">{{ _("Activer la mise à jour automatique") }}</label>
         </div>
-        <label for="smb_update_interval_hours">Intervalle de mise à jour (heures):</label>
+        <label for="smb_update_interval_hours">{{ _("Intervalle de mise à jour (heures):") }}</label>
         <input type="number" id="smb_update_interval_hours" name="smb_update_interval_hours" value="{{ config.get('smb_update_interval_hours', 24) }}" min="1">
 
         <div id="samba-worker-status-container" class="mt-4 p-3 bg-gray-100 rounded-lg border">
-            <p><strong>État du service :</strong> <span id="samba-worker-status-message" class="font-mono">...</span></p>
-            <p><strong>Dernière mise à jour :</strong> <span id="samba-last-update-time" class="font-mono">...</span></p>
-            <p><strong>Prochaine mise à jour :</strong> <span id="samba-next-update-time" class="font-mono">...</span></p>
+            <p><strong>{{ _("État du service :") }}</strong> <span id="samba-worker-status-message" class="font-mono">...</span></p>
+            <p><strong>{{ _("Dernière mise à jour :") }}</strong> <span id="samba-last-update-time" class="font-mono">...</span></p>
+            <p><strong>{{ _("Prochaine mise à jour :") }}</strong> <span id="samba-next-update-time" class="font-mono">...</span></p>
         </div>
 
     </fieldset>
 
     <fieldset class="mt-4">
-        <legend><h3>Options de démarrage</h3></legend>
+        <legend><h3>{{ _("Options de démarrage") }}</h3></legend>
         <div class="form-check form-switch my-3">
             <input class="form-check-input" type="checkbox" id="skip_initial_auto_import" name="skip_initial_auto_import" {% if config.get('skip_initial_auto_import', False) %}checked{% endif %}>
-            <label class="form-check-label" for="skip_initial_auto_import">Ignorer le premier import automatique au démarrage</label>
+            <label class="form-check-label" for="skip_initial_auto_import">{{ _("Ignorer le premier import automatique au démarrage") }}</label>
         </div>
-        <p class="text-sm text-gray-600 mt-2">Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne se lanceront pas immédiatement après un redémarrage du cadre, mais attendront le prochain cycle programmé.</p>
+        <p class="text-sm text-gray-600 mt-2">{{ _("Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne se lanceront pas immédiatement après un redémarrage du cadre, mais attendront le prochain cycle programmé.") }}</p>
     </fieldset>
 </div>
 
    
-    <button type="submit" id="save-changes-btn" class="save-button">Enregistrer les modifications</button>
+    <button type="submit" id="save-changes-btn" class="save-button">{{ _("Enregistrer les modifications") }}</button>
 
 </form>
 
 <div id="tab-actions" class="tabcontent">
     <fieldset>
-    <legend><h3>Actions</h3></legend>
+    <legend><h3>{{ _("Actions") }}</h3></legend>
 
         <div class="action-group">
-            <h4>Aperçu en direct</h4>
+            <h4>{{ _("Aperçu en direct") }}</h4>
             <div id="live-preview-container" class="mt-2 p-3 bg-gray-100 rounded-lg border text-center">
-                <p id="live-preview-status" class="text-gray-500 italic">Le diaporama est arrêté.</p>
-                <img id="live-preview-image" src="" alt="Photo en cours" class="hidden mt-2 mx-auto max-w-xs max-h-48 rounded shadow">
+                <p id="live-preview-status" class="text-gray-500 italic">{{ _("Le diaporama est arrêté.") }}</p>
+                <img id="live-preview-image" src="" alt="{{ _('Photo en cours') }}" class="hidden mt-2 mx-auto max-w-xs max-h-48 rounded shadow">
             </div>
         </div>
 
         <div class="action-group">
-            <h4>Gestion du diaporama</h4>
+            <h4>{{ _("Gestion du diaporama") }}</h4>
             <form method="POST" action="/toggle_slideshow">
                 <button type="submit" class="system-button {% if slideshow_running %}bg-red-500 hover:bg-red-700{% else %}bg-green-500 hover:bg-green-700{% endif %} text-white font-bold py-2 px-4 rounded">
                     {% if slideshow_running %}
-                    <i class="fas fa-stop"></i> Arrêter le diaporama
+                    <i class="fas fa-stop"></i> {{ _("Arrêter le diaporama") }}
                     {% else %}
-                    <i class="fas fa-play"></i> Démarrer le diaporama
+                    <i class="fas fa-play"></i> {{ _("Démarrer le diaporama") }}
                     {% endif %}
                 </button>
             </form>
         </div>
 
         <div class="action-group">
-            <h4>Importation des photos</h4>
+            <h4>{{ _("Importation des photos") }}</h4>
             <button id="usb-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                <i class="fas fa-file-import"></i> Importer depuis la clé USB
+                <i class="fas fa-file-import"></i> {{ _("Importer depuis la clé USB") }}
             </button>
             <div id="usb-progress-container" class="progress-container hidden">
                 <div id="usb-progress-bar" class="progress-bar"></div>
@@ -474,7 +503,7 @@
             <div id="usb-import-status" class="status-messages"></div>
 
             <button id="immich-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                <i class="fas fa-cloud-download-alt"></i> Importer depuis Immich
+                <i class="fas fa-cloud-download-alt"></i> {{ _("Importer depuis Immich") }}
             </button>
             <div id="immich-progress-container" class="progress-container hidden">
                 <div id="immich-progress-bar" class="progress-bar"></div>
@@ -482,7 +511,7 @@
             <div id="immich-import-status" class="status-messages"></div>
                                         
             <button id="samba-import-btn" class="import-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                <i class="fas fa-network-wired"></i> Importer depuis Samba
+                <i class="fas fa-network-wired"></i> {{ _("Importer depuis Samba") }}
             </button>
             <div id="samba-progress-container" class="progress-container hidden">
                 <div id="samba-progress-bar" class="progress-bar"></div>
@@ -491,11 +520,11 @@
 
             <!-- Smartphone Upload Form -->
             <form id="smartphone-upload-form" enctype="multipart/form-data" class="mt-4 pt-4 border-t border-gray-200">
-                <h5 class="text-lg font-semibold mb-2 flex items-center gap-2"><i class="fas fa-mobile-alt"></i> Importer depuis un Smartphone</h5>
-                <p class="text-sm text-gray-600 mb-3">Envoyez des photos directement depuis votre téléphone via le navigateur.</p>
+                <h5 class="text-lg font-semibold mb-2 flex items-center gap-2"><i class="fas fa-mobile-alt"></i> {{ _("Importer depuis un Smartphone") }}</h5>
+                <p class="text-sm text-gray-600 mb-3">{{ _("Envoyez des photos directement depuis votre téléphone via le navigateur.") }}</p>
                 <input type="file" name="photos" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none mb-3" multiple required>
                 <button type="submit" id="import-smartphone-btn" class="import-button bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                    <i class="fas fa-upload"></i> Envoyer les photos
+                    <i class="fas fa-upload"></i> {{ _("Envoyer les photos") }}
                 </button>
             </form>
             <div id="smartphone-progress-container" class="progress-container hidden">
@@ -508,10 +537,10 @@
 
 <div id="tab-validation" class="tabcontent">
     <fieldset>
-        <legend><h3>Photos en attente de validation</h3></legend>
+        <legend><h3>{{ _("Photos en attente de validation") }}</h3></legend>
         <div class="flex justify-between items-center mb-4">
-            <p class="text-gray-600">Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées à la source "Smartphone".</p>
-            <button type="button" id="refresh-pending-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"><i class="fas fa-sync-alt mr-2"></i>Actualiser</button>
+            <p class="text-gray-600">{{ _("Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées à la source \"Smartphone\".") }}</p>
+            <button type="button" id="refresh-pending-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"><i class="fas fa-sync-alt mr-2"></i>{{ _("Actualiser") }}</button>
         </div>
         <div id="pending-photos-grid" class="photo-grid">
             <!-- Les photos en attente seront chargées ici par JavaScript -->
@@ -574,8 +603,8 @@
             
 <div id="tab-apercu" class="tabcontent">
     <fieldset>
-        <legend><h3>Aperçu des photos préparées</h3></legend>
-        <p class="text-gray-600 mb-4">Voici les photos qui sont prêtes à être affichées par le diaporama, classées par source. Cliquez sur une photo pour l'agrandir.</p>
+        <legend><h3>{{ _("Aperçu des photos préparées") }}</h3></legend>
+        <p class="text-gray-600 mb-4">{{ _("Voici les photos qui sont prêtes à être affichées par le diaporama, classées par source. Cliquez sur une photo pour l'agrandir.") }}</p>
 
         {% if prepared_photos_by_source and prepared_photos_by_source.values()|map('count')|sum > 0 %}
             {% for source_name, photos in prepared_photos_by_source.items() %}
@@ -583,46 +612,61 @@
                 <fieldset class="mb-6 p-4 border rounded-lg bg-gray-50/50">
                     <div class="flex justify-between items-center border-b pb-2 mb-4">
                         <h4 class="text-xl font-semibold text-gray-800">{{ source_name.capitalize() }}</h4>
-                        <!-- Bouton pour supprimer toutes les photos de la source -->
-                        <button type="button" class="delete-all-btn bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded inline-flex items-center" data-source="{{ source_name }}" title="Supprimer toutes les photos de la source '{{ source_name }}'">
+                        <!-- Bouton pour supprimer tous les médias de la source -->
+                        <button type="button" class="delete-all-btn bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded inline-flex items-center" data-source="{{ source_name }}" title="{{ _('Supprimer toutes les photos de la source \'%(source)s\'', source=source_name) }}">
                             <i class="fas fa-trash-alt mr-2"></i>
-                            <span>Tout supprimer</span>
+                            <span>{{ _("Tout supprimer") }}</span>
                         </button>
                     </div>
                         <div class="photo-grid">
-                            {% for photo in photos %}
-                            {% set photo_path = photo.path %}
-                            {% set has_polaroid = photo.has_polaroid %}
-                            {% set active_filter = photo.active_filter %}
+                            {% for media in photos %}
+                            {% set photo_path = media.path %}
+                            {% set has_polaroid = media.has_polaroid %}
+                            {% set active_filter = media.active_filter %}
                             <div class="photo-tile relative">
                                 <!-- Spinner Overlay -->
                                 <div class="spinner-overlay hidden absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded z-10">
                                     <i class="fas fa-spinner fa-spin text-white text-3xl"></i>
                                 </div>
                                 
-                                {% set initial_image_path = 'prepared/' + photo_path %}
-                                {% if active_filter == 'polaroid' and has_polaroid %}
-                                    {% set polaroid_filename = photo_path.rsplit('.', 1)[0] + '_polaroid.jpg' %}
-                                    {% set initial_image_path = 'prepared/' + polaroid_filename %}
+                                {% set media_url = url_for('static', filename='prepared/' + media.path) %}
+                                {% set thumb_url = '' %} {# Fallback to empty string #}
+
+                                {% if media.type == 'image' %}
+                                    {% set thumb_url = media_url %}
+                                    {% if media.active_filter == 'polaroid' and media.has_polaroid %}
+                                        {% set polaroid_filename = media.path.rsplit('.', 1)[0] + '_polaroid.jpg' %}
+                                        {% set thumb_url = url_for('static', filename='prepared/' + polaroid_filename) %}
+                                    {% endif %}
+                                {% elif media.type == 'video' and media.thumbnail_path %}
+                                    {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
                                 {% endif %}
-                                <a href="{{ url_for('static', filename=initial_image_path) }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ photo_path }}">
-                                  <img src="{{ url_for('static', filename=initial_image_path) }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition" alt="Photo from {{ source_name }}">
+
+                                <a href="{{ media_url }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                                  <img src="{{ thumb_url }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition bg-gray-200" alt="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                                  {% if media.type == 'video' %}
+                                  <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded">
+                                      <i class="fas fa-play text-white text-3xl opacity-75"></i>
+                                  </div>
+                                  {% endif %}
                                 </a>
                                 <!-- Actions alignées avec "justify-between" pour pousser la poubelle à droite -->
+                                {% if media.type == 'image' %}
                                 <div class="photo-actions mt-1 flex items-center justify-between w-full gap-x-2">
                                     <select class="filter-select text-xs rounded border-gray-300 py-1" data-photo="{{ photo_path }}">
-                                        <option value="none" {% if active_filter == 'none' %}selected{% endif %}>Filtre...</option>
-                                        <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>Noir & Blanc</option>
-                                        <option value="sepia" {% if active_filter == 'sepia' %}selected{% endif %}>Sépia</option>
-                                        <option value="vignette" {% if active_filter == 'vignette' %}selected{% endif %}>Vignette</option>
-                                        <option value="vintage" {% if active_filter == 'vintage' %}selected{% endif %}>Vintage</option>
+                                        <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
+                                        <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
+                                        <option value="sepia" {% if active_filter == 'sepia' %}selected{% endif %}>{{ _("Sépia") }}</option>
+                                        <option value="vignette" {% if active_filter == 'vignette' %}selected{% endif %}>{{ _("Vignette") }}</option>
+                                        <option value="vintage" {% if active_filter == 'vintage' %}selected{% endif %}>{{ _("Vintage") }}</option>
                                         {% if has_polaroid %}
-                                        <option value="polaroid" {% if active_filter == 'polaroid' %}selected{% endif %}>Polaroid</option>
+                                        <option value="polaroid" {% if active_filter == 'polaroid' %}selected{% endif %}>{{ _("Polaroid") }}</option>
                                         {% endif %}
-                                        <option value="original" class="text-blue-600 font-semibold">Original</option>
+                                        <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                                     </select>
-                                    <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="Supprimer cette photo"><i class="fas fa-trash-alt"></i></button>
+                                    <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
                                 </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -630,79 +674,79 @@
                 {% endif %}
             {% endfor %}
         {% else %}
-            <p class="text-center text-gray-500 italic mt-4">Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet "Actions".</p>
+            <p class="text-center text-gray-500 italic mt-4">{{ _("Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet \"Actions\".") }}</p>
         {% endif %}
     </fieldset>
 </div>
 
 <div id="tab-system" class="tabcontent">
     <fieldset class="mb-6">
-        <legend><h3>État de la connexion Wi-Fi</h3></legend>
+        <legend><h3>{{ _("État de la connexion Wi-Fi") }}</h3></legend>
         <div id="wifi-status-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="p-3 bg-gray-100 rounded-lg border">
-                <strong>État:</strong> <span id="wifi-connection-state" class="font-semibold">Chargement...</span>
+                <strong>{{ _("État:") }}</strong> <span id="wifi-connection-state" class="font-semibold">{{ _("Chargement...") }}</span>
             </div>
             <div class="p-3 bg-gray-100 rounded-lg border">
-                <strong>Réseau (SSID):</strong> <span id="wifi-current-ssid">Chargement...</span>
+                <strong>{{ _("Réseau (SSID):") }}</strong> <span id="wifi-current-ssid">{{ _("Chargement...") }}</span>
             </div>
             <div class="p-3 bg-gray-100 rounded-lg border">
-                <strong>Adresse IP:</strong> <span id="wifi-ip-address">Chargement...</span>
+                <strong>{{ _("Adresse IP:") }}</strong> <span id="wifi-ip-address">{{ _("Chargement...") }}</span>
             </div>
         </div>
     </fieldset>
     <fieldset class="mt-6">
-        <legend><h3>Configuration Wi-Fi</h3></legend>
-        <p class="text-sm text-gray-600 mb-3">La sélection du pays est obligatoire pour activer l'interface Wi-Fi et respecter les réglementations locales sur les fréquences radio.</p>
+        <legend><h3>{{ _("Configuration Wi-Fi") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("La sélection du pays est obligatoire pour activer l'interface Wi-Fi et respecter les réglementations locales sur les fréquences radio.") }}</p>
         <form action="{{ url_for('save_wifi_settings') }}" method="post" id="wifi-config-form">
             <div class="mb-4">
-                <label for="wifi_country" class="block text-sm font-medium text-gray-700">Pays (pour la réglementation Wi-Fi)</label>
+                <label for="wifi_country" class="block text-sm font-medium text-gray-700">{{ _("Pays (pour la réglementation Wi-Fi)") }}</label>
                 <select id="wifi_country" name="wifi_country" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    {% set countries = [('FR', 'France'), ('US', 'États-Unis'), ('GB', 'Royaume-Uni'), ('DE', 'Allemagne'), ('ES', 'Espagne'), ('CA', 'Canada'), ('BE', 'Belgique'), ('CH', 'Suisse')] %}
+                    {% set countries = [('FR', _('France')), ('US', _('États-Unis')), ('GB', _('Royaume-Uni')), ('DE', _('Allemagne')), ('ES', _('Espagne')), ('CA', _('Canada')), ('BE', _('Belgique')), ('CH', _('Suisse'))] %}
                     {% for code, name in countries %}
                         <option value="{{ code }}" {% if config.get('wifi_country', 'FR') == code %}selected{% endif %}>{{ name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="mb-4">
-                <label for="wifi_ssid" class="block text-sm font-medium text-gray-700">SSID (Nom du réseau)</label>
+                <label for="wifi_ssid" class="block text-sm font-medium text-gray-700">{{ _("SSID (Nom du réseau)") }}</label>
                 <input type="text" id="wifi_ssid" name="wifi_ssid" value="{{ config.get('wifi_ssid', '') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
             </div>
             <div class="mb-4">
-                <label for="wifi_password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                <label for="wifi_password" class="block text-sm font-medium text-gray-700">{{ _("Mot de passe") }}</label>
                 <input type="password" id="wifi_password" name="wifi_password" value="{{ config.get('wifi_password', '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                <p class="mt-2 text-sm text-gray-500">Laissez vide si le réseau est ouvert.</p>
+                <p class="mt-2 text-sm text-gray-500">{{ _("Laissez vide si le réseau est ouvert.") }}</p>
             </div>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                <i class="fas fa-save mr-2"></i>Appliquer les paramètres Wi-Fi
+                <i class="fas fa-save mr-2"></i>{{ _("Appliquer les paramètres Wi-Fi") }}
             </button>
         </form>
-        <p class="mt-3 text-xs text-gray-500">Note : Après avoir appliqué les paramètres, la connexion peut prendre jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à "Connecté", vérifiez le mot de passe puis essayez de redémarrer le système.</p>
+        <p class="mt-3 text-xs text-gray-500">{{ _("Note : Après avoir appliqué les paramètres, la connexion peut prendre jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à \"Connecté\", vérifiez le mot de passe puis essayez de redémarrer le système.") }}</p>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><h3>Gestion des Interfaces Réseau</h3></legend>
-        <p class="text-sm text-gray-600 mb-3">Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, c'est souvent un problème de priorité. Désactivez l'interface Ethernet pour forcer le système à utiliser exclusivement le Wi-Fi. Cette action redémarre le service réseau.</p>
+        <legend><h3>{{ _("Gestion des Interfaces Réseau") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, c'est souvent un problème de priorité. Désactivez l'interface Ethernet pour forcer le système à utiliser exclusivement le Wi-Fi. Cette action redémarre le service réseau.") }}</p>
         
         <!-- Interface Ethernet (eth0) -->
         <div id="eth0-status-container" class="p-4 border rounded-lg bg-gray-50/50 flex items-center justify-between">
             <div>
-                <h4 class="font-semibold text-gray-800">Interface Filaire (eth0)</h4>
-                <p class="text-sm"><strong>État:</strong> <span id="eth0-state" class="font-mono">Chargement...</span></p>
-                <p class="text-sm"><strong>Adresse IP:</strong> <span id="eth0-ip" class="font-mono">Chargement...</span></p>
+                <h4 class="font-semibold text-gray-800">{{ _("Interface Filaire (eth0)") }}</h4>
+                <p class="text-sm"><strong>{{ _("État:") }}</strong> <span id="eth0-state" class="font-mono">{{ _("Chargement...") }}</span></p>
+                <p class="text-sm"><strong>{{ _("Adresse IP:") }}</strong> <span id="eth0-ip" class="font-mono">{{ _("Chargement...") }}</span></p>
             </div>
             <div>
-                <button id="toggle-eth0-btn" class="system-button text-white font-bold py-2 px-4 rounded" disabled>Chargement...</button>
+                <button id="toggle-eth0-btn" class="system-button text-white font-bold py-2 px-4 rounded" disabled>{{ _("Chargement...") }}</button>
             </div>
         </div>
     </fieldset>
 
     <!-- Bloc de scan Wi-Fi -->
     <div class="mt-6 p-4 border rounded-lg bg-gray-50/50">
-        <h4 class="text-xl font-semibold text-gray-800 mb-2">Réseaux Wi-Fi à proximité</h4>
-        <p class="text-gray-600 mb-4">Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. Cliquer sur un réseau dans la liste remplira automatiquement le champ SSID ci-dessus.</p>
-        <button id="scan-wifi-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded mb-3 inline-flex items-center">
+        <h4 class="text-xl font-semibold text-gray-800 mb-2">{{ _("Réseaux Wi-Fi à proximité") }}</h4>
+        <p class="text-gray-600 mb-4">{{ _("Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. Cliquer sur un réseau dans la liste remplira automatiquement le champ SSID ci-dessus.") }}</p>
+        <button id="scan-wifi-btn" type="button" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded mb-3 inline-flex items-center">
             <i class="fas fa-wifi mr-2"></i>
-            <span id="scan-wifi-btn-text">Lancer le scan</span>
+            <span id="scan-wifi-btn-text">{{ _("Lancer le scan") }}</span>
         </button>
         <div id="wifi-scan-results" class="mt-4">
             <!-- Les résultats du scan apparaîtront ici -->
@@ -710,111 +754,104 @@
     </div>
 
     <fieldset class="mt-6">
-        <legend><h3>Sécurité</h3></legend>
-        <form action="{{ url_for('change_password_route') }}" method="post" id="password-change-form" onsubmit="return validatePassword();">
-            <h4 class="text-lg font-semibold text-gray-800 mb-2">Changer le mot de passe de l'interface</h4>
+        <legend><h3>{{ _("Sécurité") }}</h3></legend>
+        <form action="{{ url_for('change_password_route') }}" method="post" id="password-change-form">
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">{{ _("Changer le mot de passe de l'interface") }}</h4>
             <div class="mb-4">
-                <label for="new_password" class="block text-sm font-medium text-gray-700">Nouveau mot de passe</label>
-                <input type="password" id="new_password" name="new_password" required minlength="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="6 caractères minimum">
+                <label for="new_password" class="block text-sm font-medium text-gray-700">{{ _("Nouveau mot de passe") }}</label>
+                <input type="password" id="new_password" name="new_password" required minlength="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="{{ _('6 caractères minimum') }}">
             </div>
             <div class="mb-4">
-                <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmer le nouveau mot de passe</label>
+                <label for="confirm_password" class="block text-sm font-medium text-gray-700">{{ _("Confirmer le nouveau mot de passe") }}</label>
                 <input type="password" id="confirm_password" name="confirm_password" required minlength="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                <p id="password-error" class="mt-2 text-sm text-red-600 hidden">Les mots de passe ne correspondent pas.</p>
+                <p id="password-error" class="mt-2 text-sm text-red-600 hidden">{{ _("Les mots de passe ne correspondent pas.") }}</p>
             </div>
             <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                <i class="fas fa-key mr-2"></i>Changer le mot de passe
+                <i class="fas fa-key mr-2"></i>{{ _("Changer le mot de passe") }}
             </button>
         </form>
-        <script>
-            function validatePassword() {
-                const newPassword = document.getElementById('new_password').value;
-                const confirmPassword = document.getElementById('confirm_password').value;
-                const errorP = document.getElementById('password-error');
-                if (newPassword !== confirmPassword) { errorP.classList.remove('hidden'); return false; }
-                errorP.classList.add('hidden'); return true;
-            }
-        </script>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><h3>Sauvegarde et Restauration</h3></legend>
-        <p class="text-sm text-gray-600 mb-3">Sauvegardez votre configuration (API, partages, affichage...) dans un fichier. Vous pourrez le restaurer plus tard ou sur une nouvelle installation.</p>
+        <legend><h3>{{ _("Sauvegarde et Restauration") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Sauvegardez votre configuration (API, partages, affichage...) dans un fichier. Vous pourrez le restaurer plus tard ou sur une nouvelle installation.") }}</p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Sauvegarde -->
             <div class="p-4 border rounded-lg bg-gray-50/50">
-                <h4 class="font-semibold text-gray-800 mb-2">Sauvegarder la configuration</h4>
+                <h4 class="font-semibold text-gray-800 mb-2">{{ _("Sauvegarder la configuration") }}</h4>
                 <a href="{{ url_for('backup_settings_api') }}" class="system-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                    <i class="fas fa-download mr-2"></i>Télécharger la sauvegarde
+                    <i class="fas fa-download mr-2"></i>{{ _("Télécharger la sauvegarde") }}
                 </a>
             </div>
             <!-- Restauration -->
             <div class="p-4 border rounded-lg bg-gray-50/50">
-                <h4 class="font-semibold text-gray-800 mb-2">Restaurer une configuration</h4>
-                <form action="{{ url_for('restore_settings_api') }}" method="post" enctype="multipart/form-data" onsubmit="return confirm('Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du fichier de sauvegarde.')">
+                <h4 class="font-semibold text-gray-800 mb-2">{{ _("Restaurer une configuration") }}</h4>
+                <form action="{{ url_for('restore_settings_api') }}" method="post" enctype="multipart/form-data" onsubmit="return confirm('{{ _('Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du fichier de sauvegarde.') }}')">
                     <input type="file" name="backup_file" accept=".json" required class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none mb-3">
-                    <button type="submit" class="system-button bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"><i class="fas fa-upload mr-2"></i>Restaurer</button>
+                    <button type="submit" class="system-button bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"><i class="fas fa-upload mr-2"></i>{{ _("Restaurer") }}</button>
                 </form>
             </div>
         </div>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><h3>Contrôle du système</h3></legend>
-        <form method="POST" action="/reboot" onsubmit="return confirm('Êtes-vous sûr de vouloir REDÉMARRER le système ?');">
+        <legend><h3>{{ _("Contrôle du système") }}</h3></legend>
+        <form method="POST" action="/reboot" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir REDÉMARRER le système ?') }}');">
             <button type="submit" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded">
-                <i class="fas fa-sync-alt"></i> Redémarrer le système
+                <i class="fas fa-sync-alt"></i> {{ _("Redémarrer le système") }}
             </button>
         </form>
-        <form method="POST" action="/shutdown" onsubmit="return confirm('Êtes-vous sûr de vouloir ÉTEINDRE le système ?');">
+        <form method="POST" action="/shutdown" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir ÉTEINDRE le système ?') }}');">
             <button type="submit" class="system-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                <i class="fas fa-power-off"></i> Éteindre le système
+                <i class="fas fa-power-off"></i> {{ _("Éteindre le système") }}
             </button>
         </form>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><h3>Informations Système</h3></legend>
+        <legend><h3>{{ _("Informations Système") }}</h3></legend>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-3 bg-gray-100 rounded-lg border">
-                <strong>Température CPU:</strong> <span id="cpu-temp">Chargement...</span>
+                <strong>{{ _("Température CPU:") }}</strong> <span id="cpu-temp">{{ _("Chargement...") }}</span>
             </div>
             <div class="p-3 bg-gray-100 rounded-lg border">
-                <strong>Utilisation CPU:</strong> <span id="cpu-usage">Chargement...</span>
+                <strong>{{ _("Utilisation CPU:") }}</strong> <span id="cpu-usage">{{ _("Chargement...") }}</span>
             </div>
             <div class="p-3 bg-gray-100 rounded-lg border">
-                <strong>RAM:</strong> <span id="ram-usage">Chargement...</span>
+                <strong>{{ _("RAM:") }}</strong> <span id="ram-usage">{{ _("Chargement...") }}</span>
             </div>
             <div class="p-3 bg-gray-100 rounded-lg border">
-                <strong>Stockage:</strong> <span id="disk-usage">Chargement...</span>
+                <strong>{{ _("Stockage:") }}</strong> <span id="disk-usage">{{ _("Chargement...") }}</span>
             </div>
         </div>
     </fieldset>
 
-    <fieldset class="mt-6">
-        <legend><h3>Logs Système</h3></legend>
+    <fieldset class="mt-6" style="min-width: 0;">
+        <legend><h3>{{ _("Logs Système") }}</h3></legend>
         <div class="mb-3">
-            <label for="log-selector" class="form-label">Sélectionner un log :</label>
+            <label for="log-selector" class="form-label">{{ _("Sélectionner un log :") }}</label>
             <select id="log-selector" class="form-select">
-                <option value="app">app.py (Serveur Web)</option>
-                <option value="slideshow_stdout">local_slideshow.py (Diaporama - Sortie Standard)</option>
-                <option value="slideshow_stderr">local_slideshow.py (Diaporama - Erreurs)</option>
+                <option value="app">{{ _("app.py (Serveur Web)") }}</option>
+                <option value="slideshow_stdout">{{ _("local_slideshow.py (Diaporama - Sortie Standard)") }}</option>
+                <option value="slideshow_stderr">{{ _("local_slideshow.py (Diaporama - Erreurs)") }}</option>
             </select>
-            <button type="button" id="refresh-logs-btn" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-2">Actualiser</button>
-            <button type="button" id="clear-logs-btn" class="btn btn-danger bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded ml-2">Effacer les logs</button>
+            <button type="button" id="refresh-logs-btn" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-2">{{ _("Actualiser") }}</button>
+            <button type="button" id="clear-logs-btn" class="btn btn-danger bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded ml-2">{{ _("Effacer les logs") }}</button>
         </div>
-        <pre id="log-content" class="bg-gray-800 text-white p-4 rounded-lg overflow-auto text-sm" style="max-height: 400px; min-height: 150px; white-space: pre-wrap; word-break: break-all;"></pre>
+        <div class="bg-gray-800 rounded-lg overflow-auto" style="max-height: 400px;">
+            <pre id="log-content" class="text-white p-4 text-sm" style="min-height: 150px; white-space: pre-wrap; word-break: break-all;"></pre>
+        </div>
     </fieldset>
 
     <fieldset class="mt-6">
-        <legend><h3>Crédits</h3></legend>
+        <legend><h3>{{ _("Crédits") }}</h3></legend>
         <div class="credits">
             <img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120" alt="Auteur Gotenash">
-            <p>Auteurs : Gotenash et Shenron</p>
+            <p>{{ _("Auteurs : Gotenash et Shenron") }}</p>
             <a href="https://www.gadgetaulab.fr">
                 <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" width="120" alt="Logo Gadgetaulab">
             </a>
-            <p>Projet réalisé dans le cadre du Gadgetaulab</p>
+            <p>{{ _("Projet réalisé dans le cadre du Gadgetaulab") }}</p>
         </div>
     </fieldset>
 </div>
@@ -824,6 +861,22 @@
   const lightbox = GLightbox({
     selector: '.glightbox'
   });
+
+  // Translations for JavaScript
+  const i18n = {
+    loading: "{{ _('Chargement...') }}",
+    error: "{{ _('Erreur') }}",
+    notAvailable: "{{ _('N/A') }}",
+    scanInProgress: "{{ _('Scan en cours...') }}",
+    startScan: "{{ _('Lancer le scan') }}",
+    noNetworksFound: "{{ _('Aucun réseau Wi-Fi trouvé.') }}",
+    commError: "{{ _('Erreur de communication avec le serveur:') }}",
+    headerSSID: "{{ _('SSID') }}",
+    headerSecurity: "{{ _('Sécurité') }}",
+    headerSignal: "{{ _('Signal') }}",
+    noSecurity: "{{ _('Aucune') }}",
+    selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
+  };
 
   // ----- GESTION DE LA VALIDATION (Fonctions globales) -----
   // On définit ces fonctions ici pour qu'elles soient accessibles partout et éviter les erreurs de chargement.
@@ -945,6 +998,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mettre à jour le badge au chargement (et la grille si l'onglet est déjà actif)
     refreshValidationTab(); // Appel initial pour mettre à jour le badge
     setInterval(refreshValidationTab, 15000); // Et le mettre à jour périodiquement
+
+    // Gérer l'affichage du sélecteur de sortie audio
+    const audioEnabledCheckbox = document.getElementById('video_audio_enabled');
+    const audioOutputSelector = document.getElementById('audio-output-selector');
+    const audioVolumeSelector = document.getElementById('audio-volume-selector');
+    if (audioEnabledCheckbox && audioOutputSelector && audioVolumeSelector) {
+        audioEnabledCheckbox.addEventListener('change', function() {
+            const displayStyle = this.checked ? 'flex' : 'none';
+            audioOutputSelector.style.display = displayStyle;
+            audioVolumeSelector.style.display = displayStyle;
+        });
+    }
+
+    // Lier le slider et le champ numérique pour le volume
+    const volumeSlider = document.getElementById('video_audio_volume_slider');
+    const volumeNumber = document.getElementById('video_audio_volume');
+    if (volumeSlider && volumeNumber) {
+        volumeSlider.addEventListener('input', () => { volumeNumber.value = volumeSlider.value; });
+        volumeNumber.addEventListener('input', () => { volumeSlider.value = volumeNumber.value; });
+    }
+
+    // --- Password validation ---
+    const passwordForm = document.getElementById('password-change-form');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', function(event) {
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const errorP = document.getElementById('password-error');
+            if (newPassword !== confirmPassword) {
+                errorP.classList.remove('hidden');
+                event.preventDefault(); // Stop form submission
+            } else {
+                errorP.classList.add('hidden');
+            }
+        });
+    }
 });
 
 // Script de suppression amélioré
@@ -1800,36 +1889,44 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('ram-usage').textContent = data.ram_usage;
                 document.getElementById('disk-usage').textContent = data.disk_usage;
             } else {
-                console.error("Erreur lors de la récupération des infos système:", data.message);
-                document.getElementById('cpu-temp').textContent = "N/A";
-                document.getElementById('cpu-usage').textContent = "N/A";
-                document.getElementById('ram-usage').textContent = "N/A";
-                document.getElementById('disk-usage').textContent = "N/A";
+                console.error("{{ _('Erreur lors de la récupération des infos système:') }}", data.message);
+                document.getElementById('cpu-temp').textContent = i18n.notAvailable;
+                document.getElementById('cpu-usage').textContent = i18n.notAvailable;
+                document.getElementById('ram-usage').textContent = i18n.notAvailable;
+                document.getElementById('disk-usage').textContent = i18n.notAvailable;
             }
         } catch (error) {
-            console.error("Erreur de communication avec l'API système:", error);
-            document.getElementById('cpu-temp').textContent = "Erreur";
-            document.getElementById('cpu-usage').textContent = "Erreur";
-            document.getElementById('ram-usage').textContent = "Erreur";
-            document.getElementById('disk-usage').textContent = "Erreur";
+            console.error("{{ _('Erreur de communication avec l\'API système:') }}", error);
+            document.getElementById('cpu-temp').textContent = i18n.error;
+            document.getElementById('cpu-usage').textContent = i18n.error;
+            document.getElementById('ram-usage').textContent = i18n.error;
+            document.getElementById('disk-usage').textContent = i18n.error;
         }
     }
 
     // Fonction pour récupérer et afficher les logs
     async function fetchLogs() {
         const logType = document.getElementById('log-selector').value;
+        const logContentElement = document.getElementById('log-content');
         try {
             const response = await fetch(`/api/logs?type=${logType}`);
             const data = await response.json();
             if (data.success) {
-                document.getElementById('log-content').textContent = data.content;
-                document.getElementById('log-content').scrollTop = document.getElementById('log-content').scrollHeight; // Scroll to bottom
+                if (data.content && data.content.trim() !== '') {
+                    logContentElement.textContent = data.content;
+                } else {
+                    // Utiliser un espace insécable pour s'assurer que la balise <pre> conserve ses dimensions
+                    // lorsqu'elle est vide, ce qui évite les problèmes de mise en page.
+                    logContentElement.innerHTML = '&nbsp;';
+                }
+                // Le défilement est maintenant sur le conteneur parent de la balise <pre>
+                logContentElement.parentElement.scrollTop = logContentElement.parentElement.scrollHeight;
             } else {
-                document.getElementById('log-content').textContent = `Erreur: ${data.message}`;
+                logContentElement.textContent = `{{ _('Erreur:') }} ${data.message}`;
             }
         } catch (error) {
             console.error("Erreur de communication avec l'API logs:", error);
-            document.getElementById('log-content').textContent = "Erreur de connexion à l'API des logs.";
+            logContentElement.textContent = "{{ _('Erreur de connexion à l\'API des logs.') }}";
         }
     }
 
@@ -1848,7 +1945,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const logType = logSelector.value;
         const logName = logSelector.options[logSelector.selectedIndex].text;
 
-        if (!confirm(`Êtes-vous sûr de vouloir effacer le contenu du log "${logName}" ? Cette action est irréversible.`)) {
+        const templateMsg = `{{ _('Êtes-vous sûr de vouloir effacer le contenu du log "__LOG_NAME__" ? Cette action est irréversible.') }}`;
+        if (!confirm(templateMsg.replace('__LOG_NAME__', logName))) {
             return;
         }
 
@@ -1862,10 +1960,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.success) {
                 fetchLogs(); // Rafraîchir la vue pour montrer que le log est vide
             } else {
-                alert(`Erreur lors de l'effacement du log : ${data.message}`);
+                alert(`{{ _('Erreur lors de l\'effacement du log :') }} ${data.message}`);
             }
         } catch (error) {
-            alert("Erreur de connexion à l'API pour effacer les logs.");
+            alert("{{ _('Erreur de connexion à l\'API pour effacer les logs.') }}");
         }
     });
 
@@ -1901,10 +1999,10 @@ document.addEventListener("DOMContentLoaded", () => {
             resultsDiv.innerHTML = `
                 <div class="p-4 text-sm text-blue-700 bg-blue-100 rounded-lg flex items-center" role="alert">
                     <i class="fas fa-spinner fa-spin mr-3"></i>
-                    <span>Scan en cours...</span>
+                    <span>${i18n.scanInProgress}</span>
                 </div>`;
             scanBtn.disabled = true;
-            scanBtnText.textContent = 'Scan en cours...';
+            scanBtnText.textContent = i18n.scanInProgress;
 
             fetch('/api/scan_wifi')
                 .then(response => response.json())
@@ -1916,17 +2014,17 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <table class="w-full text-sm text-left text-gray-500">
                                         <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                                             <tr>
-                                                <th scope="col" class="py-3 px-6">SSID</th>
-                                                <th scope="col" class="py-3 px-6">Sécurité</th>
-                                                <th scope="col" class="py-3 px-6">Signal</th>
+                                                <th scope="col" class="py-3 px-6">${i18n.headerSSID}</th>
+                                                <th scope="col" class="py-3 px-6">${i18n.headerSecurity}</th>
+                                                <th scope="col" class="py-3 px-6">${i18n.headerSignal}</th>
                                             </tr>
                                         </thead>
                                         <tbody>`;
                             data.networks.forEach(net => {
                                 table += `
-                                    <tr class="bg-white border-b hover:bg-gray-50 cursor-pointer wifi-row" data-ssid="${net.ssid}" title="Cliquer pour sélectionner ce réseau">
+                                    <tr class="bg-white border-b hover:bg-gray-50 cursor-pointer wifi-row" data-ssid="${net.ssid}" title="${i18n.selectNetworkTitle}">
                                         <td class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">${net.ssid}</td>
-                                        <td class="py-4 px-6">${net.security || 'Aucune'}</td>
+                                        <td class="py-4 px-6">${net.security || i18n.noSecurity}</td>
                                         <td class="py-4 px-6 flex items-center">${getSignalIconHtml(net.signal)}<span>${net.signal}%</span></td>
                                     </tr>`;
                             });
@@ -1946,18 +2044,18 @@ document.addEventListener("DOMContentLoaded", () => {
                             });
 
                         } else {
-                            resultsDiv.innerHTML = '<div class="p-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg" role="alert">Aucun réseau Wi-Fi trouvé.</div>';
+                            resultsDiv.innerHTML = `<div class="p-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg" role="alert">${i18n.noNetworksFound}</div>`;
                         }
                     } else {
-                        resultsDiv.innerHTML = `<div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert"><strong>Erreur:</strong> ${data.message}</div>`;
+                        resultsDiv.innerHTML = `<div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert"><strong>${i18n.error}:</strong> ${data.message}</div>`;
                     }
                 })
                 .catch(error => {
-                    resultsDiv.innerHTML = `<div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert"><strong>Erreur:</strong> Erreur de communication avec le serveur: ${error}</div>`;
+                    resultsDiv.innerHTML = `<div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert"><strong>${i18n.error}:</strong> ${i18n.commError} ${error}</div>`;
                 })
                 .finally(() => {
                     scanBtn.disabled = false;
-                    scanBtnText.textContent = 'Lancer le scan';
+                    scanBtnText.textContent = i18n.startScan;
                 });
         });
     }

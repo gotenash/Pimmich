@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import os
 import json
 import re
+from flask_babel import Babel, _
 import subprocess
 import psutil
 import glob
@@ -10,7 +11,6 @@ import requests
 import threading
 import shutil
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify, g
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from werkzeug.security import check_password_hash
@@ -19,6 +19,7 @@ from utils.download_album import download_and_extract_album
 from utils.auth import login_required
 from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow
 from utils.slideshow_manager import HDMI_OUTPUT # Pour la détection de résolution
+from utils.config_manager import load_config, save_config
 from utils.auth_manager import change_password
 from utils.network_manager import get_interface_status, set_interface_state
 from utils.wifi_manager import set_wifi_config, get_wifi_status # Import the new utility
@@ -33,7 +34,33 @@ from smbprotocol.exceptions import SMBException
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
+def get_locale():
+    # 1. Si un argument 'lang' est passé dans l'URL
+    lang = request.args.get('lang')
+    if lang and lang in app.config['LANGUAGES']:
+        session['lang'] = lang
+        return lang
+    # 2. Si l'utilisateur a une langue définie dans sa session
+    if 'lang' in session and session['lang'] in app.config['LANGUAGES']:
+        return session['lang']
+    # 3. Depuis l'en-tête 'Accept-Language' du navigateur
+    return request.accept_languages.best_match(list(app.config['LANGUAGES'].keys()))
+
+# --- Configuration de Babel (i18n) ---
+app.config['LANGUAGES'] = {'fr': 'Français', 'en': 'English', 'es': 'Español'}
+app.config['BABEL_DEFAULT_LOCALE'] = 'fr'
+babel = Babel(app, locale_selector=get_locale)
+
+# --- Fin de la configuration de Babel ---
+
+@app.context_processor
+def inject_locale():
+    """Injecte la fonction get_locale dans le contexte des templates."""
+    return dict(get_locale=get_locale)
+
+
 # Chemins de config
+VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 PENDING_UPLOADS_DIR = Path("static/pending_uploads")
 CONFIG_PATH = 'config/config.json'
 CREDENTIALS_PATH = '/boot/firmware/credentials.json'
@@ -73,7 +100,6 @@ def get_screen_resolution():
     Retourne (width, height) ou (1920, 1080) en cas d'erreur.
     """
     default_width = 1920
-    default_height = 1080
     default_height = 1080
     try:
         # Assurer que SWAYSOCK est défini
@@ -172,87 +198,6 @@ def check_credentials(username, password):
         return False
 
     return username == stored_username and check_password_hash(stored_hash, password)
-def create_default_config():
-    """Crée et retourne un dictionnaire de configuration par défaut."""
-    return {
-        "photo_source": "immich",
-        "display_duration": 10,
-        "active_start": "07:00",
-        "active_end": "22:00",
-        "screen_height_percent": "100",
-        "immich_url": "",
-        "immich_token": "",
-        "album_name": "",
-        "display_width": 1920,  # Nouvelle option: largeur d'affichage cible
-        "display_height": 1080, # Nouvelle option: hauteur d'affichage cible
-        "pan_zoom_factor": 1.15, # New option
-        "immich_auto_update": False,
-        "immich_update_interval_hours": 24,
-        "pan_zoom_enabled": False, # New option
-        "transition_enabled": True, # New option: transition enabled by default
-        "transition_type": "fade", # New option: default transition type
-        "transition_duration": 1.0, # New option
-        "smb_host": "",
-        "smb_share": "",
-        "smb_user": "",
-        "smb_password": "",
-        "smb_path": "/",
-        "smb_auto_update": False,
-        "smb_update_interval_hours": 24,
-        "display_sources": ["immich"],
-        "show_clock": True,
-        "clock_format": "%H:%M",
-        "clock_color": "#FFFFFF",
-        "clock_outline_color": "#000000",
-        "clock_font_size": 72,
-        "clock_font_path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "clock_offset_x": 0,
-        "clock_offset_y": 0,
-        "clock_background_enabled": False,
-        "clock_background_color": "#00000080", # Semi-transparent black
-        "show_date": True,
-        "date_format": "%A %d %B %Y", # Re-added
-        "show_weather": True, # Re-added
-        "weather_api_key": "", # Re-added
-        "weather_city": "Paris", # Re-added
-        "wifi_ssid": "", # New: Wi-Fi SSID
-        "wifi_country": "FR", # New: Wi-Fi Country
-        "wifi_password": "", # New: Wi-Fi Password
-        "weather_units": "metric", # Re-added
-        "skip_initial_auto_import": False, # New: Skip first auto import cycle on startup
-        "show_tides": False,
-        "tide_latitude": "",
-        "tide_longitude": "",
-        "stormglass_api_key": "", # New: StormGlass API Key
-        "tide_offset_x": 0,
-        "tide_offset_y": 0,
-        "weather_update_interval_minutes": 60, # Re-added
-        "info_display_duration": 5, # New: Duration for each info item in the cycle
-    }
-
-def load_config():
-    """Charge la configuration, en ignorant les clés obsolètes."""
-    config = create_default_config()
-    try:
-        with open(CONFIG_PATH, 'r') as f:
-            loaded_config = json.load(f)
-        # Met à jour les valeurs par défaut avec celles du fichier,
-        # mais sans ajouter de clés inconnues.
-        for key in config:
-            if key in loaded_config:
-                config[key] = loaded_config[key]
-    except FileNotFoundError:
-        print(f"Fichier de configuration '{CONFIG_PATH}' non trouvé. Création d'une configuration par défaut.")
-    except json.JSONDecodeError:
-        print(f"ERREUR: Le fichier de configuration '{CONFIG_PATH}' est corrompu ou malformé.")
-        corrupted_path = CONFIG_PATH + f".corrupted_{int(time.time())}"
-        try:
-            os.rename(CONFIG_PATH, corrupted_path)
-            print(f"Le fichier corrompu a été sauvegardé sous : {corrupted_path}")
-        except OSError as e:
-            print(f"Impossible de sauvegarder le fichier corrompu : {e}")
-        print("Création d'une nouvelle configuration par défaut.")
-    return config
 
 def load_filter_states():
     """Charge les états des filtres depuis un fichier JSON."""
@@ -264,15 +209,6 @@ def load_filter_states():
     except (json.JSONDecodeError, IOError):
         return {}
 
-def save_config(config):
-    temp_path = CONFIG_PATH + '.tmp'
-    try:
-        with open(temp_path, 'w') as f:
-            json.dump(config, f, indent=4)
-        os.rename(temp_path, CONFIG_PATH)
-    except Exception as e:
-        print(f"Erreur lors de la sauvegarde de la configuration : {e}")
-
 def save_filter_states(states):
     """Sauvegarde les états des filtres dans un fichier JSON."""
     try:
@@ -283,46 +219,58 @@ def save_filter_states(states):
 
 def get_prepared_photos_by_source():
     """
-    Récupère les photos préparées, organisées par leur source (immich, usb, samba).
+    Récupère les médias préparés (photos et vidéos), organisés par leur source.
     Retourne un dictionnaire où les clés sont les noms des sources et les valeurs sont des listes de dictionnaires.
-    Ex: {'immich': [{'path': 'immich/photo1.jpg', 'has_polaroid': True}, ...]}
+    Ex: {'immich': [{'path': 'immich/media.jpg', 'type': 'image', 'has_polaroid': True}, ...]}
     """
     base_prepared_dir = Path("static/prepared")
-    photos_by_source = {}
+    media_by_source = {}
     filter_states = load_filter_states()
+    
     if base_prepared_dir.exists():
         for source_dir in base_prepared_dir.iterdir():
             if source_dir.is_dir():
                 source_name = source_dir.name
                 
-                # Lister tous les fichiers pour trouver les versions polaroid
-                all_files = {f.name for f in source_dir.glob("*.jpg")}
+                # Lister tous les fichiers (images et vidéos)
+                all_files_in_dir = list(source_dir.iterdir())
+                all_filenames = {f.name for f in all_files_in_dir}
                 
-                # Identifier les photos de base (non-polaroid)
-                base_photos = sorted([f for f in all_files if not f.endswith('_polaroid.jpg')])
+                # Identifier les médias de base (non-polaroid et non-vignette)
+                base_media = sorted([
+                    f for f in all_files_in_dir 
+                    if f.is_file() and not f.name.endswith('_polaroid.jpg') and not f.name.endswith('_thumbnail.jpg')
+                ])
 
-                photo_data_list = []
-                for photo_name in base_photos:
-                    base_name = Path(photo_name).stem
-                    photo_relative_path = f"{source_name}/{photo_name}"
-                    has_polaroid = f"{base_name}_polaroid.jpg" in all_files
-                    photo_data_list.append({
-                        "path": photo_relative_path,
-                        "has_polaroid": has_polaroid,
-                        "active_filter": filter_states.get(photo_relative_path, "none")
-                    })
+                media_data_list = []
+                for media_path_obj in base_media:
+                    media_name = media_path_obj.name
+                    media_relative_path = f"{source_name}/{media_name}"
+                    media_type = 'video' if media_path_obj.suffix.lower() in VIDEO_EXTENSIONS else 'image'
+                    
+                    media_item = {
+                        "path": media_relative_path,
+                        "type": media_type
+                    }
+
+                    # Les options de filtre ne s'appliquent qu'aux images
+                    if media_type == 'image':
+                        base_name = media_path_obj.stem
+                        has_polaroid = f"{base_name}_polaroid.jpg" in all_filenames
+                        media_item["has_polaroid"] = has_polaroid
+                        media_item["active_filter"] = filter_states.get(media_relative_path, "none")
+                    elif media_type == 'video':
+                        # Chercher la vignette correspondante pour la vidéo
+                        thumbnail_name = f"{media_path_obj.stem}_thumbnail.jpg"
+                        if thumbnail_name in all_filenames:
+                            media_item["thumbnail_path"] = f"{source_name}/{thumbnail_name}"
+                    
+                    media_data_list.append(media_item)
                 
-                if photo_data_list:
-                    photos_by_source[source_name] = photo_data_list
-    return photos_by_source
-
-def get_all_prepared_photos():
-    """
-    Récupère toutes les photos préparées de toutes les sources dans une seule liste plate.
-    """
-    return [photo for source_photos in get_prepared_photos_by_source().values() for photo in source_photos]
-
-
+                if media_data_list:
+                    media_by_source[source_name] = media_data_list
+                    
+    return media_by_source
 
 # --- Routes principales ---
 
@@ -374,12 +322,12 @@ def upload_page():
 def handle_upload():
     """Gère la réception des fichiers depuis la page publique."""
     if 'photos' not in request.files:
-        flash("Aucun fichier sélectionné.", "error")
+        flash(_("Aucun fichier sélectionné."), "error")
         return redirect(url_for('upload_page'))
 
     files = request.files.getlist('photos')
     if not files or files[0].filename == '':
-        flash("Aucun fichier sélectionné.", "error")
+        flash(_("Aucun fichier sélectionné."), "error")
         return redirect(url_for('upload_page'))
 
     PENDING_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -395,7 +343,7 @@ def handle_upload():
             file.save(final_path)
             count += 1
 
-    flash(f"{count} photo(s) envoyée(s) pour validation avec succès !", "success")
+    flash(_('%(count)s photo(s) envoyée(s) pour validation avec succès !', count=count), "success")
     return redirect(url_for('upload_page'))
 
 @app.route('/api/get_pending_photos')
@@ -486,16 +434,16 @@ def login():
     if request.method == 'POST':
         if check_credentials(request.form['username'], request.form['password']): # type: ignore
             session['logged_in'] = True
-            flash("Connexion réussie", "success")
+            flash(_("Connexion réussie"), "success")
             return redirect(url_for('configure'))
         else:
-            flash("Identifiants invalides", "danger")
+            flash(_("Identifiants invalides"), "danger")
     return render_template('login.html')
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.pop('logged_in', None)
-    flash("Déconnexion réussie", "success")
+    flash(_("Déconnexion réussie"), "success")
     return redirect(url_for('login'))
 
 
@@ -525,7 +473,7 @@ def configure():
             'pan_zoom_factor', # Added pan_zoom_factor
             'immich_update_interval_hours', 'date_format', 
             'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes', # Re-added
-            'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password',
+            'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume',
             'smb_update_interval_hours'
             # New fields
             , 'wifi_ssid', 'wifi_password', 'info_display_duration',
@@ -537,7 +485,7 @@ def configure():
             if key in request.form:
                 value = request.form.get(key)
                 # Gérer les champs numériques
-                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y']: # Integer fields
+                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume']: # Integer fields
                     try:
                         config[key] = int(value)
                     except (ValueError, TypeError):
@@ -566,6 +514,7 @@ def configure():
         config["pan_zoom_enabled"] = 'pan_zoom_enabled' in request.form # New checkbox handling
         config["transition_enabled"] = 'transition_enabled' in request.form # New checkbox handling
         config["clock_background_enabled"] = 'clock_background_enabled' in request.form
+        config["video_audio_enabled"] = 'video_audio_enabled' in request.form
 
         # Traitement des checkboxes
         config["show_clock"] = 'show_clock' in request.form
@@ -578,7 +527,7 @@ def configure():
         save_config(config)
         stop_slideshow() # Stop slideshow to apply new config
         start_slideshow() # Start slideshow with new config
-        flash("Configuration enregistrée et diaporama relancé", "success")
+        flash(_("Configuration enregistrée et diaporama relancé"), "success")
         return redirect(url_for('configure'))
 
     slideshow_running = any(
@@ -598,12 +547,12 @@ def configure():
     except Exception as e:
         wifi_status = f"Erreur de vérification : {e}"
 
-    prepared_photos_by_source = get_prepared_photos_by_source()
+    prepared_media_by_source = get_prepared_photos_by_source()
 
     return render_template(
         'configure.html',
         config=config,
-        prepared_photos_by_source=prepared_photos_by_source,
+        prepared_photos_by_source=prepared_media_by_source, # Le template utilise ce nom de variable
         slideshow_running=slideshow_running
     )
 
@@ -1156,8 +1105,8 @@ def slideshow():
 
 @app.route('/slideshow_view')
 def slideshow_view():
-    photos = get_all_prepared_photos()
-    return render_template('slideshow_view.html', photos=photos)
+    all_media = [media for source_media in get_prepared_photos_by_source().values() for media in source_media]
+    return render_template('slideshow_view.html', photos=all_media) # Le template s'attend probablement à une variable 'photos'
 
 @app.route('/toggle_slideshow', methods=['POST'])
 @login_required
@@ -1293,7 +1242,7 @@ def save_wifi_settings():
     country = request.form.get('wifi_country') # Get the country code
 
     if not ssid or not country: # Country is now required
-        flash("Le SSID et le pays Wi-Fi sont obligatoires.", "danger")
+        flash(_("Le SSID et le pays Wi-Fi sont obligatoires."), "danger")
         return redirect(url_for('configure'))
 
     try:
@@ -1306,9 +1255,9 @@ def save_wifi_settings():
 
         # Appliquer les paramètres Wi-Fi au système
         set_wifi_config(ssid, password, country) # Pass country to the function
-        flash("Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la connexion. Veuillez patienter une minute et vérifier le statut.", "success")
+        flash(_("Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la connexion. Veuillez patienter une minute et vérifier le statut."), "success")
     except Exception as e:
-        flash(f"Erreur lors de l'application des paramètres Wi-Fi : {e}", "danger")
+        flash(_("Erreur lors de l'application des paramètres Wi-Fi : %(error)s", error=e), "danger")
     return redirect(url_for('configure'))
 
 @app.route('/api/wifi_status')
@@ -1326,22 +1275,22 @@ def change_password_route():
     confirm_password = request.form.get('confirm_password')
 
     if not new_password or not confirm_password:
-        flash("Les deux champs de mot de passe sont requis.", "danger")
+        flash(_("Les deux champs de mot de passe sont requis."), "danger")
         return redirect(url_for('configure'))
 
     if new_password != confirm_password:
-        flash("Les mots de passe ne correspondent pas.", "danger")
+        flash(_("Les mots de passe ne correspondent pas."), "danger")
         return redirect(url_for('configure'))
     
     if len(new_password) < 6:
-        flash("Le mot de passe doit contenir au moins 6 caractères.", "warning")
+        flash(_("Le mot de passe doit contenir au moins 6 caractères."), "warning")
         return redirect(url_for('configure'))
 
     try:
         change_password(new_password)
-        flash("Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine connexion.", "success")
+        flash(_("Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine connexion."), "success")
     except Exception as e:
-        flash(f"Erreur lors du changement de mot de passe : {e}", "danger")
+        flash(_("Erreur lors du changement de mot de passe : %(error)s", error=e), "danger")
 
     return redirect(url_for('configure'))
 
@@ -1385,7 +1334,7 @@ def backup_settings_api():
         backup_name = f'pimmich_backup_{datetime.now().strftime("%Y-%m-%d")}.json'
         return send_from_directory('config', 'config.json', as_attachment=True, download_name=backup_name)
     except FileNotFoundError:
-        flash("Le fichier de configuration n'a pas été trouvé.", "danger")
+        flash(_("Le fichier de configuration n'a pas été trouvé."), "danger")
         return redirect(url_for('configure'))
 
 @app.route('/api/restore_settings', methods=['POST'])
@@ -1393,12 +1342,12 @@ def backup_settings_api():
 def restore_settings_api():
     """Restaure la configuration à partir d'un fichier de sauvegarde."""
     if 'backup_file' not in request.files:
-        flash("Aucun fichier de sauvegarde sélectionné.", "warning")
+        flash(_("Aucun fichier de sauvegarde sélectionné."), "warning")
         return redirect(url_for('configure'))
 
     file = request.files['backup_file']
     if file.filename == '':
-        flash("Aucun fichier de sauvegarde sélectionné.", "warning")
+        flash(_("Aucun fichier de sauvegarde sélectionné."), "warning")
         return redirect(url_for('configure'))
 
     try:
@@ -1408,11 +1357,11 @@ def restore_settings_api():
 
         # Sauvegarder la nouvelle configuration
         save_config(new_config_data)
-        flash("Configuration restaurée avec succès ! Le diaporama va redémarrer pour appliquer les changements.", "success")
+        flash(_("Configuration restaurée avec succès ! Le diaporama va redémarrer pour appliquer les changements."), "success")
     except (json.JSONDecodeError, UnicodeDecodeError):
-        flash("Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON valide.", "danger")
+        flash(_("Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON valide."), "danger")
     except Exception as e:
-        flash(f"Erreur lors de la restauration : {e}", "danger")
+        flash(_("Erreur lors de la restauration : %(error)s", error=e), "danger")
     
     return redirect(url_for('configure'))
 

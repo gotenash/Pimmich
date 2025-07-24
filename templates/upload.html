@@ -1,59 +1,76 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ get_locale() }}">
 <head>
     <meta charset="UTF-8">
-    <title>Envoyer une photo - Pimmich</title>
+    <title>{{ _('Envoyer des photos') }} - Pimmich</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body class="relative min-h-screen">
 
-    <!-- Messages flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-full max-w-md">
-            {% for category, message in messages %}
-                <div class="
-                flash-message
-                px-4 py-3 rounded-md text-white shadow-md transition-opacity duration-700 ease-in-out mb-2
-                {% if category == 'success' %} bg-green-500
-                {% elif category == 'error' %} bg-red-500
-                {% else %} bg-gray-500 {% endif %}
-                ">
-                {{ message }}
-                </div>
-            {% endfor %}
-            </div>
-            <script>
-            setTimeout(() => {
-                document.querySelectorAll('.flash-message').forEach(msg => {
-                msg.classList.add('opacity-0');
-                setTimeout(() => msg.remove(), 700);
-                });
-            }, 4000);
-            </script>
-        {% endif %}
-    {% endwith %}
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-container" class="absolute top-0 mt-4 max-w-xs w-full z-20">
+      {% for category, message in messages %}
+        <div class="
+          flash-message
+          px-4 py-3 rounded-md text-white shadow-md transition-opacity duration-700 ease-in-out
+          {% if category == 'success' %}
+            bg-green-500
+          {% elif category == 'error' %}
+            bg-red-500
+          {% else %}
+            bg-gray-500
+          {% endif %}
+        ">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      // Disparition automatique après 4 secondes
+      setTimeout(() => {
+        const messages = document.querySelectorAll('.flash-message');
+        messages.forEach(msg => {
+          msg.classList.add('opacity-0');
+          setTimeout(() => msg.remove(), 700); // attendre que l'effet se termine
+        });
+      }, 4000);
+    </script>
+  {% endif %}
+  {% endwith %}
 
-    <div class="flex items-center justify-center min-h-screen">
-        <div class="container mx-auto p-8 bg-white/80 backdrop-blur-md rounded-xl shadow-xl max-w-lg text-center">
-        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="w-48 mx-auto mb-6">
-        <h2 class="text-2xl font-semibold mb-4">Envoyer des photos au cadre</h2>
-        <p class="text-gray-600 mb-6">Vos photos seront soumises à validation avant d'être affichées.</p>
-
-        <form action="{{ url_for('handle_upload') }}" method="post" enctype="multipart/form-data">
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="container mx-auto p-8 bg-white/80 backdrop-blur-md rounded-xl shadow-xl max-w-lg">
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="w-40 mx-auto mb-8">
+        <h2 class="text-center text-2xl font-semibold mb-4">{{ _('Envoyer des photos pour le cadre') }}</h2>
+        <p class="text-center text-gray-600 mb-6">{{ _('Les photos seront soumises à validation avant d\'être affichées.') }}</p>
+        
+        <form method="POST" action="{{ url_for('handle_upload') }}" enctype="multipart/form-data">
             <div class="mb-4">
-                <input type="file" name="photos" multiple required 
-                       class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none">
+                <input type="file" name="photos" multiple required class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none">
             </div>
-            <button type="submit" 
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors duration-300">
-                Envoyer pour validation
-            </button>
+            
+            <div class="flex items-center justify-center mt-8">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out w-full">
+                    {{ _('Envoyer') }}
+                </button>
+            </div>
         </form>
-        <p class="text-xs text-gray-500 mt-4">Vous pouvez sélectionner plusieurs fichiers.</p>
+        <div class="mt-6 pt-6 border-t border-gray-300 text-center">
+            <a href="{{ url_for('login') }}" class="text-blue-600 hover:underline">{{ _('Retour à la connexion administrateur') }}</a>
+       </div>
+       <div class="text-center mt-6 text-sm">
+            <span class="font-semibold">{{ _('Langue') }}:</span>
+            {% set current_lang = get_locale() %}
+            <a href="?lang=fr" class="{% if current_lang == 'fr' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">FR</a> |
+            <a href="?lang=en" class="{% if current_lang == 'en' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">EN</a> |
+            <a href="?lang=es" class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
         </div>
     </div>
+  </div>
+
 </body>
 </html>
