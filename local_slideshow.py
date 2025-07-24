@@ -736,8 +736,17 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         
         # Commande pour mpv
         # --ao=pulse: Utilise la couche de compatibilité PulseAudio de PipeWire, qui est souvent plus robuste
-        command = ['mpv', '--no-config', '--ao=pulse', '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop', video_path]
-        
+        # --hwdec=auto : Tente d'utiliser le décodage vidéo matériel, crucial pour les RPi
+        # --vo=gpu : Utilise le rendu GPU, plus efficace
+        command = [
+            'mpv',
+            '--no-config',
+            '--hwdec=auto',
+            '--vo=gpu',
+            '--ao=pulse',
+            '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop',
+            video_path
+        ]
         if audio_enabled:
             command.extend([f'--volume={audio_volume}', '--no-mute'])
             # --- NOUVELLE LOGIQUE : Noms de périphériques hardcodés pour PulseAudio ---
