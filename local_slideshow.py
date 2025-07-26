@@ -23,11 +23,29 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PREPARED_BASE_DIR = Path(BASE_DIR) / 'static' / 'prepared'
 CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
 CONFIG_PATH = os.path.join(BASE_DIR, 'config', 'config.json')
+FAVORITES_PATH = os.path.join(BASE_DIR, 'config', 'favorites.json')
 FILTER_STATES_PATH = os.path.join(BASE_DIR, 'config', 'filter_states.json')
 TIDES_CACHE_FILE = Path(BASE_DIR) / 'cache' / 'tides.json'
 _icon_cache = {} # Cache pour les icônes météo chargées
 
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
+
+def reinit_pygame():
+    """Quitte et réinitialise complètement Pygame et les ressources associées."""
+    print("[Slideshow] Réinitialisation complète de Pygame...")
+    pygame.quit()
+    pygame.init()
+
+    global _icon_cache
+    _icon_cache = {}
+    print("[Slideshow] Cache des icônes météo vidé.")
+
+    info = pygame.display.Info()
+    width, height = info.current_w, info.current_h
+    screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+    pygame.mouse.set_visible(False)
+    print(f"[Slideshow] Pygame entièrement réinitialisé à {width}x{height}.")
+    return screen, width, height
 
 def load_filter_states():
     """Charge les états des filtres depuis un fichier JSON."""
@@ -38,6 +56,16 @@ def load_filter_states():
             return json.load(f)
     except (json.JSONDecodeError, IOError):
         print(f"Avertissement: Impossible de lire le fichier d'état des filtres '{FILTER_STATES_PATH}'.")
+        return {}
+
+def load_favorites():
+    """Charge la liste des photos favorites depuis un fichier JSON."""
+    if not os.path.exists(FAVORITES_PATH):
+        return []
+    try:
+        with open(FAVORITES_PATH, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
         return {}
 
 def get_local_ip():
@@ -707,6 +735,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
     audio_output = config.get("video_audio_output", "auto")
     audio_volume = int(config.get("video_audio_volume", 100))
     transition_duration = float(config.get("transition_duration", 1.0))
+    hwdec_enabled = config.get("video_hwdec_enabled", False)
 
     # Libérer le mixer de Pygame avant de lancer la vidéo pour éviter les conflits
     if audio_enabled:
@@ -738,15 +767,17 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # --ao=pulse: Utilise la couche de compatibilité PulseAudio de PipeWire, qui est souvent plus robuste
         # --hwdec=auto : Tente d'utiliser le décodage vidéo matériel, crucial pour les RPi
         # --vo=gpu : Utilise le rendu GPU, plus efficace
+        hwdec_mode = 'auto' if hwdec_enabled else 'no'
         command = [
             'mpv',
             '--no-config',
-            '--hwdec=auto',
+            f'--hwdec={hwdec_mode}',
             '--vo=gpu',
             '--ao=pulse',
             '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop',
             video_path
         ]
+
         if audio_enabled:
             command.extend([f'--volume={audio_volume}', '--no-mute'])
             # --- NOUVELLE LOGIQUE : Noms de périphériques hardcodés pour PulseAudio ---
@@ -766,13 +797,14 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
              command.append('--no-audio')
         
         print(f"[Slideshow] Executing mpv command: {' '.join(command)}")
-        subprocess.run(command, check=True, capture_output=True, text=True)
+        # Redirection de la sortie vers DEVNULL pour éviter de remplir la mémoire
+        subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     except FileNotFoundError:
         print(f"ERREUR: Commande introuvable. Assurez-vous que 'mpv' et 'amixer' (alsa-utils) sont installés.")
     except subprocess.CalledProcessError as e:
-        print(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. Stderr: {e.stderr}")
-        print(f"Sortie standard de mpv (peut contenir des infos utiles): {e.stdout}")
+        # On ne peut plus afficher stderr, mais on peut signaler l'échec
+        print(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur.")
     except Exception as e:
         print(f"Erreur inattendue lors de la lecture de la vidéo {video_path}: {e}")
     finally:
@@ -803,32 +835,33 @@ def start_slideshow():
         pygame.mouse.set_visible(False)
         print("[Slideshow] Mouse cursor hidden.")
 
-        # Chargement police personnalisée (utilisée comme fallback si les polices spécifiques ne sont pas trouvées)
-        font_path_config = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
-        clock_font_size_config = int(config.get("clock_font_size", 72)) # Use clock font size for main font
-        try:
-            main_font_loaded = pygame.font.Font(font_path_config, clock_font_size_config) 
-            print(f"[Slideshow] Custom font loaded: {font_path_config}")
-        except Exception as e:
-            print(f"Erreur chargement police : {e}")
-            main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
-            print("[Slideshow] Using system font as fallback for main font.")
-
         try:
             import locale
             locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
             print("[Slideshow] Locale set to fr_FR.UTF-8.")
         except locale.Error:
             print("Avertissement: locale fr_FR.UTF-8 non disponible. Les dates seront en anglais.")
-            print("[Slideshow] Locale not set.")
 
         print("[Slideshow] Entering main slideshow loop.")
         while True:
             config = load_config() # Recharger la config à chaque itération
             filter_states = load_filter_states() # Charger les préférences de filtre
+            favorites = load_favorites() # Charger la liste des favoris
             start_time = config.get("active_start", "06:00")
             end_time = config.get("active_end", "20:00")
             duration = config.get("display_duration", 10)
+            
+            # --- Chargement de la police à chaque itération ---
+            # C'est plus robuste, surtout après une réinitialisation de l'affichage.
+            font_path_config = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+            clock_font_size_config = int(config.get("clock_font_size", 72))
+            try:
+                main_font_loaded = pygame.font.Font(font_path_config, clock_font_size_config)
+            except Exception as e:
+                print(f"Erreur chargement police : {e}. Utilisation de la police système.")
+                main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
+            # --- Fin du chargement de la police ---
+            
             
             # Initialize transition_duration here to ensure it's always defined within the loop scope
             transition_type = config.get("transition_type", "fade") # Get transition type
@@ -837,7 +870,7 @@ def start_slideshow():
             
             display_sources = config.get("display_sources", ["immich"]) # Nouvelle clé de config
             
-            photos = []
+            all_media = []
             for source in display_sources:
                 source_dir = PREPARED_BASE_DIR / source
                 if source_dir.is_dir():
@@ -852,12 +885,23 @@ def start_slideshow():
                         if active_filter == 'polaroid':
                             polaroid_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_polaroid.jpg")
                             if polaroid_path.exists():
-                                photos.append(str(polaroid_path))
+                                all_media.append(str(polaroid_path))
                             else: # Fallback si la version polaroid n'existe pas
-                                photos.append(str(photo_path_obj))
+                                all_media.append(str(photo_path_obj))
                         else: # Pour tous les autres filtres ou pas de filtre, utiliser la photo de base
-                            photos.append(str(photo_path_obj))
-            if not photos:
+                            all_media.append(str(photo_path_obj))
+            
+            # --- Nouvelle logique pour favoriser les favoris ---
+            favorite_boost = int(config.get("favorite_boost_factor", 2))
+            playlist = []
+            for media_path in all_media:
+                relative_path = str(Path(media_path).relative_to(PREPARED_BASE_DIR.parent))
+                playlist.append(media_path) # Ajouter chaque média une fois
+                if relative_path in favorites:
+                    for _ in range(favorite_boost):
+                        playlist.append(media_path)
+
+            if not playlist:
                 print("Aucune photo trouvée dans les sources activées. Vérification dans 60 secondes.")
                 
                 screen.fill((0, 0, 0)) # Fond noir
@@ -925,34 +969,9 @@ def start_slideshow():
 
             previous_photo_surface = None # Initialize previous_photo_surface before the loop
 
-            random.shuffle(photos)
-            for photo_path in photos:
-                if not is_within_active_hours(start_time, end_time):
-                    print("[Info] Hors période active, écran en veille.")
-                    # Nettoyer le fichier d'état quand l'écran s'éteint
-                    if os.path.exists(CURRENT_PHOTO_FILE):
-                        os.remove(CURRENT_PHOTO_FILE)
-
-                    set_display_power(False)
-                    while not is_within_active_hours(start_time, end_time):
-                        time.sleep(60)
-                    
-                    # --- NOUVEAU : Réinitialisation de l'affichage après la veille ---
-                    print("[Slideshow] Période active détectée. Réveil de l'écran et réinitialisation de Pygame...")
-                    set_display_power(True)
-                    time.sleep(1) # Pause cruciale pour laisser le temps à l'écran de se stabiliser
-                    
-                    # Réinitialiser le module d'affichage de Pygame pour obtenir une nouvelle référence valide
-                    pygame.display.init()
-                    info = pygame.display.Info()
-                    SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
-                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-                    pygame.mouse.set_visible(False)
-                    print(f"[Slideshow] Affichage Pygame réinitialisé à {SCREEN_WIDTH}x{SCREEN_HEIGHT}.")
-                    
-                    break # Sortir de la boucle 'for' pour relancer la boucle 'while' et recharger la liste de photos
-
-                set_display_power(True)
+            random.shuffle(playlist)
+            for photo_path in playlist:
+                # La gestion de la veille/réveil est maintenant gérée par le planificateur dans app.py
 
                 print(f"[Slideshow] Preparing to display: {photo_path}")
                 
@@ -979,15 +998,9 @@ def start_slideshow():
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
                     
-                    # --- FIX: Ré-appliquer le mode plein écran après la lecture vidéo ---
-                    print("[Slideshow] Re-asserting fullscreen mode after video playback.")
-                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-                    pygame.mouse.set_visible(False) # Cacher à nouveau la souris
-                    screen.fill((0, 0, 0)) # Nettoyer l'écran pour éviter les flashs
-                    pygame.display.flip()
-                    
-                    # On définit la surface précédente sur l'écran noir actuel pour une transition en fondu.
-                    previous_photo_surface = screen.copy()
+                    # --- NOUVEAU: Utilisation de la fonction de réinitialisation centralisée ---
+                    screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
+                    break # Forcer la boucle principale à redémarrer pour recharger la police et la config
                 else: # C'est une image
                     current_pil_image = None # Initialize to None to ensure it's always defined
                     try:

@@ -65,6 +65,7 @@ PENDING_UPLOADS_DIR = Path("static/pending_uploads")
 CONFIG_PATH = 'config/config.json'
 CREDENTIALS_PATH = '/boot/firmware/credentials.json'
 FILTER_STATES_PATH = 'config/filter_states.json'
+FAVORITES_PATH = 'config/favorites.json'
 CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
 
 class WorkerStatus:
@@ -134,43 +135,6 @@ def get_screen_resolution():
         print(f"Erreur inattendue lors de la détection de la résolution : {e}. Utilisation de la résolution par défaut.")
         return default_width, default_height
 
-def check_and_start_slideshow_on_boot():
-    from datetime import datetime
-
-    print("== Vérification du créneau horaire au démarrage ==")
-
-    config = load_config()
-    start_str = config.get("active_start", "06:00")
-    end_str = config.get("active_end", "22:00")
-
-    try:
-        now_time = datetime.now().time()
-        start_time = datetime.strptime(start_str, "%H:%M").time()
-        end_time = datetime.strptime(end_str, "%H:%M").time()
-    except (ValueError, AttributeError) as e:
-        print(f"Erreur de format ou de lecture des horaires de la configuration : {e}")
-        return
-
-    print(f"Heure actuelle : {now_time.strftime('%H:%M')} / Créneau actif : {start_str}-{end_str}")
-
-    # Gère les créneaux qui passent minuit (ex: 22:00 - 06:00)
-    in_schedule = False
-    if start_time <= end_time:
-        if start_time <= now_time <= end_time:
-            in_schedule = True
-    else:  # Le créneau passe minuit
-        if now_time >= start_time or now_time <= end_time:
-            in_schedule = True
-
-    if in_schedule:
-        print("Dans la plage horaire, on démarre le slideshow.")
-        if not is_slideshow_running():
-            start_slideshow()
-    else:
-        print("Hors plage horaire, on ne démarre pas le slideshow.")
-
-
-
 def get_photo_previews():
     photo_dir = Path("static/photos")
     return sorted([f.name for f in photo_dir.glob("*") if f.suffix.lower() in [".jpg", ".jpeg", ".png", ".gif"]])
@@ -217,6 +181,24 @@ def save_filter_states(states):
     except Exception as e:
         print(f"Erreur lors de la sauvegarde des états de filtre : {e}")
 
+def load_favorites():
+    """Charge la liste des photos favorites depuis un fichier JSON."""
+    if not os.path.exists(FAVORITES_PATH):
+        return []
+    try:
+        with open(FAVORITES_PATH, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+def save_favorites(favorites_list):
+    """Sauvegarde la liste des photos favorites dans un fichier JSON."""
+    try:
+        with open(FAVORITES_PATH, 'w') as f:
+            json.dump(favorites_list, f, indent=2)
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde des favoris : {e}")
+
 def get_prepared_photos_by_source():
     """
     Récupère les médias préparés (photos et vidéos), organisés par leur source.
@@ -226,6 +208,7 @@ def get_prepared_photos_by_source():
     base_prepared_dir = Path("static/prepared")
     media_by_source = {}
     filter_states = load_filter_states()
+    favorites = load_favorites()
     
     if base_prepared_dir.exists():
         for source_dir in base_prepared_dir.iterdir():
@@ -250,7 +233,8 @@ def get_prepared_photos_by_source():
                     
                     media_item = {
                         "path": media_relative_path,
-                        "type": media_type
+                        "type": media_type,
+                        "is_favorite": media_relative_path in favorites
                     }
 
                     # Les options de filtre ne s'appliquent qu'aux images
@@ -470,7 +454,7 @@ def configure():
             'transition_enabled', # Added transition_enabled
             'transition_type', # Added transition_type
             'transition_duration', # Added transition_duration            
-            'pan_zoom_factor', # Added pan_zoom_factor
+            'pan_zoom_factor', 'favorite_boost_factor',
             'immich_update_interval_hours', 'date_format', 
             'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes', # Re-added
             'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume',
@@ -485,7 +469,7 @@ def configure():
             if key in request.form:
                 value = request.form.get(key)
                 # Gérer les champs numériques
-                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume']: # Integer fields
+                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume', 'favorite_boost_factor']: # Integer fields
                     try:
                         config[key] = int(value)
                     except (ValueError, TypeError):
@@ -515,6 +499,7 @@ def configure():
         config["transition_enabled"] = 'transition_enabled' in request.form # New checkbox handling
         config["clock_background_enabled"] = 'clock_background_enabled' in request.form
         config["video_audio_enabled"] = 'video_audio_enabled' in request.form
+        config["video_hwdec_enabled"] = 'video_hwdec_enabled' in request.form
 
         # Traitement des checkboxes
         config["show_clock"] = 'show_clock' in request.form
@@ -549,10 +534,18 @@ def configure():
 
     prepared_media_by_source = get_prepared_photos_by_source()
 
+    # --- NOUVEAU: Créer une liste plate des favoris pour le nouvel onglet ---
+    favorite_photos = []
+    for source, media_list in prepared_media_by_source.items():
+        for media in media_list:
+            if media.get('is_favorite'):
+                favorite_photos.append(media)
+
     return render_template(
         'configure.html',
         config=config,
         prepared_photos_by_source=prepared_media_by_source, # Le template utilise ce nom de variable
+        favorite_photos=favorite_photos, # Nouvelle variable pour l'onglet des favoris
         slideshow_running=slideshow_running
     )
 
@@ -912,6 +905,44 @@ def download_photos():
 
 _immich_first_run_skipped = False
 _samba_first_run_skipped = False
+
+def schedule_worker():
+    """
+    Thread en arrière-plan qui gère le démarrage et l'arrêt du diaporama
+    en fonction des heures d'activité configurées.
+    """
+    print("== Démarrage du worker de planification du diaporama ==")
+    while True:
+        try:
+            config = load_config()
+            start_str = config.get("active_start", "07:00")
+            end_str = config.get("active_end", "22:00")
+            
+            now_time = datetime.now().time()
+            start_time = datetime.strptime(start_str, "%H:%M").time()
+            end_time = datetime.strptime(end_str, "%H:%M").time()
+
+            in_schedule = False
+            if start_time <= end_time:
+                if start_time <= now_time <= end_time:
+                    in_schedule = True
+            else:  # Le créneau passe minuit
+                if now_time >= start_time or now_time <= end_time:
+                    in_schedule = True
+            
+            slideshow_is_running = is_slideshow_running()
+
+            if in_schedule and not slideshow_is_running:
+                print("[Scheduler] Heure active détectée et diaporama arrêté. Démarrage...")
+                start_slideshow()
+            elif not in_schedule and slideshow_is_running:
+                print("[Scheduler] Heure inactive détectée et diaporama en cours. Arrêt...")
+                stop_slideshow()
+        except Exception as e:
+            print(f"[Scheduler] Erreur dans le worker de planification : {e}")
+
+        # Attendre 60 secondes avant la prochaine vérification
+        time.sleep(60)
 
 def immich_update_worker():
     """
@@ -1550,6 +1581,28 @@ def set_photo_filter():
     save_filter_states(states)
     return jsonify({"success": True, "message": "Préférence de filtre enregistrée."})
 
+@app.route('/api/toggle_favorite', methods=['POST'])
+@login_required
+def toggle_favorite():
+    """Ajoute ou retire une photo de la liste des favoris."""
+    data = request.get_json()
+    photo_relative_path = data.get('photo')
+
+    if not photo_relative_path:
+        return jsonify({"success": False, "message": "Chemin de la photo manquant."}), 400
+
+    favorites = load_favorites()
+    is_currently_favorite = photo_relative_path in favorites
+
+    if is_currently_favorite:
+        favorites.remove(photo_relative_path)
+    else:
+        favorites.append(photo_relative_path)
+    
+    save_favorites(favorites)
+    
+    return jsonify({"success": True, "is_favorite": not is_currently_favorite})
+
 @app.route('/api/scan_wifi', methods=['GET'])
 @login_required
 def scan_wifi():
@@ -1614,8 +1667,9 @@ if __name__ == '__main__':
     immich_thread.start()
     samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
     samba_thread.start()
-
-    # Vérifier si le diaporama doit être lancé au démarrage
-    check_and_start_slideshow_on_boot()
+    
+    # Démarrer le worker de planification du diaporama
+    scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
+    scheduler_thread.start()
 
     app.run(host='0.0.0.0', port=5000)

@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: Pimmich\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-22 18:39+0200\n"
-"PO-Revision-Date: 2025-07-23 13:35+0200\n"
+"POT-Creation-Date: 2025-07-23 15:10+0200\n"
+"PO-Revision-Date: 2025-07-23 15:10+0200\n"
 "Last-Translator: \n"
 "Language-Team: es <LL@li.org>\n"
 "Language: es\n"
@@ -1414,3 +1414,23 @@ msgid "{len_type} values are required, but {len_value} was given."
 msgid_plural "{len_type} values are required, but {len_value} were given."
 msgstr[0] ""
 msgstr[1] ""
+
+#: templates/configure.html:75
+msgid "Favoris"
+msgstr "Favoritos"
+
+#: templates/configure.html:667 templates/configure.html:727 templates/configure.html:875
+msgid "Mettre en favori"
+msgstr "Marcar como favorito"
+
+#: templates/configure.html:682
+msgid "Vos photos favorites"
+msgstr "Tus fotos favoritas"
+
+#: templates/configure.html:683
+msgid "Voici toutes vos photos marquées comme favorites. Vous pouvez les gérer ici."
+msgstr "Aquí están todas tus fotos marcadas como favoritas. Puedes gestionarlas aquí."
+
+#: templates/configure.html:744 templates/configure.html:876
+msgid "Vous n'avez aucune photo en favori pour le moment."
+msgstr "No tienes fotos favoritas por el momento."

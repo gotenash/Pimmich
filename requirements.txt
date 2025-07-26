@@ -1,10 +1,9 @@
-Flask==2.3.2
-requests==2.31.0
-Pillow==10.1.0
-pygame
+Flask
+requests
+Pillow
 psutil
-pillow-heif
-smbprotocol
-werkzeug
+pygame
+smbclient
 Flask-Babel
 piexif
+pillow-heif

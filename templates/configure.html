@@ -72,6 +72,7 @@
   <button class="tablink" onclick="openTab(event, 'tab-heure')">{{ _('Heure, Météo et Marées') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-sources')">{{ _('Sources des photos') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-apercu')">{{ _('Aperçu') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-favoris')">{{ _('Favoris') }} <span id="favorites-count-badge" class="hidden bg-yellow-400 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
   <button class="tablink" onclick="openTab(event, 'tab-actions')">{{ _('Actions') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-validation')">{{ _('Validation') }} <span id="pending-count-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
   <button class="tablink" onclick="openTab(event, 'tab-system')">{{ _('Système') }}</button>
@@ -135,10 +136,22 @@
             </select>
         </div>
         <div style="margin-top: 16px;">
+            <label for="favorite_boost_factor">{{ _("Fréquence des favoris (nombre d'ajouts supplémentaires dans la liste de lecture) :") }}</label>
+            <input type="number" id="favorite_boost_factor" name="favorite_boost_factor" value="{{ config.get('favorite_boost_factor', 2) }}" min="0">
+            <p class="text-sm text-gray-600 mt-1">{{ _("Ex: 0 = pas de boost, 2 = 3x plus de chances d'apparaître.") }}</p>
+        </div>
+        <div style="margin-top: 16px;">
             <label>
                 <input type="checkbox" id="video_audio_enabled" name="video_audio_enabled" {% if config.get('video_audio_enabled', False) %}checked{% endif %}>
                 {{ _("Activer le son pour les vidéos") }}
             </label>
+        </div>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="video_hwdec_enabled" {% if config.get('video_hwdec_enabled', False) %}checked{% endif %}>
+                {{ _("Activer le décodage vidéo matériel (plus fluide, mais peut être instable)") }}
+            </label>
+            <p class="text-sm text-gray-600 mt-1">{{ _("Cochez cette case pour une lecture plus fluide sur les Raspberry Pi. Décochez si vous rencontrez des écrans bleus/noirs après les vidéos.") }}</p>
         </div>
         <div id="audio-output-selector" style="display: flex; align-items: center; margin-top: 8px; {% if not config.get('video_audio_enabled', False) %}display: none;{% endif %}">
             <label for="video_audio_output" style="min-width: 200px;">{{ _("Sortie audio :") }}</label>
@@ -664,6 +677,9 @@
                                         {% endif %}
                                         <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                                     </select>
+                                    <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}">
+                                        <i class="fas fa-star"></i>
+                                    </button>
                                     <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
                                 </div>
                                 {% endif %}
@@ -675,6 +691,68 @@
             {% endfor %}
         {% else %}
             <p class="text-center text-gray-500 italic mt-4">{{ _("Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet \"Actions\".") }}</p>
+        {% endif %}
+    </fieldset>
+</div>
+
+<div id="tab-favoris" class="tabcontent">
+    <fieldset>
+        <legend><h3>{{ _("Vos photos favorites") }}</h3></legend>
+        <p class="text-gray-600 mb-4">{{ _("Voici toutes vos photos marquées comme favorites. Vous pouvez les gérer ici.") }}</p>
+
+        {% if favorite_photos %}
+            <div id="favorites-photo-grid" class="photo-grid">
+                {% for media in favorite_photos %}
+                    {% set photo_path = media.path %}
+                    {% set has_polaroid = media.has_polaroid %}
+                    {% set active_filter = media.active_filter %}
+                    <div class="photo-tile relative" data-path="{{ photo_path }}">
+                        <!-- Spinner Overlay -->
+                        <div class="spinner-overlay hidden absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded z-10">
+                            <i class="fas fa-spinner fa-spin text-white text-3xl"></i>
+                        </div>
+                        
+                        {% set media_url = url_for('static', filename='prepared/' + media.path) %}
+                        {% set thumb_url = '' %}
+
+                        {% if media.type == 'image' %}
+                            {% set thumb_url = media_url %}
+                            {% if media.active_filter == 'polaroid' and media.has_polaroid %}
+                                {% set polaroid_filename = media.path.rsplit('.', 1)[0] + '_polaroid.jpg' %}
+                                {% set thumb_url = url_for('static', filename='prepared/' + polaroid_filename) %}
+                            {% endif %}
+                        {% elif media.type == 'video' and media.thumbnail_path %}
+                            {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
+                        {% endif %}
+
+                        <a href="{{ media_url }}" class="glightbox" data-gallery="favorites" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                          <img src="{{ thumb_url }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition bg-gray-200" alt="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                          {% if media.type == 'video' %}
+                          <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded">
+                              <i class="fas fa-play text-white text-3xl opacity-75"></i>
+                          </div>
+                          {% endif %}
+                        </a>
+                        {% if media.type == 'image' %}
+                        <div class="photo-actions mt-1 flex items-center justify-between w-full gap-x-2">
+                            <select class="filter-select text-xs rounded border-gray-300 py-1" data-photo="{{ photo_path }}">
+                                <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
+                                <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
+                                <option value="sepia" {% if active_filter == 'sepia' %}selected{% endif %}>{{ _("Sépia") }}</option>
+                                <option value="vignette" {% if active_filter == 'vignette' %}selected{% endif %}>{{ _("Vignette") }}</option>
+                                <option value="vintage" {% if active_filter == 'vintage' %}selected{% endif %}>{{ _("Vintage") }}</option>
+                                {% if has_polaroid %}<option value="polaroid" {% if active_filter == 'polaroid' %}selected{% endif %}>{{ _("Polaroid") }}</option>{% endif %}
+                                <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
+                            </select>
+                            <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
+                            <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p id="no-favorites-message" class="text-center text-gray-500 italic mt-4">{{ _("Vous n'avez aucune photo en favori pour le moment.") }}</p>
         {% endif %}
     </fieldset>
 </div>
@@ -875,6 +953,8 @@
     headerSecurity: "{{ _('Sécurité') }}",
     headerSignal: "{{ _('Signal') }}",
     noSecurity: "{{ _('Aucune') }}",
+    favoriteTooltip: "{{ _('Mettre en favori') }}",
+    noFavorites: "{{ _("Vous n'avez aucune photo en favori pour le moment.") }}",
     selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
   };
 
@@ -953,31 +1033,40 @@
 <script>
 
 function openTab(evt, tabId) {
+    // Si on clique sur l'onglet Favoris et qu'il n'est pas déjà actif, on recharge la page
+    // pour s'assurer que la liste des favoris est à jour.
+    const clickedButton = evt ? evt.currentTarget : null;
+    if (tabId === 'tab-favoris' && clickedButton && !clickedButton.classList.contains('active')) {
+        localStorage.setItem('activeTab', 'tab-favoris'); // On s'assure de revenir sur le bon onglet
+        location.reload();
+        return; // On arrête l'exécution pour laisser le rechargement se faire
+    }
+
     const tabcontent = document.getElementsByClassName("tabcontent");
     const tablinks = document.getElementsByClassName("tablink");
 
-    for (let i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
+    for (const tab of tabcontent) {
+        tab.style.display = "none";
+    }
+    for (const link of tablinks) {
+        link.classList.remove("active");
     }
 
-    for (let i = 0; i < tablinks.length; i++) {
-        tablinks[i].classList.remove("active");
+    const tabElement = document.getElementById(tabId);
+    if (tabElement) {
+        tabElement.style.display = "block";
     }
-
-    document.getElementById(tabId).style.display = "block";
 
     // Gérer la classe active sur le bouton de l'onglet
     const currentButton = evt ? evt.currentTarget : document.querySelector(`.tablink[onclick*="'${tabId}'"]`);
     if (currentButton) {
         currentButton.classList.add("active");
     }
-
-    // Sauvegarder l'onglet actuel dans le localStorage
     localStorage.setItem('activeTab', tabId);
 
     // Gérer la visibilité du bouton "Enregistrer"
     const saveButton = document.getElementById('save-changes-btn');
-    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system', 'tab-validation'];
+    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system', 'tab-validation', 'tab-favoris'];
     if (tabId === 'tab-validation') {
         refreshValidationTab(); // On rafraîchit la grille et le badge
     }
@@ -998,6 +1087,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mettre à jour le badge au chargement (et la grille si l'onglet est déjà actif)
     refreshValidationTab(); // Appel initial pour mettre à jour le badge
     setInterval(refreshValidationTab, 15000); // Et le mettre à jour périodiquement
+
+    // Mettre à jour le badge des favoris
+    const favoritesCount = {{ favorite_photos|length }};
+    const favoritesBadge = document.getElementById('favorites-count-badge');
+    if (favoritesBadge) {
+        if (favoritesCount > 0) {
+            favoritesBadge.textContent = favoritesCount;
+            favoritesBadge.classList.remove('hidden');
+        } else {
+            favoritesBadge.classList.add('hidden');
+        }
+    }
 
     // Gérer l'affichage du sélecteur de sortie audio
     const audioEnabledCheckbox = document.getElementById('video_audio_enabled');
@@ -1168,6 +1269,51 @@ document.addEventListener("DOMContentLoaded", () => {
         container.appendChild(messageElement);
         container.scrollTop = container.scrollHeight;
     }
+
+    // --- Gestion des favoris (placé ici pour être sûr que le DOM est chargé) ---
+    document.querySelectorAll('.favorite-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const btn = event.currentTarget;
+            const photo = btn.dataset.photo;
+
+            btn.disabled = true; // Empêcher les clics multiples
+
+            try {
+                const response = await fetch('/api/toggle_favorite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo: photo })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    // Mettre à jour tous les boutons correspondants (un dans l'aperçu, un dans les favoris)
+                    document.querySelectorAll(`.favorite-btn[data-photo="${photo}"]`).forEach(b => {
+                        b.classList.toggle('text-yellow-400', result.is_favorite);
+                        b.classList.toggle('text-gray-400', !result.is_favorite);
+                    });
+
+                    // --- Logique de mise à jour dynamique ---
+                    const favoritesBadge = document.getElementById('favorites-count-badge');
+                    let count = parseInt(favoritesBadge.textContent, 10) || 0;
+
+                    if (result.is_favorite) {
+                        count++;
+                    } else {
+                        count = Math.max(0, count - 1);
+                        const tileToRemove = document.querySelector(`#tab-favoris .photo-tile[data-path="${photo}"]`);
+                        if (tileToRemove) tileToRemove.remove();
+                    }
+                    
+                    favoritesBadge.textContent = count;
+                    favoritesBadge.classList.toggle('hidden', count === 0);
+                    const noFavMsg = document.getElementById('no-favorites-message');
+                    if (noFavMsg && count === 0) noFavMsg.classList.remove('hidden');
+
+                } else { alert(`Erreur: ${result.message}`); }
+            } catch (error) { alert("Erreur de communication avec le serveur."); } 
+            finally { btn.disabled = false; }
+        });
+    });
 
     // ----- IMPORT USB AMÉLIORÉ -----
     document.getElementById("usb-import-btn").addEventListener("click", () => {

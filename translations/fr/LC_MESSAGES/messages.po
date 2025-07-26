@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-21 19:39+0200\n"
-"PO-Revision-Date: 2025-07-22 08:50+0200\n"
+"POT-Creation-Date: 2025-07-22 18:39+0200\n"
+"PO-Revision-Date: 2025-07-21 23:26+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
 "Language-Team: fr <LL@li.org>\n"
@@ -18,558 +18,788 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app.py:414 app.py:419
+#: app.py:418 app.py:423
 msgid "Aucun fichier sélectionné."
-msgstr "Aucun fichier sélectionné."
+msgstr ""
 
-#: app.py:435
+#: app.py:439
 #, python-format
 msgid "%(count)s photo(s) envoyée(s) pour validation avec succès !"
-msgstr "%(count)s photo(s) envoyée(s) pour validation avec succès !"
+msgstr ""
 
-#: app.py:526
+#: app.py:530
 msgid "Connexion réussie"
-msgstr "Connexion réussie"
+msgstr ""
 
-#: app.py:529
+#: app.py:533
 msgid "Identifiants invalides"
-msgstr "Identifiants invalides"
+msgstr ""
 
-#: app.py:535
+#: app.py:539
 msgid "Déconnexion réussie"
-msgstr "Déconnexion réussie"
+msgstr ""
 
-#: app.py:619
+#: app.py:623
 msgid "Configuration enregistrée et diaporama relancé"
-msgstr "Configuration enregistrée et diaporama relancé"
+msgstr ""
 
-#: app.py:1334
+#: app.py:1338
 msgid "Le SSID et le pays Wi-Fi sont obligatoires."
-msgstr "Le SSID et le pays Wi-Fi sont obligatoires."
+msgstr ""
 
-#: app.py:1347
+#: app.py:1351
 msgid ""
 "Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer"
 " la connexion. Veuillez patienter une minute et vérifier le statut."
-msgstr "Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la connexion. Veuillez patienter une minute et vérifier le statut."
+msgstr ""
 
-#: app.py:1349
+#: app.py:1353
 #, python-format
 msgid "Erreur lors de l'application des paramètres Wi-Fi : %(error)s"
-msgstr "Erreur lors de l'application des paramètres Wi-Fi : %(error)s"
+msgstr ""
 
-#: app.py:1367
+#: app.py:1371
 msgid "Les deux champs de mot de passe sont requis."
-msgstr "Les deux champs de mot de passe sont requis."
+msgstr ""
 
-#: app.py:1371 templates/configure.html:766
+#: app.py:1375 templates/configure.html:767
 msgid "Les mots de passe ne correspondent pas."
-msgstr "Les mots de passe ne correspondent pas."
+msgstr ""
 
-#: app.py:1375
+#: app.py:1379
 msgid "Le mot de passe doit contenir au moins 6 caractères."
-msgstr "Le mot de passe doit contenir au moins 6 caractères."
+msgstr ""
 
-#: app.py:1380
+#: app.py:1384
 msgid ""
 "Mot de passe mis à jour avec succès. Il sera nécessaire pour votre "
 "prochaine connexion."
-msgstr "Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine connexion."
+msgstr ""
 
-#: app.py:1382
+#: app.py:1386
 #, python-format
 msgid "Erreur lors du changement de mot de passe : %(error)s"
-msgstr "Erreur lors du changement de mot de passe : %(error)s"
+msgstr ""
 
-#: app.py:1426
+#: app.py:1430
 msgid "Le fichier de configuration n'a pas été trouvé."
-msgstr "Le fichier de configuration n'a pas été trouvé."
+msgstr ""
 
-#: app.py:1434 app.py:1439
+#: app.py:1438 app.py:1443
 msgid "Aucun fichier de sauvegarde sélectionné."
-msgstr "Aucun fichier de sauvegarde sélectionné."
+msgstr ""
 
-#: app.py:1449
+#: app.py:1453
 msgid ""
 "Configuration restaurée avec succès ! Le diaporama va redémarrer pour "
 "appliquer les changements."
-msgstr "Configuration restaurée avec succès ! Le diaporama va redémarrer pour appliquer les changements."
+msgstr ""
 
-#: app.py:1451
+#: app.py:1455
 msgid ""
 "Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON "
 "valide."
-msgstr "Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON valide."
+msgstr ""
 
-#: app.py:1453
+#: app.py:1457
 #, python-format
 msgid "Erreur lors de la restauration : %(error)s"
-msgstr "Erreur lors de la restauration : %(error)s"
+msgstr ""
 
 #: templates/configure.html:5
 msgid "Configuration"
-msgstr "Configuration"
+msgstr ""
 
 #: templates/configure.html:55
 msgid "Configuration du cadre photo connecté"
-msgstr "Configuration du cadre photo connecté"
+msgstr ""
 
-#: templates/configure.html:58
+#: templates/configure.html:58 templates/login.html:70 templates/upload.html:66
 msgid "Langue"
-msgstr "Langue"
+msgstr ""
 
-#: templates/configure.html:64
+#: templates/configure.html:65
 msgid "Se déconnecter"
-msgstr "Se déconnecter"
-
-#: templates/configure.html:70
-msgid "Affichage"
-msgstr "Affichage"
+msgstr ""
 
 #: templates/configure.html:71
-msgid "Heure, Météo et Marées"
-msgstr "Heure, Météo et Marées"
+msgid "Affichage"
+msgstr ""
 
 #: templates/configure.html:72
-msgid "Sources des photos"
-msgstr "Sources des photos"
+msgid "Heure, Météo et Marées"
+msgstr ""
 
 #: templates/configure.html:73
+msgid "Sources des photos"
+msgstr ""
+
+#: templates/configure.html:74
 msgid "Aperçu"
-msgstr "Aperçu"
+msgstr ""
 
-#: templates/configure.html:74 templates/configure.html:471
+#: templates/configure.html:75 templates/configure.html:472
 msgid "Actions"
-msgstr "Actions"
-
-#: templates/configure.html:75
-msgid "Validation"
-msgstr "Validation"
+msgstr ""
 
 #: templates/configure.html:76
+msgid "Validation"
+msgstr ""
+
+#: templates/configure.html:77
 msgid "Système"
-msgstr "Système"
+msgstr ""
 
-#: templates/configure.html:83
+#: templates/configure.html:84
 msgid "Paramètres d'affichage"
-msgstr "Paramètres d'affichage"
+msgstr ""
 
-#: templates/configure.html:85
+#: templates/configure.html:86
 msgid "Durée d'affichage (en secondes) :"
-msgstr "Durée d'affichage (en secondes) :"
+msgstr ""
 
-#: templates/configure.html:88
+#: templates/configure.html:89
 msgid "Heure de début d'activité (HH:MM) :"
-msgstr "Heure de début d'activité (HH:MM) :"
+msgstr ""
 
-#: templates/configure.html:91
+#: templates/configure.html:92
 msgid "Heure de fin d'activité (HH:MM) :"
-msgstr "Heure de fin d'activité (HH:MM) :"
+msgstr ""
 
-#: templates/configure.html:94
+#: templates/configure.html:95
+#, python-format
 msgid "Hauteur utile de l'écran (%% affiché) :"
-msgstr "Hauteur utile de l'écran (%% affiché) :"
+msgstr ""
 
-#: templates/configure.html:99
+#: templates/configure.html:100
 msgid "Largeur d'affichage cible (px) :"
-msgstr "Largeur d'affichage cible (px) :"
+msgstr ""
 
-#: templates/configure.html:101
+#: templates/configure.html:102
 msgid "Hauteur d'affichage cible (px) :"
-msgstr "Hauteur d'affichage cible (px) :"
+msgstr ""
 
-#: templates/configure.html:104
+#: templates/configure.html:105
 msgid "Détecter la résolution de l'écran actif"
-msgstr "Détecter la résolution de l'écran actif"
+msgstr ""
 
-#: templates/configure.html:104
+#: templates/configure.html:105
 msgid "Détecter"
-msgstr "Détecter"
+msgstr ""
 
-#: templates/configure.html:109
+#: templates/configure.html:110
 msgid "Activer l'effet Pan/Zoom sur les photos"
-msgstr "Activer l'effet Pan/Zoom sur les photos"
+msgstr ""
 
-#: templates/configure.html:113
+#: templates/configure.html:114
+#, python-format
 msgid "Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :"
-msgstr "Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :"
+msgstr ""
 
-#: templates/configure.html:119
+#: templates/configure.html:120
 msgid "Activer l'effet de transition entre les photos"
-msgstr "Activer l'effet de transition entre les photos"
+msgstr ""
 
-#: templates/configure.html:123
+#: templates/configure.html:124
 msgid "Durée de transition (secondes) :"
-msgstr "Durée de transition (secondes) :"
+msgstr ""
 
-#: templates/configure.html:127
+#: templates/configure.html:128
 msgid "Type de transition :"
-msgstr "Type de transition :"
-
-#: templates/configure.html:129
-msgid "Fondu enchaîné"
-msgstr "Fondu enchaîné"
+msgstr ""
 
 #: templates/configure.html:130
-msgid "Glisser depuis la gauche"
-msgstr "Glisser depuis la gauche"
+msgid "Fondu enchaîné"
+msgstr ""
 
 #: templates/configure.html:131
-msgid "Glisser depuis la droite"
-msgstr "Glisser depuis la droite"
+msgid "Glisser depuis la gauche"
+msgstr ""
 
 #: templates/configure.html:132
-msgid "Glisser depuis le bas"
-msgstr "Glisser depuis le bas"
+msgid "Glisser depuis la droite"
+msgstr ""
 
 #: templates/configure.html:133
+msgid "Glisser depuis le bas"
+msgstr ""
+
+#: templates/configure.html:134
 msgid "Glisser depuis le haut"
-msgstr "Glisser depuis le haut"
+msgstr ""
 
-#: templates/configure.html:139
+#: templates/configure.html:140
 msgid "Activer le son pour les vidéos"
-msgstr "Activer le son pour les vidéos"
+msgstr ""
 
-#: templates/configure.html:143
+#: templates/configure.html:144
 msgid "Sortie audio :"
-msgstr "Sortie audio :"
-
-#: templates/configure.html:145
-msgid "Automatique"
-msgstr "Automatique"
+msgstr ""
 
 #: templates/configure.html:146
-msgid "HDMI"
-msgstr "HDMI"
+msgid "Automatique"
+msgstr ""
 
 #: templates/configure.html:147
+msgid "HDMI"
+msgstr ""
+
+#: templates/configure.html:148
 msgid "Jack 3.5mm (Casque)"
-msgstr "Jack 3.5mm (Casque)"
+msgstr ""
 
-#: templates/configure.html:151
+#: templates/configure.html:152
 msgid "Volume :"
-msgstr "Volume :"
+msgstr ""
 
-#: templates/configure.html:162
+#: templates/configure.html:163
 msgid "Affichage de l'heure"
-msgstr "Affichage de l'heure"
+msgstr ""
 
-#: templates/configure.html:168
+#: templates/configure.html:169
 msgid "Afficher l'heure"
-msgstr "Afficher l'heure"
+msgstr ""
 
-#: templates/configure.html:173
+#: templates/configure.html:174
 msgid "Taille de la police :"
-msgstr "Taille de la police :"
+msgstr ""
 
-#: templates/configure.html:178
+#: templates/configure.html:179 templates/configure.html:313
 msgid "Décalage horizontal (px) :"
-msgstr "Décalage horizontal (px) :"
+msgstr ""
 
-#: templates/configure.html:183
+#: templates/configure.html:184 templates/configure.html:318
 msgid "Décalage vertical (px) :"
-msgstr "Décalage vertical (px) :"
+msgstr ""
 
-#: templates/configure.html:188
+#: templates/configure.html:189
 msgid "Couleur du texte (hex) :"
-msgstr "Couleur du texte (hex) :"
+msgstr ""
 
-#: templates/configure.html:193
+#: templates/configure.html:194
 msgid "Couleur du contour (hex) :"
-msgstr "Couleur du contour (hex) :"
+msgstr ""
 
-#: templates/configure.html:198
+#: templates/configure.html:199
 msgid "Position de l'heure :"
-msgstr "Position de l'heure :"
-
-#: templates/configure.html:200
-msgid "Gauche"
-msgstr "Gauche"
+msgstr ""
 
 #: templates/configure.html:201
-msgid "Centre"
-msgstr "Centre"
+msgid "Gauche"
+msgstr ""
 
 #: templates/configure.html:202
+msgid "Centre"
+msgstr ""
+
+#: templates/configure.html:203
 msgid "Droite"
-msgstr "Droite"
+msgstr ""
 
-#: templates/configure.html:207
+#: templates/configure.html:208
 msgid "Police :"
-msgstr "Police :"
+msgstr ""
 
-#: templates/configure.html:222
+#: templates/configure.html:223
 msgid "Afficher un fond derrière l'heure/date/météo"
-msgstr "Afficher un fond derrière l'heure/date/météo"
+msgstr ""
 
-#: templates/configure.html:226
+#: templates/configure.html:227
 msgid "Couleur du fond (hex RGBA) :"
-msgstr "Couleur du fond (hex RGBA) :"
+msgstr ""
 
-#: templates/configure.html:232
+#: templates/configure.html:233
 msgid "Affichage de la date"
-msgstr "Affichage de la date"
+msgstr ""
 
-#: templates/configure.html:236
+#: templates/configure.html:237
 msgid "Afficher la date (sous l'heure)"
-msgstr "Afficher la date (sous l'heure)"
+msgstr ""
 
-#: templates/configure.html:240
+#: templates/configure.html:241
 msgid "Format de la date :"
-msgstr "Format de la date :"
+msgstr ""
 
-#: templates/configure.html:246
+#: templates/configure.html:247
 msgid "Affichage de la météo (OpenWeatherMap)"
-msgstr "Affichage de la météo (OpenWeatherMap)"
+msgstr ""
 
-#: templates/configure.html:251
+#: templates/configure.html:252
 msgid "Afficher la météo"
-msgstr "Afficher la météo"
+msgstr ""
 
-#: templates/configure.html:256
+#: templates/configure.html:257
 msgid "Ville :"
-msgstr "Ville :"
+msgstr ""
 
-#: templates/configure.html:261
+#: templates/configure.html:262
 msgid "Clé API :"
-msgstr "Clé API :"
+msgstr ""
 
-#: templates/configure.html:266
+#: templates/configure.html:267
 msgid "Tester la clé API et la ville"
-msgstr "Tester la clé API et la ville"
+msgstr ""
 
-#: templates/configure.html:271
+#: templates/configure.html:272
 msgid "Unités :"
-msgstr "Unités :"
-
-#: templates/configure.html:273
-msgid "Celsius"
-msgstr "Celsius"
+msgstr ""
 
 #: templates/configure.html:274
+msgid "Celsius"
+msgstr ""
+
+#: templates/configure.html:275
 msgid "Fahrenheit"
-msgstr "Fahrenheit"
+msgstr ""
 
-#: templates/configure.html:279
+#: templates/configure.html:280
 msgid "Intervalle de MàJ (min) :"
-msgstr "Intervalle de MàJ (min) :"
-
-#: templates/configure.html:474
-msgid "Aperçu en direct"
-msgstr "Aperçu en direct"
-
-#: templates/configure.html:476
-msgid "Le diaporama est arrêté."
-msgstr "Le diaporama est arrêté."
-
-#: templates/configure.html:477
-msgid "Photo en cours"
-msgstr "Photo en cours"
-
-#: templates/configure.html:482
-msgid "Gestion du diaporama"
-msgstr "Gestion du diaporama"
-
-#: templates/configure.html:486
-msgid "Arrêter le diaporama"
-msgstr "Arrêter le diaporama"
-
-#: templates/configure.html:488
-msgid "Démarrer le diaporama"
-msgstr "Démarrer le diaporama"
-
-#: templates/configure.html:495
-msgid "Importation des photos"
-msgstr "Importation des photos"
-
-#: templates/configure.html:497
-msgid "Importer depuis la clé USB"
-msgstr "Importer depuis la clé USB"
-
-#: templates/configure.html:505
-msgid "Importer depuis Immich"
-msgstr "Importer depuis Immich"
-
-#: templates/configure.html:513
-msgid "Importer depuis Samba"
-msgstr "Importer depuis Samba"
-
-#: templates/configure.html:522
-msgid "Importer depuis un Smartphone"
-msgstr "Importer depuis un Smartphone"
-
-#: templates/configure.html:523
-msgid "Envoyez des photos directement depuis votre téléphone via le navigateur."
-msgstr "Envoyez des photos directement depuis votre téléphone via le navigateur."
-
-#: templates/configure.html:526
-msgid "Envoyer les photos"
-msgstr "Envoyer les photos"
-
-#: templates/configure.html:539
-msgid "Photos en attente de validation"
-msgstr "Photos en attente de validation"
-
-#: templates/configure.html:541
-msgid ""
-"Approuvez ou rejetez les photos envoyées. Les photos approuvées seront "
-"ajoutées à la source \"Smartphone\"."
-msgstr "Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées à la source \"Smartphone\"."
-
-#: templates/configure.html:542 templates/configure.html:837
-msgid "Actualiser"
-msgstr "Actualiser"
-
-#: templates/configure.html:605
-msgid "Aperçu des photos préparées"
-msgstr "Aperçu des photos préparées"
-
-#: templates/configure.html:606
-msgid ""
-"Voici les photos qui sont prêtes à être affichées par le diaporama, "
-"classées par source. Cliquez sur une photo pour l'agrandir."
-msgstr "Voici les photos qui sont prêtes à être affichées par le diaporama, classées par source. Cliquez sur une photo pour l'agrandir."
-
-#: templates/configure.html:615
-#, python-format
-msgid "Supprimer toutes les photos de la source '%(source)s'"
-msgstr "Supprimer toutes les photos de la source '%(source)s'"
-
-#: templates/configure.html:617
-msgid "Tout supprimer"
-msgstr "Tout supprimer"
-
-#: templates/configure.html:644 templates/configure.html:645
-#, python-format
-msgid "Aperçu de %(media)s"
-msgstr "Aperçu de %(media)s"
-
-#: templates/configure.html:656
-msgid "Filtre..."
-msgstr "Filtre..."
-
-#: templates/configure.html:657
-msgid "Noir & Blanc"
-msgstr "Noir & Blanc"
-
-#: templates/configure.html:658
-msgid "Sépia"
-msgstr "Sépia"
-
-#: templates/configure.html:659
-msgid "Vignette"
-msgstr "Vignette"
-
-#: templates/configure.html:660
-msgid "Vintage"
-msgstr "Vintage"
-
-#: templates/configure.html:662
-msgid "Polaroid"
-msgstr "Polaroid"
-
-#: templates/configure.html:664
-msgid "Original"
-msgstr "Original"
-
-#: templates/configure.html:666
-msgid "Supprimer cette photo"
-msgstr "Supprimer cette photo"
-
-#: templates/configure.html:676
-msgid ""
-"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis "
-"l'onglet \"Actions\"."
-msgstr "Aucune photo préparée n'a été trouvée. Veuillez en importer
-
-#: templates/configure.html:683
-msgid "État de la connexion Wi-Fi"
 msgstr ""
 
-#: templates/configure.html:686 templates/configure.html:733
-msgid "État:"
+#: templates/configure.html:286
+msgid "Affichage des marées (StormGlass Tide API)"
 msgstr ""
 
-#: templates/configure.html:686 templates/configure.html:689
-#: templates/configure.html:692 templates/configure.html:733
-#: templates/configure.html:734 templates/configure.html:737
-#: templates/configure.html:814 templates/configure.html:817
-#: templates/configure.html:820 templates/configure.html:823
-#: templates/configure.html:864
+#: templates/configure.html:287
+msgid "Utilise l'API de"
+msgstr ""
+
+#: templates/configure.html:287
+msgid ""
+"Une clé API est requise. Vous pouvez trouver les coordonnées de votre "
+"port sur des sites comme"
+msgstr ""
+
+#: templates/configure.html:288
+msgid ""
+"Note : Cette API fournit les hauteurs de marée, mais pas le coefficient "
+"de marée."
+msgstr ""
+
+#: templates/configure.html:293
+msgid "Afficher les informations de marée"
+msgstr ""
+
+#: templates/configure.html:298
+msgid "Latitude (ex: 48.3904) :"
+msgstr ""
+
+#: templates/configure.html:303
+msgid "Longitude (ex: -4.4861) :"
+msgstr ""
+
+#: templates/configure.html:308
+msgid "Clé API StormGlass :"
+msgstr ""
+
+#: templates/configure.html:323 templates/configure.html:434
+msgid "Tester la connexion"
+msgstr ""
+
+#: templates/configure.html:324
+msgid "Forcer la mise à jour"
+msgstr ""
+
+#: templates/configure.html:332
+msgid "État Actuel des Marées"
+msgstr ""
+
+#: templates/configure.html:334
+msgid "Dernière mise à jour des données :"
+msgstr ""
+
+#: templates/configure.html:334 templates/configure.html:335
+#: templates/configure.html:336 templates/configure.html:337
+#: templates/configure.html:687 templates/configure.html:690
+#: templates/configure.html:693 templates/configure.html:734
+#: templates/configure.html:735 templates/configure.html:738
+#: templates/configure.html:815 templates/configure.html:818
+#: templates/configure.html:821 templates/configure.html:824
+#: templates/configure.html:865
 msgid "Chargement..."
 msgstr ""
 
-#: templates/configure.html:689
+#: templates/configure.html:335
+msgid "Prochaine Pleine Mer :"
+msgstr ""
+
+#: templates/configure.html:336
+msgid "Prochaine Basse Mer :"
+msgstr ""
+
+#: templates/configure.html:337
+msgid "État de l'API :"
+msgstr ""
+
+#: templates/configure.html:343
+msgid "Fuseau Horaire"
+msgstr ""
+
+#: templates/configure.html:345
+msgid "Fuseau horaire actuel du système :"
+msgstr ""
+
+#: templates/configure.html:345
+msgid "Non défini"
+msgstr ""
+
+#: templates/configure.html:349
+msgid "Attention :"
+msgstr ""
+
+#: templates/configure.html:349
+msgid ""
+"La détection automatique du fuseau horaire a échoué lors de "
+"l'installation. Le système est configuré sur <strong>UTC</strong>. "
+"L'heure affichée peut être incorrecte."
+msgstr ""
+
+#: templates/configure.html:351
+msgid ""
+"Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi "
+"(via SSH) et en exécutant la commande :"
+msgstr ""
+
+#: templates/configure.html:351
+msgid "(remplacez par votre région/ville)."
+msgstr ""
+
+#: templates/configure.html:354
+msgid "Le fuseau horaire a été configuré automatiquement lors de l'installation."
+msgstr ""
+
+#: templates/configure.html:363
+msgid "Configuration de l'album photo Immich"
+msgstr ""
+
+#: templates/configure.html:367
+msgid "Nom technique de l'album Immich :"
+msgstr ""
+
+#: templates/configure.html:371
+msgid "URL du serveur Immich :"
+msgstr ""
+
+#: templates/configure.html:374
+msgid "Token d'accès Immich :"
+msgstr ""
+
+#: templates/configure.html:378
+msgid "Mise à jour automatique (Immich)"
+msgstr ""
+
+#: templates/configure.html:381 templates/configure.html:442
+msgid "Activer la mise à jour automatique"
+msgstr ""
+
+#: templates/configure.html:383 templates/configure.html:444
+msgid "Intervalle de mise à jour (heures):"
+msgstr ""
+
+#: templates/configure.html:387 templates/configure.html:448
+msgid "État du service :"
+msgstr ""
+
+#: templates/configure.html:388 templates/configure.html:449
+msgid "Dernière mise à jour :"
+msgstr ""
+
+#: templates/configure.html:389 templates/configure.html:450
+msgid "Prochaine mise à jour :"
+msgstr ""
+
+#: templates/configure.html:396
+msgid "Sources à afficher dans le diaporama"
+msgstr ""
+
+#: templates/configure.html:397
+msgid ""
+"Sélectionnez les sources de photos à inclure dans le diaporama. Les "
+"photos seront mélangées entre les sources sélectionnées."
+msgstr ""
+
+#: templates/configure.html:401
+msgid "Photos Immich"
+msgstr ""
+
+#: templates/configure.html:405
+msgid "Photos USB"
+msgstr ""
+
+#: templates/configure.html:409
+msgid "Photos Samba"
+msgstr ""
+
+#: templates/configure.html:413
+msgid "Photos Smartphone"
+msgstr ""
+
+#: templates/configure.html:417
+msgid "Configuration du partage Samba (Windows)"
+msgstr ""
+
+#: templates/configure.html:418
+msgid "Serveur :"
+msgstr ""
+
+#: templates/configure.html:419
+msgid "ex: 192.168.1.50 ou MON-NAS"
+msgstr ""
+
+#: templates/configure.html:421
+msgid "Nom du partage :"
+msgstr ""
+
+#: templates/configure.html:422
+msgid "ex: Photos"
+msgstr ""
+
+#: templates/configure.html:424
+msgid "Chemin dans le partage (optionnel) :"
+msgstr ""
+
+#: templates/configure.html:425
+msgid "ex: Famille/2024"
+msgstr ""
+
+#: templates/configure.html:427
+msgid "Nom d'utilisateur (optionnel) :"
+msgstr ""
+
+#: templates/configure.html:430
+msgid "Mot de passe (optionnel) :"
+msgstr ""
+
+#: templates/configure.html:439
+msgid "Mise à jour automatique (Samba)"
+msgstr ""
+
+#: templates/configure.html:456
+msgid "Options de démarrage"
+msgstr ""
+
+#: templates/configure.html:459
+msgid "Ignorer le premier import automatique au démarrage"
+msgstr ""
+
+#: templates/configure.html:461
+msgid ""
+"Si cette option est cochée, les mises à jour automatiques (Immich, Samba)"
+" ne se lanceront pas immédiatement après un redémarrage du cadre, mais "
+"attendront le prochain cycle programmé."
+msgstr ""
+
+#: templates/configure.html:466
+msgid "Enregistrer les modifications"
+msgstr ""
+
+#: templates/configure.html:475
+msgid "Aperçu en direct"
+msgstr ""
+
+#: templates/configure.html:477
+msgid "Le diaporama est arrêté."
+msgstr ""
+
+#: templates/configure.html:478
+msgid "Photo en cours"
+msgstr ""
+
+#: templates/configure.html:483
+msgid "Gestion du diaporama"
+msgstr ""
+
+#: templates/configure.html:487
+msgid "Arrêter le diaporama"
+msgstr ""
+
+#: templates/configure.html:489
+msgid "Démarrer le diaporama"
+msgstr ""
+
+#: templates/configure.html:496
+msgid "Importation des photos"
+msgstr ""
+
+#: templates/configure.html:498
+msgid "Importer depuis la clé USB"
+msgstr ""
+
+#: templates/configure.html:506
+msgid "Importer depuis Immich"
+msgstr ""
+
+#: templates/configure.html:514
+msgid "Importer depuis Samba"
+msgstr ""
+
+#: templates/configure.html:523
+msgid "Importer depuis un Smartphone"
+msgstr ""
+
+#: templates/configure.html:524
+msgid "Envoyez des photos directement depuis votre téléphone via le navigateur."
+msgstr ""
+
+#: templates/configure.html:527
+msgid "Envoyer les photos"
+msgstr ""
+
+#: templates/configure.html:540
+msgid "Photos en attente de validation"
+msgstr ""
+
+#: templates/configure.html:542
+msgid ""
+"Approuvez ou rejetez les photos envoyées. Les photos approuvées seront "
+"ajoutées à la source \"Smartphone\"."
+msgstr ""
+
+#: templates/configure.html:543 templates/configure.html:838
+msgid "Actualiser"
+msgstr ""
+
+#: templates/configure.html:606
+msgid "Aperçu des photos préparées"
+msgstr ""
+
+#: templates/configure.html:607
+msgid ""
+"Voici les photos qui sont prêtes à être affichées par le diaporama, "
+"classées par source. Cliquez sur une photo pour l'agrandir."
+msgstr ""
+
+#: templates/configure.html:616
+#, python-format
+msgid "Supprimer toutes les photos de la source '%(source)s'"
+msgstr ""
+
+#: templates/configure.html:618
+msgid "Tout supprimer"
+msgstr ""
+
+#: templates/configure.html:645 templates/configure.html:646
+#, python-format
+msgid "Aperçu de %(media)s"
+msgstr ""
+
+#: templates/configure.html:657
+msgid "Filtre..."
+msgstr ""
+
+#: templates/configure.html:658
+msgid "Noir & Blanc"
+msgstr ""
+
+#: templates/configure.html:659
+msgid "Sépia"
+msgstr ""
+
+#: templates/configure.html:660
+msgid "Vignette"
+msgstr ""
+
+#: templates/configure.html:661
+msgid "Vintage"
+msgstr ""
+
+#: templates/configure.html:663
+msgid "Polaroid"
+msgstr ""
+
+#: templates/configure.html:665
+msgid "Original"
+msgstr ""
+
+#: templates/configure.html:667
+msgid "Supprimer cette photo"
+msgstr ""
+
+#: templates/configure.html:677
+msgid ""
+"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis "
+"l'onglet \"Actions\"."
+msgstr ""
+
+#: templates/configure.html:684
+msgid "État de la connexion Wi-Fi"
+msgstr ""
+
+#: templates/configure.html:687 templates/configure.html:734
+msgid "État:"
+msgstr ""
+
+#: templates/configure.html:690
 msgid "Réseau (SSID):"
 msgstr ""
 
-#: templates/configure.html:692 templates/configure.html:734
+#: templates/configure.html:693 templates/configure.html:735
 msgid "Adresse IP:"
 msgstr ""
 
-#: templates/configure.html:697
+#: templates/configure.html:698
 msgid "Configuration Wi-Fi"
 msgstr ""
 
-#: templates/configure.html:698
+#: templates/configure.html:699
 msgid ""
 "La sélection du pays est obligatoire pour activer l'interface Wi-Fi et "
 "respecter les réglementations locales sur les fréquences radio."
 msgstr ""
 
-#: templates/configure.html:701
+#: templates/configure.html:702
 msgid "Pays (pour la réglementation Wi-Fi)"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "France"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "États-Unis"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "Royaume-Uni"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "Allemagne"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "Espagne"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "Canada"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "Belgique"
 msgstr ""
 
-#: templates/configure.html:703
+#: templates/configure.html:704
 msgid "Suisse"
 msgstr ""
 
-#: templates/configure.html:710
+#: templates/configure.html:711
 msgid "SSID (Nom du réseau)"
 msgstr ""
 
-#: templates/configure.html:714
+#: templates/configure.html:715 templates/login.html:56
 msgid "Mot de passe"
 msgstr ""
 
-#: templates/configure.html:716
+#: templates/configure.html:717
 msgid "Laissez vide si le réseau est ouvert."
 msgstr ""
 
-#: templates/configure.html:719
+#: templates/configure.html:720
 msgid "Appliquer les paramètres Wi-Fi"
 msgstr ""
 
-#: templates/configure.html:722
+#: templates/configure.html:723
 msgid ""
 "Note : Après avoir appliqué les paramètres, la connexion peut prendre "
 "jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à "
@@ -577,11 +807,11 @@ msgid ""
 "système."
 msgstr ""
 
-#: templates/configure.html:726
+#: templates/configure.html:727
 msgid "Gestion des Interfaces Réseau"
 msgstr ""
 
-#: templates/configure.html:727
+#: templates/configure.html:728
 msgid ""
 "Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, "
 "c'est souvent un problème de priorité. Désactivez l'interface Ethernet "
@@ -589,223 +819,258 @@ msgid ""
 "redémarre le service réseau."
 msgstr ""
 
-#: templates/configure.html:732
+#: templates/configure.html:733
 msgid "Interface Filaire (eth0)"
 msgstr ""
 
-#: templates/configure.html:744
+#: templates/configure.html:745
 msgid "Réseaux Wi-Fi à proximité"
 msgstr ""
 
-#: templates/configure.html:745
+#: templates/configure.html:746
 msgid ""
 "Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. "
 "Cliquer sur un réseau dans la liste remplira automatiquement le champ "
 "SSID ci-dessus."
 msgstr ""
 
-#: templates/configure.html:748 templates/configure.html:868
+#: templates/configure.html:749 templates/configure.html:869
 msgid "Lancer le scan"
 msgstr ""
 
-#: templates/configure.html:756 templates/configure.html:872
+#: templates/configure.html:757 templates/configure.html:873
 msgid "Sécurité"
 msgstr ""
 
-#: templates/configure.html:758
+#: templates/configure.html:759
 msgid "Changer le mot de passe de l'interface"
 msgstr ""
 
-#: templates/configure.html:760
+#: templates/configure.html:761
 msgid "Nouveau mot de passe"
 msgstr ""
 
-#: templates/configure.html:761
+#: templates/configure.html:762
 msgid "6 caractères minimum"
 msgstr ""
 
-#: templates/configure.html:764
+#: templates/configure.html:765
 msgid "Confirmer le nouveau mot de passe"
 msgstr ""
 
-#: templates/configure.html:769
+#: templates/configure.html:770
 msgid "Changer le mot de passe"
 msgstr ""
 
-#: templates/configure.html:775
+#: templates/configure.html:776
 msgid "Sauvegarde et Restauration"
 msgstr ""
 
-#: templates/configure.html:776
+#: templates/configure.html:777
 msgid ""
 "Sauvegardez votre configuration (API, partages, affichage...) dans un "
 "fichier. Vous pourrez le restaurer plus tard ou sur une nouvelle "
 "installation."
 msgstr ""
 
-#: templates/configure.html:780
+#: templates/configure.html:781
 msgid "Sauvegarder la configuration"
 msgstr ""
 
-#: templates/configure.html:782
+#: templates/configure.html:783
 msgid "Télécharger la sauvegarde"
 msgstr ""
 
-#: templates/configure.html:787
+#: templates/configure.html:788
 msgid "Restaurer une configuration"
 msgstr ""
 
-#: templates/configure.html:788
+#: templates/configure.html:789
 msgid ""
 "Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du "
 "fichier de sauvegarde."
 msgstr ""
 
-#: templates/configure.html:790
+#: templates/configure.html:791
 msgid "Restaurer"
 msgstr ""
 
-#: templates/configure.html:797
+#: templates/configure.html:798
 msgid "Contrôle du système"
 msgstr ""
 
-#: templates/configure.html:798
+#: templates/configure.html:799
 msgid "Êtes-vous sûr de vouloir REDÉMARRER le système ?"
 msgstr ""
 
-#: templates/configure.html:800
+#: templates/configure.html:801
 msgid "Redémarrer le système"
 msgstr ""
 
-#: templates/configure.html:803
+#: templates/configure.html:804
 msgid "Êtes-vous sûr de vouloir ÉTEINDRE le système ?"
 msgstr ""
 
-#: templates/configure.html:805
+#: templates/configure.html:806
 msgid "Éteindre le système"
 msgstr ""
 
-#: templates/configure.html:811
+#: templates/configure.html:812
 msgid "Informations Système"
 msgstr ""
 
-#: templates/configure.html:814
+#: templates/configure.html:815
 msgid "Température CPU:"
 msgstr ""
 
-#: templates/configure.html:817
+#: templates/configure.html:818
 msgid "Utilisation CPU:"
 msgstr ""
 
-#: templates/configure.html:820
+#: templates/configure.html:821
 msgid "RAM:"
 msgstr ""
 
-#: templates/configure.html:823
+#: templates/configure.html:824
 msgid "Stockage:"
 msgstr ""
 
-#: templates/configure.html:829
+#: templates/configure.html:830
 msgid "Logs Système"
 msgstr ""
 
-#: templates/configure.html:831
+#: templates/configure.html:832
 msgid "Sélectionner un log :"
 msgstr ""
 
-#: templates/configure.html:833
+#: templates/configure.html:834
 msgid "app.py (Serveur Web)"
 msgstr ""
 
-#: templates/configure.html:834
+#: templates/configure.html:835
 msgid "local_slideshow.py (Diaporama - Sortie Standard)"
 msgstr ""
 
-#: templates/configure.html:835
+#: templates/configure.html:836
 msgid "local_slideshow.py (Diaporama - Erreurs)"
 msgstr ""
 
-#: templates/configure.html:838
+#: templates/configure.html:839
 msgid "Effacer les logs"
 msgstr ""
 
-#: templates/configure.html:844
+#: templates/configure.html:845
 msgid "Crédits"
 msgstr ""
 
-#: templates/configure.html:847
+#: templates/configure.html:848
 msgid "Auteurs : Gotenash et Shenron"
 msgstr ""
 
-#: templates/configure.html:851
+#: templates/configure.html:852
 msgid "Projet réalisé dans le cadre du Gadgetaulab"
 msgstr ""
 
-#: templates/configure.html:865
+#: templates/configure.html:866
 msgid "Erreur"
 msgstr ""
 
-#: templates/configure.html:866
+#: templates/configure.html:867
 msgid "N/A"
 msgstr ""
 
-#: templates/configure.html:867
+#: templates/configure.html:868
 msgid "Scan en cours..."
 msgstr ""
 
-#: templates/configure.html:869
+#: templates/configure.html:870
 msgid "Aucun réseau Wi-Fi trouvé."
 msgstr ""
 
-#: templates/configure.html:870
+#: templates/configure.html:871
 msgid "Erreur de communication avec le serveur:"
 msgstr ""
 
-#: templates/configure.html:871
+#: templates/configure.html:872
 msgid "SSID"
 msgstr ""
 
-#: templates/configure.html:873
+#: templates/configure.html:874
 msgid "Signal"
 msgstr ""
 
-#: templates/configure.html:874
+#: templates/configure.html:875
 msgid "Aucune"
 msgstr ""
 
-#: templates/configure.html:875
+#: templates/configure.html:876
 msgid "Cliquer pour sélectionner ce réseau"
 msgstr ""
 
-#: templates/configure.html:1889
+#: templates/configure.html:1890
 msgid "Erreur lors de la récupération des infos système:"
 msgstr ""
 
-#: templates/configure.html:1896
+#: templates/configure.html:1897
 msgid "Erreur de communication avec l'API système:"
 msgstr ""
 
-#: templates/configure.html:1914
+#: templates/configure.html:1915
 msgid "Erreur:"
 msgstr ""
 
-#: templates/configure.html:1918
+#: templates/configure.html:1919
 msgid "Erreur de connexion à l'API des logs."
 msgstr ""
 
-#: templates/configure.html:1937
-#, python-format
+#: templates/configure.html:1938
 msgid ""
-"Êtes-vous sûr de vouloir effacer le contenu du log \"%(logName)s\" ? "
+"Êtes-vous sûr de vouloir effacer le contenu du log \"__LOG_NAME__\" ? "
 "Cette action est irréversible."
 msgstr ""
 
-#: templates/configure.html:1952
+#: templates/configure.html:1953
 msgid "Erreur lors de l'effacement du log :"
 msgstr ""
 
-#: templates/configure.html:1955
+#: templates/configure.html:1956
 msgid "Erreur de connexion à l'API pour effacer les logs."
+msgstr ""
+
+#: templates/login.html:5
+msgid "Connexion"
+msgstr ""
+
+#: templates/login.html:51
+msgid "Utilisateur"
+msgstr ""
+
+#: templates/login.html:62
+msgid "Se connecter"
+msgstr ""
+
+#: templates/login.html:67
+msgid "Envoyer des photos (Invité)"
+msgstr ""
+
+#: templates/upload.html:5
+msgid "Envoyer des photos"
+msgstr ""
+
+#: templates/upload.html:48
+msgid "Envoyer des photos pour le cadre"
+msgstr ""
+
+#: templates/upload.html:49
+msgid "Les photos seront soumises à validation avant d'être affichées."
+msgstr ""
+
+#: templates/upload.html:58
+msgid "Envoyer"
+msgstr ""
+
+#: templates/upload.html:63
+msgid "Retour à la connexion administrateur"
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/click/_termui_impl.py:600
@@ -1109,3 +1374,16 @@ msgid "{len_type} values are required, but {len_value} was given."
 msgid_plural "{len_type} values are required, but {len_value} were given."
 msgstr[0] ""
 msgstr[1] ""
+
+#~ msgid "Hauteur utile de l'écran (% affiché) :"
+#~ msgstr ""
+
+#~ msgid "Amplitude du zoom (ex: 1.15 pour 15% de zoom) :"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Êtes-vous sûr de vouloir effacer "
+#~ "le contenu du log \"%(logName)s\" ? "
+#~ "Cette action est irréversible."
+#~ msgstr ""
+

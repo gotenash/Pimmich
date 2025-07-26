@@ -63,6 +63,8 @@ def create_default_config():
         "skip_initial_auto_import": False,
         "info_display_duration": 5,
         "screen_height_percent": 100,
+        "favorite_boost_factor": 2,
+        "video_hwdec_enabled": False,
     }
 
 def load_config():
