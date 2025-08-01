@@ -7,10 +7,7 @@
 
 
 echo "=== [2/12] Installation des dépendances ==="
-# Ajout de libsmbclient-dev, python3-dev et build-essential pour permettre la compilation
-# de la bibliothèque Python 'smbclient' sur Raspberry Pi (ARM).
-sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient libsmbclient-dev python3-dev build-essential network-manager jq mpv gettext
-
+sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext
 
 echo "=== [3/12] Désactivation de l'économie d'énergie Wi-Fi ==="
 # Installation conditionnelle de RPi.GPIO (pour le ventilateur)
@@ -109,7 +106,9 @@ echo "=== [6/12] Création de l’environnement Python ==="
 cd "$(dirname "$0")"
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt # qrcode et Werkzeug sont maintenant dans ce fichier
+pip install -r requirements.txt
+echo "Installation de la bibliothèque pour les QR codes..."
+pip install "qrcode[pil]"
 echo "Mise à jour de la bibliothèque pour le bot Telegram..."
 pip install --upgrade python-telegram-bot
 
@@ -134,9 +133,7 @@ if [ ! -f "$CREDENTIALS_FILE" ]; then
     # On utilise sudo pour exécuter le script python qui a besoin des droits pour écrire dans /boot/firmware
     # Le script python est exécuté via l'interpréteur de l'environnement virtuel pour avoir accès à werkzeug.
     # Le script affichera lui-même le mot de passe généré.
-    # Le 'sudo' est inutile ici car le script setup.sh est déjà lancé avec sudo.
-    # Le retirer résout le problème de 'ModuleNotFoundError' car l'environnement virtuel est correctement conservé.
-    venv/bin/python3 utils/create_initial_user.py --output "$CREDENTIALS_FILE"
+    sudo venv/bin/python3 utils/create_initial_user.py --output "$CREDENTIALS_FILE"
 else
     echo "✅ Le fichier d'identification $CREDENTIALS_FILE existe déjà. Aucune modification."
 fi
