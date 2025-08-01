@@ -7,3 +7,5 @@ smbclient
 Flask-Babel
 piexif
 pillow-heif
+Werkzeug
+qrcode[pil]
