@@ -734,6 +734,16 @@ msgstr "Aniguo"
 msgid "Polaroid"
 msgstr "Polaroid"
 
+#: templates/configure.html:615
+#, python-format
+msgid "%(num)d photo"
+msgid_plural "%(num)d photos"
+msgstr[0] "%(num)d foto"
+msgstr[1] "%(num)d fotos"
+
+#: templates/configure.html:666 templates/configure.html:726
+msgid "Carte Postale"
+msgstr "Postal"
 #: templates/configure.html:665
 msgid "Original"
 msgstr "Original"
@@ -1434,3 +1444,15 @@ msgstr "Aquí están todas tus fotos marcadas como favoritas. Puedes gestionarla
 #: templates/configure.html:744 templates/configure.html:876
 msgid "Vous n'avez aucune photo en favori pour le moment."
 msgstr "No tienes fotos favoritas por el momento."
+
+#: templates/configure.html:155
+msgid "Activer le décodage vidéo matériel (plus fluide, mais peut être instable)"
+msgstr "Activar la decodificación de video por hardware (más fluida, pero puede ser inestable)"
+
+#: templates/configure.html:157
+msgid "Cochez cette case pour une lecture plus fluide sur les Raspberry Pi. Décochez si vous rencontrez des écrans bleus/noirs après les vidéos."
+msgstr "Marque esta casilla para una reproducción más fluida en Raspberry Pi. Desmarque si experimenta pantallas azules/negras después de los videos."
+
+#: templates/configure.html:670 templates/configure.html:730 templates/configure.html:884
+msgid "Ajouter une légende..."
+msgstr "Añadir un subtítulo..."

@@ -1,6 +1,5 @@
 import json
 import os
-import time
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config', 'config.json')
 
@@ -65,6 +64,9 @@ def create_default_config():
         "screen_height_percent": 100,
         "favorite_boost_factor": 2,
         "video_hwdec_enabled": False,
+        "telegram_bot_enabled": False,
+        "telegram_bot_token": "",
+        "telegram_authorized_users": "",
     }
 
 def load_config():
@@ -72,20 +74,28 @@ def load_config():
     default_config = create_default_config()
     
     if not os.path.exists(CONFIG_PATH):
+        # Si le fichier de config n'existe pas, on le crée avec les valeurs par défaut.
         save_config(default_config)
         return default_config
 
     try:
-        with open(CONFIG_PATH, 'r') as f:
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
             user_config = json.load(f)
+        
+        # Fusionne la configuration utilisateur avec la configuration par défaut.
+        # Cela garantit que les nouvelles clés de configuration sont ajoutées
+        # sans écraser les réglages existants de l'utilisateur.
         merged_config = default_config.copy()
         merged_config.update(user_config)
         return merged_config
-    except (json.JSONDecodeError, Exception):
+    except (json.JSONDecodeError, IOError) as e:
+        # En cas de fichier corrompu ou illisible, on retourne la config par défaut
+        # pour éviter un crash de l'application.
+        print(f"Avertissement: Impossible de charger {CONFIG_PATH} ({e}). Utilisation de la configuration par défaut.")
         return default_config
 
 def save_config(config):
     """Sauvegarde la configuration dans un fichier JSON."""
     os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    with open(CONFIG_PATH, 'w') as f:
-        json.dump(config, f, indent=4)
+    with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)

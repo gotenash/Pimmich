@@ -12,6 +12,7 @@ import glob
 import collections
 from datetime import datetime, timedelta
 import json
+import qrcode
 import psutil
 from pathlib import Path
 from utils.text_drawer import draw_text_with_outline
@@ -21,12 +22,16 @@ from utils.config_manager import load_config
 # Définition des chemins
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PREPARED_BASE_DIR = Path(BASE_DIR) / 'static' / 'prepared'
+SOUNDS_DIR = Path(BASE_DIR) / 'static' / 'sounds'
+ICONS_DIR = Path(BASE_DIR) / 'static' / 'icons'
+NEW_POSTCARD_FLAG = Path(BASE_DIR) / 'cache' / 'new_postcard.flag'
 CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
 CONFIG_PATH = os.path.join(BASE_DIR, 'config', 'config.json')
 FAVORITES_PATH = os.path.join(BASE_DIR, 'config', 'favorites.json')
 FILTER_STATES_PATH = os.path.join(BASE_DIR, 'config', 'filter_states.json')
 TIDES_CACHE_FILE = Path(BASE_DIR) / 'cache' / 'tides.json'
 _icon_cache = {} # Cache pour les icônes météo chargées
+_envelope_blink_end_time = None # Pour gérer le clignotement de l'icône
 
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
@@ -315,7 +320,122 @@ def get_tides(config):
         traceback.print_exc()
         _tides_data = None
         return None
- 
+
+def load_icon(icon_name, size, is_weather_icon=True):
+    """
+    Charge une icône, la met en cache et la retourne comme une surface Pygame.
+    Retourne un carré rouge en cas d'échec pour un débogage visuel.
+    """
+    if size <= 0:
+        print(f"[Display] AVERTISSEMENT: Taille d'icône invalide ({size}px) pour '{icon_name}'.")
+        return None
+
+    icon_key = f"{icon_name}_{size}"
+    if icon_key in _icon_cache:
+        return _icon_cache[icon_key]
+
+    if is_weather_icon:
+        icon_dir = PREPARED_BASE_DIR.parent / 'weather_icons'
+    else:
+        icon_dir = ICONS_DIR
+    
+    icon_path = icon_dir / f"{icon_name}.png"
+
+    if icon_path.exists():
+        try:
+            loaded_surface = pygame.image.load(str(icon_path)).convert_alpha()
+            icon_surface = pygame.transform.scale(loaded_surface, (size, size))
+            _icon_cache[icon_key] = icon_surface
+            return icon_surface
+        except Exception as e:
+            print(f"[Display] Erreur chargement icône '{icon_path}': {e}")
+            # Fall through to return placeholder
+    else:
+        warning_key = f"warn_{icon_name}"
+        if warning_key not in _icon_cache:
+            print(f"[Display] AVERTISSEMENT: Fichier icône non trouvé : {icon_path}")
+            _icon_cache[warning_key] = True
+    
+    # --- Placeholder en cas d'échec ---
+    print(f"[Display] Création d'un placeholder pour l'icône manquante/invalide '{icon_name}'.")
+    placeholder = pygame.Surface((size, size))
+    placeholder.fill((255, 0, 0)) # Red square
+    _icon_cache[icon_key] = placeholder # Cache the placeholder to avoid repeated errors
+    return placeholder
+
+def get_today_postcard_count():
+    """Compte le nombre de cartes postales reçues aujourd'hui."""
+    count = 0
+    today_date = datetime.now().date()
+    telegram_dir = PREPARED_BASE_DIR / 'telegram'
+
+    if not telegram_dir.is_dir():
+        return 0
+
+    # On ne compte que les fichiers de cartes postales pour éviter les doublons
+    for f in telegram_dir.glob('*_postcard.jpg'):
+        # Utilise une regex pour extraire le timestamp du nom de fichier
+        match = re.search(r'telegram_(\d+)_', f.name)
+        if match:
+            try:
+                timestamp = int(match.group(1))
+                photo_date = datetime.fromtimestamp(timestamp).date()
+                if photo_date == today_date:
+                    count += 1
+            except (ValueError, OSError):
+                continue # Ignorer les fichiers avec un timestamp invalide
+    return count
+
+def get_path_to_display(photo_path_obj, source, filter_states):
+    """
+    Détermine le chemin de fichier correct à afficher en fonction de la source et des filtres.
+    """
+    relative_path_str = f"{source}/{photo_path_obj.name}"
+    active_filter = filter_states.get(relative_path_str, 'none')
+    
+    # Par défaut, on affiche l'image de base
+    path_to_display = str(photo_path_obj)
+
+    # Priorité 1: Filtre explicite de l'utilisateur
+    if active_filter == 'polaroid':
+        polaroid_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_polaroid.jpg")
+        if polaroid_path.exists():
+            path_to_display = str(polaroid_path)
+    elif active_filter == 'postcard':
+        postcard_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_postcard.jpg")
+        if postcard_path.exists():
+            path_to_display = str(postcard_path)
+    # Priorité 2: Comportement par défaut pour la source Telegram (si aucun filtre n'est actif)
+    elif source == 'telegram' and active_filter in ['none', 'original']:
+        postcard_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_postcard.jpg")
+        if postcard_path.exists():
+            path_to_display = str(postcard_path)
+            
+    return path_to_display
+
+def build_playlist(media_list, config, favorites):
+    """
+    Construit la playlist finale en appliquant les boosts pour les favoris et les photos récentes.
+    """
+    favorite_boost = int(config.get("favorite_boost_factor", 2))
+    telegram_boost_enabled = config.get("telegram_boost_enabled", True)
+    telegram_boost_factor = int(config.get("telegram_boost_factor", 4))
+    telegram_boost_duration_days = int(config.get("telegram_boost_duration_days", 7))
+
+    playlist = []
+    for media_path in media_list:
+        playlist.append(media_path)
+        relative_path = str(Path(media_path).relative_to(PREPARED_BASE_DIR))
+        normalized_relative_path = re.sub(r'(_polaroid|_postcard)\.jpg$', '.jpg', relative_path)
+
+        if telegram_boost_enabled and 'telegram' in media_path:
+            match = re.search(r'telegram_(\d+)_', Path(media_path).name)
+            if match and (datetime.now() - datetime.fromtimestamp(int(match.group(1)))).days < telegram_boost_duration_days:
+                for _ in range(telegram_boost_factor): playlist.append(media_path)
+        if normalized_relative_path in favorites:
+            for _ in range(favorite_boost): playlist.append(media_path)
+    return playlist
+
 _hdmi_output = HDMI_OUTPUT
 _hdmi_state = None  # variable pour éviter les appels répétitifs
 
@@ -479,22 +599,10 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
             try:
                 current_weather = weather_and_forecast['current']
                 icon_code = current_weather['weather'][0]['icon']
-                icon_size = main_font.get_height()
-                icon_key = f"{icon_code}_{icon_size}"
-
-                if icon_key in _icon_cache:
-                    icon_surface = _icon_cache[icon_key]
-                else:
-                    ICON_DIR = PREPARED_BASE_DIR.parent / 'weather_icons'
-                    icon_path = ICON_DIR / f"{icon_code}.png"
-                    if icon_path.exists():
-                        loaded_surface = pygame.image.load(str(icon_path)).convert_alpha()
-                        icon_surface = pygame.transform.scale(loaded_surface, (icon_size, icon_size))
-                        _icon_cache[icon_key] = icon_surface
-
-                if icon_key in _icon_cache:
+                icon_surface = load_icon(icon_code, main_font.get_height(), is_weather_icon=True)
+                if icon_surface:
                     elements.append({'type': 'icon', 'surface': icon_surface, 'padding': icon_padding})
-                
+
                 temp = round(current_weather['main']['temp'])
                 description = current_weather['weather'][0]['description'].capitalize()
                 weather_str = f"{temp}°C, {description}"
@@ -512,25 +620,34 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
                 # Icône pour demain
                 tomorrow_icon_code = tomorrow_forecast.get('icon')
                 if tomorrow_icon_code:
-                    icon_size = main_font.get_height()
-                    icon_key = f"{tomorrow_icon_code}_{icon_size}"
-                    
-                    if icon_key not in _icon_cache:
-                        ICON_DIR = PREPARED_BASE_DIR.parent / 'weather_icons'
-                        icon_path = ICON_DIR / f"{tomorrow_icon_code}.png"
-                        if icon_path.exists():
-                            loaded_surface = pygame.image.load(str(icon_path)).convert_alpha()
-                            icon_surface = pygame.transform.scale(loaded_surface, (icon_size, icon_size))
-                            _icon_cache[icon_key] = icon_surface
-                    
-                    if icon_key in _icon_cache:
-                        elements.append({'type': 'icon', 'surface': _icon_cache[icon_key], 'padding': icon_padding})
+                    icon_surface = load_icon(tomorrow_icon_code, main_font.get_height(), is_weather_icon=True)
+                    if icon_surface:
+                        elements.append({'type': 'icon', 'surface': icon_surface, 'padding': icon_padding})
 
                 tomorrow_temp_str = f"{tomorrow_forecast['max_temp']}°/{tomorrow_forecast['min_temp']}°"
                 tomorrow_weather_str = f"Demain: {tomorrow_temp_str}"
                 elements.append({'type': 'text', 'text': " " + tomorrow_weather_str})
             except (IndexError, KeyError) as e:
                 print(f"[Display] Erreur préparation météo du lendemain: {e}")
+
+        # --- Compteur de cartes postales du jour ---
+        today_postcard_count = get_today_postcard_count()
+        if today_postcard_count > 0:
+            elements.append({'type': 'text', 'text': separator})
+
+            # --- Logique de clignotement ---
+            global _envelope_blink_end_time
+            is_blinking = _envelope_blink_end_time and datetime.now() < _envelope_blink_end_time
+            
+            icon_surface = load_icon("envelope", main_font.get_height(), is_weather_icon=False)
+            if icon_surface:
+                # On ajoute toujours l'icône à la liste pour la largeur, mais on contrôle sa visibilité
+                should_draw_icon = not is_blinking or (is_blinking and datetime.now().second % 2 == 0)
+                elements.append({'type': 'icon', 'surface': icon_surface, 'padding': icon_padding, 'visible': should_draw_icon})
+            
+            # Texte du compteur
+            elements.append({'type': 'text', 'text': f" {today_postcard_count}"})
+
 
         # --- Calcul de la taille totale et positionnement du bloc ---
         total_width = 0
@@ -578,10 +695,12 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
             if el.get('padding'):
                 current_x += el['padding']
 
-            if el['type'] == 'text':
-                draw_text_with_outline(screen, el['text'], main_font, text_color, outline_color, (current_x, el_y), anchor="topleft")
-            elif el['type'] == 'icon':
-                screen.blit(el['surface'], (current_x, el_y))
+            # On ne dessine l'élément que s'il est visible (par défaut True)
+            if el.get('visible', True):
+                if el['type'] == 'text':
+                    draw_text_with_outline(screen, el['text'], main_font, text_color, outline_color, (current_x, el_y), anchor="topleft")
+                elif el['type'] == 'icon':
+                    screen.blit(el['surface'], (current_x, el_y))
             
             current_x += el['surface'].get_width()
 
@@ -845,6 +964,61 @@ def start_slideshow():
         print("[Slideshow] Entering main slideshow loop.")
         while True:
             config = load_config() # Recharger la config à chaque itération
+
+            # --- Vérification et affichage immédiat de nouvelle carte postale ---
+            if NEW_POSTCARD_FLAG.exists():
+                print("[Slideshow] Nouvelle carte postale détectée.")
+                
+                # Déclencher le clignotement de l'icône pour 30 secondes
+                global _envelope_blink_end_time
+                _envelope_blink_end_time = datetime.now() + timedelta(seconds=30)
+
+                new_postcard_path_str = ""
+                try:
+                    # 1. Lire le chemin de la nouvelle photo
+                    with open(NEW_POSTCARD_FLAG, 'r') as f:
+                        new_postcard_path_str = f.read().strip()
+                    
+                    new_postcard_path = Path(new_postcard_path_str)
+
+                    if new_postcard_path.exists():
+                        # 2. Jouer le son
+                        notification_sound_path = SOUNDS_DIR / 'notification.wav'
+                        if notification_sound_path.exists():
+                            if not pygame.mixer.get_init():
+                                pygame.mixer.init()
+                            notification_sound = pygame.mixer.Sound(str(notification_sound_path))
+                            notification_sound.play()
+                        
+                        # 3. Afficher immédiatement la nouvelle carte postale
+                        print(f"[Slideshow] Affichage immédiat de la nouvelle carte postale : {new_postcard_path}")
+                        
+                        # Recharger la police pour l'overlay
+                        font_path_config = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+                        clock_font_size_config = int(config.get("clock_font_size", 72))
+                        try:
+                            main_font_loaded = pygame.font.Font(font_path_config, clock_font_size_config)
+                        except Exception as e:
+                            main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
+
+                        pil_image = Image.open(new_postcard_path)
+                        
+                        # Afficher avec pan/zoom pour la durée configurée
+                        display_photo_with_pan_zoom(screen, pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                        
+                        # Mettre à jour la surface précédente pour la transition suivante
+                        previous_photo_surface = screen.copy()
+                    else:
+                        print(f"[Slideshow] Erreur: le chemin '{new_postcard_path_str}' dans le fichier drapeau n'existe pas.")
+
+                except Exception as e:
+                    print(f"[Slideshow] Erreur lors du traitement de la nouvelle carte postale: {e}")
+                    traceback.print_exc()
+                finally:
+                    # 4. Supprimer le drapeau pour ne pas rejouer
+                    if NEW_POSTCARD_FLAG.exists():
+                        NEW_POSTCARD_FLAG.unlink()
+
             filter_states = load_filter_states() # Charger les préférences de filtre
             favorites = load_favorites() # Charger la liste des favoris
             start_time = config.get("active_start", "06:00")
@@ -874,32 +1048,15 @@ def start_slideshow():
             for source in display_sources:
                 source_dir = PREPARED_BASE_DIR / source
                 if source_dir.is_dir():
-                    # Obtenir les médias de base (non-polaroid et non-vignette)
-                    base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith('_polaroid.jpg') and not f.name.endswith('_thumbnail.jpg')]
+                    # Obtenir les médias de base (non-polaroid, non-vignette, non-postcard)
+                    base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))]
                     
                     for photo_path_obj in base_photos:
-                        # Créer le chemin relatif utilisé comme clé dans le fichier d'états
-                        relative_path_str = f"{source}/{photo_path_obj.name}"
-                        active_filter = filter_states.get(relative_path_str)
-                        
-                        if active_filter == 'polaroid':
-                            polaroid_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_polaroid.jpg")
-                            if polaroid_path.exists():
-                                all_media.append(str(polaroid_path))
-                            else: # Fallback si la version polaroid n'existe pas
-                                all_media.append(str(photo_path_obj))
-                        else: # Pour tous les autres filtres ou pas de filtre, utiliser la photo de base
-                            all_media.append(str(photo_path_obj))
+                        path_to_display = get_path_to_display(photo_path_obj, source, filter_states)
+                        all_media.append(path_to_display)
             
-            # --- Nouvelle logique pour favoriser les favoris ---
-            favorite_boost = int(config.get("favorite_boost_factor", 2))
-            playlist = []
-            for media_path in all_media:
-                relative_path = str(Path(media_path).relative_to(PREPARED_BASE_DIR.parent))
-                playlist.append(media_path) # Ajouter chaque média une fois
-                if relative_path in favorites:
-                    for _ in range(favorite_boost):
-                        playlist.append(media_path)
+            # --- Logique de création de la playlist avec boost ---
+            playlist = build_playlist(all_media, config, favorites)
 
             if not playlist:
                 print("Aucune photo trouvée dans les sources activées. Vérification dans 60 secondes.")
@@ -923,9 +1080,7 @@ def start_slideshow():
                     small_font = pygame.font.SysFont("Arial", 32)
 
                 # --- Logo ---
-                logo_surface = None
-                logo_height = 0
-                logo_spacing = 30
+                logo_surface, logo_height, logo_spacing = None, 0, 30
                 try:
                     logo_path = Path(BASE_DIR) / 'static' / 'pimmich_logo.png'
                     if logo_path.exists():
@@ -938,6 +1093,17 @@ def start_slideshow():
                 except Exception as e:
                     print(f"Erreur chargement du logo : {e}")
 
+                # --- Génération du QR Code ---
+                qr_surface, qr_height, qr_spacing = None, 0, 30
+                try:
+                    ip_address_for_qr = get_local_ip()
+                    url = f"http://{ip_address_for_qr}"
+                    qr_img_pil = qrcode.make(url, box_size=8).convert('RGB')
+                    qr_surface = pygame.image.fromstring(qr_img_pil.tobytes(), qr_img_pil.size, qr_img_pil.mode)
+                    qr_height = qr_surface.get_height()
+                except Exception as e:
+                    print(f"Erreur génération QR code : {e}")
+
                 ip_address = get_local_ip()
                 messages = [
                     (message_font, "Aucune photo trouvée."),
@@ -947,8 +1113,12 @@ def start_slideshow():
                 ]
                 
                 line_spacing = 20
-                text_block_height = sum(font.get_height() for font, text in messages) + (len(messages) - 1) * line_spacing
-                total_height = text_block_height + (logo_height + logo_spacing if logo_surface else 0)
+                text_block_height = sum(font.get_height() for font, _ in messages) + (len(messages) - 1) * line_spacing
+                
+                # Calcul de la hauteur totale pour un centrage parfait
+                total_height = text_block_height
+                if logo_surface: total_height += logo_height + logo_spacing
+                if qr_surface: total_height += qr_height + qr_spacing + small_font.get_height() + 10
                 current_y = (SCREEN_HEIGHT - total_height) // 2
 
                 if logo_surface:
@@ -956,11 +1126,22 @@ def start_slideshow():
                     screen.blit(logo_surface, logo_rect)
                     current_y += logo_height + logo_spacing
 
-                for font, text in messages:
-                    text_surface = font.render(text, True, text_color)
+                for font, txt in messages:
+                    text_surface = font.render(txt, True, text_color)
                     text_rect = text_surface.get_rect(centerx=SCREEN_WIDTH // 2, top=current_y)
-                    draw_text_with_outline(screen, text, font, text_color, outline_color, text_rect.topleft, anchor="topleft")
+                    draw_text_with_outline(screen, txt, font, text_color, outline_color, text_rect.topleft, anchor="topleft")
                     current_y += font.get_height() + line_spacing
+
+                # Affichage du QR Code
+                if qr_surface:
+                    current_y += qr_spacing - line_spacing # Ajuster l'espacement avant le QR
+                    qr_title_text = "Scannez pour configurer"
+                    qr_title_surface = small_font.render(qr_title_text, True, text_color)
+                    qr_title_rect = qr_title_surface.get_rect(centerx=SCREEN_WIDTH // 2, top=current_y)
+                    draw_text_with_outline(screen, qr_title_text, small_font, text_color, outline_color, qr_title_rect.topleft, anchor="topleft")
+                    current_y += qr_title_surface.get_height() + 10
+                    qr_rect = qr_surface.get_rect(centerx=SCREEN_WIDTH // 2, top=current_y)
+                    screen.blit(qr_surface, qr_rect)
                 
                 pygame.display.flip()
 

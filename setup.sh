@@ -107,6 +107,10 @@ cd "$(dirname "$0")"
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+echo "Installation de la bibliothèque pour les QR codes..."
+pip install "qrcode[pil]"
+echo "Mise à jour de la bibliothèque pour le bot Telegram..."
+pip install --upgrade python-telegram-bot
 
 echo "=== [7/12] Création de l'arborescence des dossiers nécessaires ==="
 mkdir -p logs

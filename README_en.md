@@ -1,14 +1,43 @@
-📣 Announcement – (June 14, 2025): New release available
+📣 Announcement – (July 14, 2025): New release available
 
-Photo previews with the ability to delete photos
 
-Real screen sleep mode, not just a black screen
-
-I'll try to publish one release per month with meaningful improvements.
 
 # 🗺️ Pimmich Roadmap
 
 > 📆 Starting June 2025 — One major release per month
+
+## 🛠️✅ August 2025 – (Scheduled release: August 15)
+
+- ✅ Video support
+- ✅ Hardware acceleration support for Pi3
+- ✅ Application translation added (English and Spanish)
+- ✅ QR code for first-time connection
+- ✅ "Add text" feature added
+- ✅ Favorites tab added (increases photo display frequency)
+- ✅ Bug fixes
+    - ✅ Start time for slideshow
+    - ✅ Log clearing in the system tab
+
+
+## ✅ July 2025 – Current Version
+
+- ✅ 🧭 Added Wi-Fi configuration from the web interface  
+- ✅ 🗂️ Reorganized the settings page into tabs  
+- ✅ 🔁 Automatic periodic update of the Immich album  
+- ✅ 📁 SMB protocol support to access network-shared photos  
+- ✅ ⏰🌤️ Display of time and weather on screen  
+- ✅ Added NGINX – no more need to specify port 50000  
+- ✅ Added photo filters (B&W, Sepia, Polaroid, etc.)  
+- ✅ Added various delete buttons  
+- ✅ Added configuration backup option  
+- ✅ Added password change menu  
+- ✅ Added creation of `credentials.json` during setup  
+- ✅ Added transition effects  
+- ✅ Automatic resolution detection added  
+- ✅ Import from smartphone (admin and guest modes)  
+- ✅ Photo approval interface for guest mode  
+- ✅ Added logs to the System tab  
+- ✅ Added Raspberry Pi stats (temperature, RAM usage, CPU load)
 
 ## ✅ June 2025 – Current Release
 
@@ -17,19 +46,12 @@ I'll try to publish one release per month with meaningful improvements.
 - ✅ Screen height percentage setting (usable screen area)  
 - ✅ EXIF-based orientation fix and photo preparation  
 
-## 🛠️ July 2025 – Next Release
 
-- 🧭 Wi-Fi setup directly from the web interface  
-- 🗂️ Tabbed configuration page layout  
-- 🔁 Automatic periodic update of Immich album  
-- 📁 SMB protocol support to access photos shared over the network  
 
 ## 💡 Ideas for Future Releases
 
 - 📱 Android APK to control the frame  
-- ⏰🌤️ Display of time and weather on screen  
-- 🧑‍🤝‍🧑 Multi-user support (multiple Immich accounts)  
-- 🌍 Interface translations (multi-language support)  
+ 
 
 ---
 

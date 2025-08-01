@@ -9,11 +9,14 @@ import glob
 import time
 import requests
 import threading
+import asyncio
 import shutil
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from werkzeug.security import check_password_hash
+import secrets
+import traceback
 
 from utils.download_album import download_and_extract_album
 from utils.auth import login_required
@@ -26,7 +29,8 @@ from utils.wifi_manager import set_wifi_config, get_wifi_status # Import the new
 from utils.prepare_all_photos import prepare_all_photos_with_progress
 from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
 from utils.import_samba import import_samba_photos
-from utils.image_filters import apply_filter_to_image
+from utils.image_filters import apply_filter_to_image, add_text_to_polaroid, add_text_to_image, create_polaroid_effect
+from utils.telegram_bot import PimmichBot
 import smbclient
 from smbprotocol.exceptions import SMBException
 
@@ -66,6 +70,11 @@ CONFIG_PATH = 'config/config.json'
 CREDENTIALS_PATH = '/boot/firmware/credentials.json'
 FILTER_STATES_PATH = 'config/filter_states.json'
 FAVORITES_PATH = 'config/favorites.json'
+POLAROID_TEXTS_PATH = 'config/polaroid_texts.json'
+TEXT_STATES_PATH = 'config/text_states.json'
+INVITATIONS_PATH = 'config/invitations.json'
+TELEGRAM_GUEST_USERS_PATH = 'config/telegram_guest_users.json'
+NEW_POSTCARD_FLAG_PATH = 'cache/new_postcard.flag'
 CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
 
 class WorkerStatus:
@@ -94,6 +103,7 @@ class WorkerStatus:
 
 immich_status_manager = WorkerStatus()
 samba_status_manager = WorkerStatus()
+telegram_status_manager = WorkerStatus()
 
 def get_screen_resolution():
     """
@@ -199,16 +209,100 @@ def save_favorites(favorites_list):
     except Exception as e:
         print(f"Erreur lors de la sauvegarde des favoris : {e}")
 
+def load_polaroid_texts():
+    """Charge les textes des polaroids depuis un fichier JSON."""
+    if not os.path.exists(POLAROID_TEXTS_PATH):
+        return {}
+    try:
+        with open(POLAROID_TEXTS_PATH, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+def save_polaroid_texts(texts_dict):
+    """Sauvegarde les textes des polaroids dans un fichier JSON."""
+    try:
+        with open(POLAROID_TEXTS_PATH, 'w') as f:
+            json.dump(texts_dict, f, indent=2)
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde des textes polaroid : {e}")
+
+def load_text_states():
+    """Charge les textes des photos depuis un fichier JSON."""
+    if not os.path.exists(TEXT_STATES_PATH):
+        return {}
+    try:
+        with open(TEXT_STATES_PATH, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+def save_text_states(states):
+    """Sauvegarde les textes des photos dans un fichier JSON."""
+    try:
+        with open(TEXT_STATES_PATH, 'w', encoding='utf-8') as f:
+            json.dump(states, f, indent=4)
+    except IOError as e:
+        print(f"Erreur lors de la sauvegarde des états de texte : {e}")
+
+def load_telegram_guest_users():
+    """Charge les utilisateurs invités de Telegram depuis un fichier JSON."""
+    if not os.path.exists(TELEGRAM_GUEST_USERS_PATH):
+        return {}
+    try:
+        with open(TELEGRAM_GUEST_USERS_PATH, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+def save_telegram_guest_users(guest_users_dict):
+    """Sauvegarde les utilisateurs invités de Telegram dans un fichier JSON."""
+    try:
+        with open(TELEGRAM_GUEST_USERS_PATH, 'w') as f:
+            json.dump(guest_users_dict, f, indent=4)
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde des invités Telegram : {e}")
+
+def add_telegram_guest_user(user_id, guest_name):
+    """Ajoute un nouvel invité Telegram et sauvegarde le fichier."""
+    guest_users = load_telegram_guest_users()
+    guest_users[str(user_id)] = guest_name
+    save_telegram_guest_users(guest_users)
+
+def load_invitations():
+    """Charge les invitations Telegram depuis un fichier JSON."""
+    if not os.path.exists(INVITATIONS_PATH):
+        return {}
+    try:
+        with open(INVITATIONS_PATH, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+def save_invitations(invitations_dict):
+    """Sauvegarde les invitations Telegram dans un fichier JSON."""
+    try:
+        with open(INVITATIONS_PATH, 'w') as f:
+            json.dump(invitations_dict, f, indent=4)
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde des invitations : {e}")
+
 def get_prepared_photos_by_source():
     """
     Récupère les médias préparés (photos et vidéos), organisés par leur source.
     Retourne un dictionnaire où les clés sont les noms des sources et les valeurs sont des listes de dictionnaires.
     Ex: {'immich': [{'path': 'immich/media.jpg', 'type': 'image', 'has_polaroid': True}, ...]}
     """
+    # Charger la configuration pour obtenir les noms des invités
+    config = load_config()
+    guest_users = config.get('telegram_guest_users', {})
+
     base_prepared_dir = Path("static/prepared")
     media_by_source = {}
     filter_states = load_filter_states()
     favorites = load_favorites()
+    polaroid_texts = load_polaroid_texts()
+    text_states = load_text_states()
     
     if base_prepared_dir.exists():
         for source_dir in base_prepared_dir.iterdir():
@@ -219,11 +313,10 @@ def get_prepared_photos_by_source():
                 all_files_in_dir = list(source_dir.iterdir())
                 all_filenames = {f.name for f in all_files_in_dir}
                 
-                # Identifier les médias de base (non-polaroid et non-vignette)
-                base_media = sorted([
-                    f for f in all_files_in_dir 
-                    if f.is_file() and not f.name.endswith('_polaroid.jpg') and not f.name.endswith('_thumbnail.jpg')
-                ])
+                # Identifier les médias de base (non-polaroid, non-vignette, non-postcard)
+                base_media = sorted(
+                    [f for f in all_files_in_dir if f.is_file() and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))]
+                )
 
                 media_data_list = []
                 for media_path_obj in base_media:
@@ -241,7 +334,11 @@ def get_prepared_photos_by_source():
                     if media_type == 'image':
                         base_name = media_path_obj.stem
                         has_polaroid = f"{base_name}_polaroid.jpg" in all_filenames
+                        has_postcard = f"{base_name}_postcard.jpg" in all_filenames
                         media_item["has_polaroid"] = has_polaroid
+                        media_item["has_postcard"] = has_postcard
+                        media_item["polaroid_text"] = polaroid_texts.get(media_relative_path, "")
+                        media_item["text"] = text_states.get(media_relative_path, "")
                         media_item["active_filter"] = filter_states.get(media_relative_path, "none")
                     elif media_type == 'video':
                         # Chercher la vignette correspondante pour la vidéo
@@ -255,6 +352,165 @@ def get_prepared_photos_by_source():
                     media_by_source[source_name] = media_data_list
                     
     return media_by_source
+
+def handle_new_telegram_photo(temp_photo_path_str, caption, user_name=None):
+    """
+    Fonction de rappel pour traiter une nouvelle photo reçue via Telegram.
+    Cette fonction est synchrone et peut maintenant inclure le nom de l'expéditeur.
+    """
+    with app.app_context():
+        print(f"[Telegram] Traitement de la nouvelle photo : {temp_photo_path_str}")
+        try:
+            # Construire la légende finale en ajoutant le nom de l'expéditeur
+            final_caption = caption
+            if user_name:
+                # Si une légende existe déjà, ajouter le nom avant. Sinon, utiliser juste le nom.
+                if caption:
+                    final_caption = f"De {user_name} : {caption}"
+                else:
+                    final_caption = f"De {user_name}"
+
+            temp_photo_path = Path(temp_photo_path_str)
+            
+            # 1. Définir les chemins
+            source_dir = Path("static/photos/telegram")
+            prepared_dir = Path("static/prepared/telegram")
+            source_dir.mkdir(parents=True, exist_ok=True)
+            prepared_dir.mkdir(parents=True, exist_ok=True)
+            
+            timestamp = int(time.time())
+            # Ajouter quelques caractères aléatoires pour éviter les collisions si plusieurs photos arrivent dans la même seconde
+            new_filename_base = f"telegram_{timestamp}_{secrets.token_hex(4)}"
+            
+            # 2. Copier la photo temporaire vers le dossier source permanent
+            source_photo_path = source_dir / f"{new_filename_base}.jpg"
+            shutil.copy(temp_photo_path, source_photo_path)
+            
+            # 3. Préparer la photo
+            from utils.prepare_all_photos import prepare_photo # Import local pour éviter dépendance circulaire
+            prepared_photo_path = prepared_dir / f"{new_filename_base}.jpg"
+            screen_width, screen_height = get_screen_resolution()
+            prepare_photo(str(source_photo_path), str(prepared_photo_path), screen_width, screen_height, source_type='telegram', caption=final_caption)
+            
+            # 4. Gérer la légende
+            if final_caption:
+                relative_path = f"telegram/{new_filename_base}.jpg"
+                text_states = load_text_states()
+                text_states[relative_path] = final_caption
+                save_text_states(text_states)
+                add_text_to_image(str(prepared_photo_path), final_caption)
+
+            # Créer un fichier "drapeau" pour notifier le diaporama et y écrire le chemin de la nouvelle carte postale
+            postcard_path = prepared_dir / f"{new_filename_base}_postcard.jpg"
+            path_to_write = str(postcard_path) if postcard_path.exists() else str(prepared_photo_path)
+
+            try:
+                with open(NEW_POSTCARD_FLAG_PATH, 'w') as f:
+                    f.write(path_to_write)
+                print(f"[Telegram] Fichier de notification sonore créé avec le chemin : {path_to_write}")
+            except Exception as e:
+                print(f"[Telegram] ERREUR lors de la création du fichier de notification : {e}")
+
+            print(f"[Telegram] Photo {new_filename_base}.jpg traitée avec succès.")
+        except Exception as e:
+            error_message = f"[Telegram] ERREUR lors du traitement de la photo : {e}\n{traceback.format_exc()}"
+            print(error_message)
+            # Renvoyer l'exception pour que le bot puisse notifier l'utilisateur de l'échec.
+            raise Exception(f"Le traitement de la photo a échoué côté serveur. {e}")
+        finally:
+            # Nettoyer le fichier temporaire créé par le bot
+            if Path(temp_photo_path_str).exists():
+                Path(temp_photo_path_str).unlink()
+
+def validate_telegram_invitation(code, user_id, user_name):
+    """Valide un code d'invitation, et si valide, ajoute l'utilisateur à la config."""
+    invitations = load_invitations()
+    
+    if code not in invitations:
+        return {"success": False, "message": "Code d'invitation invalide."}
+
+    invitation = invitations[code]
+    
+    # Vérifier si le code est expiré
+    if datetime.fromisoformat(invitation['expires_at']) < datetime.now():
+        return {"success": False, "message": "Ce code d'invitation a expiré."}
+
+    # Vérifier si le code a déjà été utilisé
+    if invitation.get('used_by_user_id'):
+        # Si c'est le même utilisateur qui réutilise le code, on l'autorise
+        if invitation['used_by_user_id'] == user_id:
+            return {"success": True, "message": "Vous êtes déjà autorisé. Envoyez-moi une photo !"}
+        else:
+            return {"success": False, "message": "Ce code d'invitation a déjà été utilisé."}
+
+    # Si le code est valide et non utilisé, on ajoute l'utilisateur à la liste des invités
+    add_telegram_guest_user(user_id, invitation['guest_name'])
+
+    # Marquer l'invitation comme utilisée
+    invitation['used_by_user_id'] = user_id
+    invitation['used_by_user_name'] = user_name
+    invitation['used_at'] = datetime.now().isoformat()
+    save_invitations(invitations)
+
+    return {"success": True, "message": f"Félicitations {invitation['guest_name']} ! Vous pouvez maintenant envoyer des cartes postales au cadre."}
+
+@app.route('/api/telegram/invitations/<code>/revoke', methods=['POST'])
+@login_required
+def revoke_telegram_invitation(code):
+    """Révoque l'accès d'un utilisateur en dissociant son ID de l'invitation."""
+    invitations = load_invitations()
+    if code not in invitations:
+        return jsonify({"success": False, "message": "Invitation non trouvée."}), 404
+
+    # Récupérer le nom de l'utilisateur avant de le supprimer pour le message de confirmation
+    guest_name = invitations[code].get('used_by_user_name', 'Utilisateur inconnu')
+
+    # Révoquer l'accès en remettant les champs 'used_by' à null
+    invitations[code]['used_by_user_id'] = None
+    invitations[code]['used_by_user_name'] = None
+    invitations[code]['used_at'] = None
+
+    # --- IMPORTANT ---
+    # L'invitation redevient "utilisable" mais conserve sa date d'expiration d'origine.
+    # Si vous souhaitez que la révocation soit définitive, vous pouvez supprimer l'invitation :
+    # del invitations[code]
+    # Ou la marquer comme révoquée :
+    # invitations[code]['status'] = 'revoked'
+    # Pour l'instant, nous la rendons simplement réutilisable.
+
+    save_invitations(invitations)
+    
+    flash(_("L'accès pour l'invité '%(name)s' a été révoqué.", name=guest_name), "success")
+    return jsonify({"success": True, "message": "Accès révoqué."})
+
+@app.route('/api/telegram/bot_info')
+@login_required
+def get_telegram_bot_info():
+    """Récupère le nom d'utilisateur du bot Telegram configuré."""
+    config = load_config()
+    token = config.get("telegram_bot_token")
+
+    if not token:
+        return jsonify({"success": False, "message": "Le token du bot Telegram n'est pas configuré."})
+
+    url = f"https://api.telegram.org/bot{token}/getMe"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response_data = response.json()
+
+        if response.status_code == 200 and response_data.get("ok"):
+            bot_username = response_data.get("result", {}).get("username")
+            if bot_username:
+                return jsonify({"success": True, "username": bot_username})
+            else:
+                return jsonify({"success": False, "message": "Le bot n'a pas de nom d'utilisateur ou le token est incorrect."})
+        else:
+            error_description = response_data.get('description', 'Réponse invalide de Telegram.')
+            return jsonify({"success": False, "message": f"Échec de la récupération des infos du bot : {error_description}"})
+    except requests.exceptions.RequestException as e:
+        return jsonify({"success": False, "message": f"Erreur de connexion à l'API Telegram : {e}"})
+
 
 # --- Routes principales ---
 
@@ -437,6 +693,7 @@ def logout():
 @login_required
 def configure():
     config = load_config()
+    invitations = load_invitations()
 
     if request.method == 'POST':
         # Gérer le champ 'source' qui correspond à 'photo_source' dans le config
@@ -453,23 +710,23 @@ def configure():
             'display_width', 'display_height', # Ajout des nouvelles clés
             'transition_enabled', # Added transition_enabled
             'transition_type', # Added transition_type
-            'transition_duration', # Added transition_duration            
+            'transition_duration', # Added transition_duration
             'pan_zoom_factor', 'favorite_boost_factor',
             'immich_update_interval_hours', 'date_format', 
             'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes', # Re-added
-            'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume',
+            'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume', 'telegram_boost_duration_days',
+            'telegram_boost_factor',
             'smb_update_interval_hours'
             # New fields
-            , 'wifi_ssid', 'wifi_password', 'info_display_duration',
+            , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token', # 'telegram_token' is now 'telegram_bot_token'
+            'telegram_authorized_users',
             'skip_initial_auto_import',
-            'tide_latitude', 'tide_longitude', 'stormglass_api_key',
-            'tide_offset_x',
-            'tide_offset_y'
+            'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y'
         ]: 
             if key in request.form:
                 value = request.form.get(key)
                 # Gérer les champs numériques
-                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume', 'favorite_boost_factor']: # Integer fields
+                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume', 'favorite_boost_factor', 'telegram_boost_duration_days', 'telegram_boost_factor']: # Integer fields
                     try:
                         config[key] = int(value)
                     except (ValueError, TypeError):
@@ -501,11 +758,13 @@ def configure():
         config["video_audio_enabled"] = 'video_audio_enabled' in request.form
         config["video_hwdec_enabled"] = 'video_hwdec_enabled' in request.form
 
+        config["telegram_boost_enabled"] = 'telegram_boost_enabled' in request.form
         # Traitement des checkboxes
         config["show_clock"] = 'show_clock' in request.form
         config["immich_auto_update"] = 'immich_auto_update' in request.form
         config["smb_auto_update"] = 'smb_auto_update' in request.form
 
+        config["telegram_bot_enabled"] = 'telegram_bot_enabled' in request.form # 'telegram_enabled' is removed
         config["show_date"] = 'show_date' in request.form
         config["show_weather"] = 'show_weather' in request.form
         config["show_tides"] = 'show_tides' in request.form
@@ -546,7 +805,8 @@ def configure():
         config=config,
         prepared_photos_by_source=prepared_media_by_source, # Le template utilise ce nom de variable
         favorite_photos=favorite_photos, # Nouvelle variable pour l'onglet des favoris
-        slideshow_running=slideshow_running
+        slideshow_running=slideshow_running,
+        invitations=invitations
     )
 
 @app.route("/import-usb")
@@ -812,6 +1072,31 @@ def test_stormglass_api():
     except requests.exceptions.RequestException as e:
         return jsonify({"success": False, "message": f"Erreur de connexion : {e}"})
 
+@app.route('/test-telegram', methods=['POST'])
+@login_required
+def test_telegram():
+    """Teste si le token du bot Telegram est valide en appelant la méthode getMe."""
+    data = request.get_json()
+    token = data.get("token")
+
+    if not token:
+        return jsonify({"success": False, "message": _("Le token du bot est requis.")})
+
+    url = f"https://api.telegram.org/bot{token}/getMe"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response_data = response.json()
+
+        if response.status_code == 200 and response_data.get("ok"):
+            bot_name = response_data.get("result", {}).get("first_name", "Inconnu")
+            return jsonify({"success": True, "message": _("Token valide ! Le bot s'appelle '%(bot_name)s'.", bot_name=bot_name)})
+        else:
+            error_description = response_data.get('description', 'Réponse invalide de Telegram.')
+            return jsonify({"success": False, "message": _("Échec de l'envoi : %(error)s", error=error_description)})
+    except requests.exceptions.RequestException as e:
+        return jsonify({"success": False, "message": _("Erreur de connexion : %(error)s", error=str(e))})
+
 @app.route('/api/force_tide_update', methods=['POST'])
 @login_required
 def force_tide_update():
@@ -884,6 +1169,33 @@ def samba_update_status():
     """Retourne l'état actuel du worker de mise à jour Samba."""
     return jsonify(samba_status_manager.get_status())
 
+@app.route('/telegram_update_status')
+@login_required
+def telegram_update_status():
+    """Retourne l'état actuel du worker du bot Telegram."""
+    return jsonify(telegram_status_manager.get_status())
+
+@app.route('/telegram_bot_status')
+@login_required
+def telegram_bot_status():
+    """Retourne un état simplifié du bot Telegram pour l'interface, avec un statut pour la couleur."""
+    status_data = telegram_status_manager.get_status()
+    message = status_data.get("status_message", "Inconnu")
+    
+    status = "unknown" # Statut par défaut
+    msg_lower = message.lower()
+
+    if "actif" in msg_lower:
+        status = "running"
+    elif "désactivé" in msg_lower or "non configuré" in msg_lower:
+        status = "stopped"
+    elif "erreur" in msg_lower:
+        status = "error"
+        
+    return jsonify({
+        "status": status,
+        "status_message": message
+    })
 
 # --- Téléchargement Immich et Préparation photos ---
 
@@ -1109,6 +1421,46 @@ def samba_update_worker():
         if is_enabled: # Only set message to "En attente..." if it's enabled
             samba_status_manager.update_status(message="En attente...")
         time.sleep(sleep_seconds)
+
+def telegram_bot_worker():
+    """
+    Thread en arrière-plan qui lance et maintient le bot Telegram actif.
+    """
+    print("== Démarrage du worker du bot Telegram ==")
+    while True: # Boucle pour relancer le bot en cas de crash
+        config = load_config()
+        is_enabled = config.get("telegram_bot_enabled", False)
+        token = config.get("telegram_bot_token")
+        users = config.get("telegram_authorized_users")
+        # Charger les invités autorisés depuis leur propre fichier
+        guest_users = load_telegram_guest_users()
+
+        if is_enabled and token and users:
+            try:
+                # Créer et définir une nouvelle boucle d'événements pour ce thread.
+                # C'est nécessaire car le bot Telegram est asynchrone et a besoin
+                # d'une boucle pour fonctionner correctement en arrière-plan.
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                telegram_status_manager.update_status(message="Bot actif.")
+                bot = PimmichBot(token, users, guest_users, handle_new_telegram_photo, validate_telegram_invitation)
+                bot.run() # Cette fonction est bloquante (polling)
+            except Exception as e:
+                # Tentative de capture d'erreurs spécifiques pour un meilleur feedback
+                error_str = str(e).lower()
+                if 'invalid token' in error_str:
+                    error_msg = "Erreur : Token du bot Telegram invalide."
+                elif 'conflict' in error_str:
+                    error_msg = "Erreur : Conflit, une autre instance du bot est peut-être déjà lancée."
+                else:
+                    error_msg = f"Erreur critique du bot : {str(e)[:100]}..."
+                
+                final_error_msg = f"{error_msg} Redémarrage dans 60s."
+                print(f"[Telegram Worker] {final_error_msg}")
+                telegram_status_manager.update_status(message=error_msg) # On affiche le message concis dans l'UI
+        else:
+            telegram_status_manager.update_status(message="Bot désactivé ou non configuré.")
+        time.sleep(60) # Attendre avant de vérifier à nouveau la config ou de relancer
 # --- Import depuis Clé USB ---
 
 @app.route("/import_usb_progress")
@@ -1164,17 +1516,21 @@ def toggle_slideshow():
 @login_required
 def delete_photo(photo):
     try:
-        photo_path = os.path.join('static', 'prepared', photo)
-        photo_path_obj = Path(photo_path)
+        # Le chemin relatif est de la forme 'source/nom_photo.jpg'
+        photo_path_obj = Path('static/prepared') / photo
         
-        # Déterminer le chemin de la version polaroid et de la sauvegarde
+        # Déterminer les chemins des versions alternatives et de la sauvegarde
         polaroid_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_polaroid.jpg")
+        postcard_path = photo_path_obj.with_name(f"{photo_path_obj.stem}_postcard.jpg")
         backup_path = Path('static/.backups') / photo
 
-        if os.path.isfile(photo_path):
-            os.remove(photo_path)
+        # Supprimer tous les fichiers associés
+        if photo_path_obj.is_file():
+            photo_path_obj.unlink()
         if polaroid_path.is_file():
             polaroid_path.unlink()
+        if postcard_path.is_file():
+            postcard_path.unlink()
         if backup_path.is_file():
             backup_path.unlink()
         
@@ -1182,6 +1538,13 @@ def delete_photo(photo):
         states = load_filter_states()
         if states.pop(photo, None):
             save_filter_states(states)
+
+        # Supprimer des favoris si la photo y était
+        favorites = load_favorites()
+        if photo in favorites:
+            favorites.remove(photo)
+            save_favorites(favorites)
+
         return '', 204
     except Exception as e:
         return str(e), 500
@@ -1603,6 +1966,119 @@ def toggle_favorite():
     
     return jsonify({"success": True, "is_favorite": not is_currently_favorite})
 
+@app.route('/api/set_polaroid_text', methods=['POST'])
+@login_required
+def set_polaroid_text():
+    """Applique un texte à une image Polaroid."""
+    data = request.get_json()
+    photo_relative_path = data.get('photo')
+    text = data.get('text', '')
+
+    if not photo_relative_path:
+        return jsonify({"success": False, "message": "Chemin de la photo manquant."}), 400
+
+    try:
+        # Construire le chemin vers la version polaroid de l'image
+        path_obj = Path(photo_relative_path)
+        polaroid_filename = f"{path_obj.stem}_polaroid.jpg"
+        polaroid_relative_path = path_obj.with_name(polaroid_filename)
+        polaroid_full_path = Path('static/prepared') / polaroid_relative_path
+
+        if not polaroid_full_path.exists():
+             return jsonify({"success": False, "message": "La version Polaroid de cette photo n'existe pas."}), 404
+
+        # Appeler la fonction pour ajouter le texte
+        add_text_to_polaroid(str(polaroid_full_path), text)
+
+        # Sauvegarder le texte dans le fichier de config
+        texts = load_polaroid_texts()
+        if text and text.strip():
+            texts[photo_relative_path] = text
+        else:
+            texts.pop(photo_relative_path, None) # Supprimer la clé si le texte est vide
+        save_polaroid_texts(texts)
+
+        return jsonify({"success": True, "message": "Texte mis à jour."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur interne du serveur : {e}"}), 500
+
+@app.route('/api/set_image_text', methods=['POST'])
+@login_required
+def set_image_text():
+    """Applique un texte à une image générique."""
+    data = request.get_json()
+    photo_relative_path = data.get('photo')
+    text = data.get('text', '')
+
+    if not photo_relative_path:
+        return jsonify({"success": False, "message": "Chemin de la photo manquant."}), 400
+
+    try:
+        # Le chemin relatif est de la forme 'source/nom_photo.jpg'
+        photo_full_path = Path('static/prepared') / photo_relative_path
+
+        if not photo_full_path.is_file():
+            return jsonify({"success": False, "message": f"Photo non trouvée : {photo_full_path}"}), 404
+
+        # Appeler la fonction pour ajouter le texte
+        add_text_to_image(str(photo_full_path), text)
+
+        # Sauvegarder le texte dans le fichier de config
+        texts = load_text_states()
+        if text and text.strip():
+            texts[photo_relative_path] = text
+        else:
+            texts.pop(photo_relative_path, None) # Supprimer la clé si le texte est vide
+        save_text_states(texts)
+
+        return jsonify({"success": True, "message": "Texte mis à jour."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur interne du serveur : {e}"}), 500
+
+@app.route('/api/telegram/invitations', methods=['GET', 'POST'])
+@login_required
+def manage_telegram_invitations():
+    if request.method == 'GET':
+        invitations = load_invitations()
+        # Filtrer pour ne garder que les invitations valides et non expirées
+        active_invitations = {
+            code: data for code, data in invitations.items()
+            if datetime.fromisoformat(data['expires_at']) > datetime.now()
+        }
+        return jsonify(list(active_invitations.values()))
+
+    if request.method == 'POST':
+        data = request.get_json()
+        guest_name = data.get('name')
+        duration_days = int(data.get('duration', 7))
+
+        if not guest_name:
+            return jsonify({"success": False, "message": "Le nom de l'invité est requis."}), 400
+
+        invitations = load_invitations()
+        code = secrets.token_urlsafe(6) # Génère un code court et sécurisé
+        
+        invitations[code] = {
+            "code": code,
+            "guest_name": guest_name,
+            "created_at": datetime.now().isoformat(),
+            "expires_at": (datetime.now() + timedelta(days=duration_days)).isoformat(),
+            "used_by_user_id": None
+        }
+        save_invitations(invitations)
+        return jsonify({"success": True, "message": "Invitation créée.", "invitation": invitations[code]})
+
+@app.route('/api/telegram/invitations/<code>', methods=['DELETE'])
+@login_required
+def delete_telegram_invitation(code):
+    invitations = load_invitations()
+    if code in invitations:
+        del invitations[code]
+        save_invitations(invitations)
+        return jsonify({"success": True, "message": "Invitation supprimée."})
+    else:
+        return jsonify({"success": False, "message": "Invitation non trouvée."}), 404
+
 @app.route('/api/scan_wifi', methods=['GET'])
 @login_required
 def scan_wifi():
@@ -1667,6 +2143,8 @@ if __name__ == '__main__':
     immich_thread.start()
     samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
     samba_thread.start()
+    telegram_thread = threading.Thread(target=telegram_bot_worker, daemon=True)
+    telegram_thread.start()
     
     # Démarrer le worker de planification du diaporama
     scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)

@@ -1,10 +1,10 @@
 import os
-from PIL import Image, ImageFilter # Import ImageFilter for blurring
+from PIL import Image, ImageFilter, ImageDraw, ImageFont
 import pillow_heif
-import subprocess
+import subprocess, sys
 from utils.config import load_config # Import load_config to get screen_height_percent
 import piexif
-from utils.image_filters import create_polaroid_effect
+from utils.image_filters import create_polaroid_effect, create_postcard_effect
 from utils.exif import get_rotation_angle # Import get_rotation_angle for EXIF rotation
 from pathlib import Path
 
@@ -15,13 +15,12 @@ DEFAULT_OUTPUT_WIDTH = 1920
 DEFAULT_OUTPUT_HEIGHT = 1080
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
-def prepare_photo(source_path, dest_path, output_width, output_height):
+def prepare_photo(source_path, dest_path, output_width, output_height, source_type=None, caption=None):
     """Prépare une photo pour l'affichage avec redimensionnement, rotation EXIF et fond flou."""
     config = load_config()
     # Get screen_height_percent from config, default to 100 if not found or invalid
     screen_height_percent = int(config.get("screen_height_percent", "100"))
 
-    exif_bytes_to_add = None # Initialiser les données EXIF à ajouter
     # Calculate the effective height for the photo content within the output resolution
     effective_photo_height = int(output_height * (screen_height_percent / 100))
 
@@ -85,50 +84,74 @@ def prepare_photo(source_path, dest_path, output_width, output_height):
             # horizontally and vertically on the final canvas.
             x_offset = (output_width - img_content.width) // 2
             y_offset = (output_height - img_content.height) // 2
-            
             final_img.paste(img_content, (x_offset, y_offset))
-            img_to_save = final_img
-
-            # --- NOUVEAU: Générer et sauvegarder la version Polaroid ---
-            try:
-                polaroid_content = create_polaroid_effect(img_content.copy())
-                polaroid_final_img = final_img.copy()
-                polaroid_final_img.paste(polaroid_content, (x_offset, y_offset))
-                
-                # Construire le chemin pour la version polaroid
-                dest_path_obj = Path(dest_path)
-                polaroid_dest_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_polaroid.jpg")
-                
-                polaroid_final_img.save(polaroid_dest_path, 'JPEG', quality=90, optimize=True)
-            except Exception as polaroid_e:
-                print(f"[Polaroid] Avertissement: Impossible de créer la version Polaroid pour {os.path.basename(source_path)}: {polaroid_e}")
-            # --- NOUVEAU: Préparer les métadonnées EXIF avec les coordonnées du contenu ---
-            try:
-                exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "1st": {}, "thumbnail": None}
-                # Stocker les coordonnées dans le champ UserComment (non-standard mais sûr)
-                # Format: "pimmich_bbox:x,y,w,h"
-                bbox_str = f"pimmich_bbox:{x_offset},{y_offset},{img_content.width},{img_content.height}"
-                exif_dict["Exif"][piexif.ExifIFD.UserComment] = bbox_str.encode('ascii')
-                exif_bytes_to_add = piexif.dump(exif_dict)
-            except Exception as exif_e:
-                print(f"[EXIF] Avertissement: Impossible de créer les métadonnées pour {os.path.basename(source_path)}: {exif_e}")
 
         else:
             # Landscape or square photo relative to the display area.
             # Fit its width to OUTPUT_WIDTH or height to effective_photo_height, no blur background, center on black.
             img_content = img.copy()
             img_content.thumbnail((output_width, effective_photo_height), Image.Resampling.LANCZOS)
-
             final_img = Image.new('RGB', (output_width, output_height), (0, 0, 0))
             
             # Calculate position to center the resized image on the final canvas.
             x_offset = (output_width - img_content.width) // 2
             y_offset = (output_height - img_content.height) // 2
-            
             final_img.paste(img_content, (x_offset, y_offset))
-            img_to_save = final_img
         
-        # Save the prepared image as JPEG
+        # --- Logique commune pour la création des métadonnées et des versions alternatives ---
+        
+        # 1. Préparer les métadonnées EXIF avec les coordonnées du contenu
+        exif_bytes_to_add = None
+        try:
+            exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "1st": {}, "thumbnail": None}
+            bbox_str = f"pimmich_bbox:{x_offset},{y_offset},{img_content.width},{img_content.height}"
+            exif_dict["Exif"][piexif.ExifIFD.UserComment] = bbox_str.encode('ascii')
+            exif_bytes_to_add = piexif.dump(exif_dict)
+        except Exception as exif_e:
+            print(f"[EXIF] Avertissement: Impossible de créer les métadonnées pour {os.path.basename(source_path)}: {exif_e}")
+
+        # 2. Générer et sauvegarder la version Polaroid (pour toutes les orientations)
+        try:
+            polaroid_content = create_polaroid_effect(img_content.copy())
+            polaroid_final_img = final_img.copy()
+            polaroid_final_img.paste(polaroid_content, (x_offset, y_offset))
+            dest_path_obj = Path(dest_path)
+            polaroid_dest_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_polaroid.jpg")
+            polaroid_final_img.save(polaroid_dest_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes_to_add)
+        except Exception as polaroid_e:
+            print(f"[Polaroid] Avertissement: Impossible de créer la version Polaroid pour {os.path.basename(source_path)}: {polaroid_e}")
+
+        # Générer et sauvegarder la version Carte Postale (pour toutes les orientations).
+        # Le caption ne sera présent que pour les photos Telegram.
+        try:
+            # --- Réduction de la taille de l'image pour la carte postale ---
+            # On crée une copie plus petite de l'image de contenu pour s'assurer
+            # que la carte postale finale ne sera pas trop grande et laissera des marges
+            # pour l'affichage de l'heure et des marées.
+            # On la réduit à 85% de la taille de l'écran.
+            postcard_img_content = img_content.copy()
+            scale_factor = 0.85
+            postcard_img_content.thumbnail(
+                (int(output_width * scale_factor), int(output_height * scale_factor)), 
+                Image.Resampling.LANCZOS
+            )
+
+            postcard_content = create_postcard_effect(postcard_img_content, caption=caption)
+            # Utiliser une copie de l'image finale (avec son fond flou ou noir) comme base
+            # pour la carte postale, au lieu d'un fond noir uni.
+            postcard_final_img = final_img.copy()
+            postcard_x_offset = (output_width - postcard_content.width) // 2
+            postcard_y_offset = (output_height - postcard_content.height) // 2
+            postcard_final_img.paste(postcard_content, (postcard_x_offset, postcard_y_offset), postcard_content)
+            
+            dest_path_obj = Path(dest_path)
+            postcard_dest_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_postcard.jpg")
+            postcard_final_img.save(postcard_dest_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes_to_add)
+        except Exception as postcard_e:
+            print(f"[Postcard] Avertissement: Impossible de créer la version Carte Postale pour {os.path.basename(source_path)}: {postcard_e}")
+
+        # 3. Sauvegarder l'image principale préparée (avec fond flou ou noir)
+        img_to_save = final_img
         if exif_bytes_to_add:
             img_to_save.save(dest_path, 'JPEG', quality=85, optimize=True, exif=exif_bytes_to_add)
         else:
@@ -261,7 +284,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
                 # C'est une image
                 dest_filename = f"{base_name}.jpg"
                 dest_path = PREPARED_SOURCE_DIR / dest_filename
-                prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height)
+                prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height, source_type=source_type)
                 message_type = "photo"
 
             percent = int((i / total) * 100)

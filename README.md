@@ -1,24 +1,23 @@
-📣 Announcement - (June 14, 2025) : Nouvelle release en ligne
-
--  aperçus des photos avec possibilité de supprimer des photos
--  une vrai mise en veille de l'écran pas juste un écran noir
-
- J'essaierai de publier un release par mois avec des avancées significatives
+📣 Announcement - (Juillet 14, 2025) : Nouvelle release en ligne
 
 
-
-# 🗺️ Feuille de route Pimmich
 
 > 📆 À partir de juin 2025 — Une version majeure chaque mois
 
-## ✅ Juin 2025 – Version actuelle
+## 🛠️✅ Août 2025  - (Sortie prévue le 15 aoüt)
 
-- ✅ Aperçus des photos avec suppression possible  
-- ✅ Véritable mise en veille de l’écran (gestion via `wlr-randr`)  
-- ✅ Paramètre de hauteur utile de l’écran (% d’écran utilisé)  
-- ✅ Correction de l’orientation via EXIF et préparation des images  
+- ✅ Gestion des vidéos
+- ✅ Gestion accélération matérielle pour Pi3
+- ✅ Ajout traduction de l'application (Anglais et Espagnol)
+- ✅ Ajout QR Code première connexion
+- ✅ Ajout de la fonctionnalité "Ajout de texte"
+- ✅ Ajout de l'onglet Favoris (augmentation fréquence d'affichage d'une photo)
+- ✅ Corections des bugs
+    - ✅ Heude début d'affichage
+    - ✅ Effacement des logs dans l'onglet système sans problème de container
 
-## 🛠️ Juillet 2025 – Prochaine version (sortie prévue 14 juillet)
+
+## ✅ Juillet 2025  - Version actuelle
 
 - ✅ 🧭 Ajout de la configuration Wi-Fi depuis l’interface Web  
 - ✅ 🗂️ Réorganisation de la page de configuration en onglets  
@@ -38,11 +37,20 @@
 - ✅ Ajout des logs dans l'onglet Système
 - ✅ Ajout des stats du Raspberry (température, stockage Ram, charge processeur)
 
+## ✅ Juin 2025 – 
+
+- ✅ Aperçus des photos avec suppression possible  
+- ✅ Véritable mise en veille de l’écran (gestion via `wlr-randr`)  
+- ✅ Paramètre de hauteur utile de l’écran (% d’écran utilisé)  
+- ✅ Correction de l’orientation via EXIF et préparation des images  
+
+
+
  
 ## 💡 Idées pour les versions suivantes
 
 - 📱 Création d’une APK Android pour contrôler le cadre     
-- 🌍 Traductions de l’interface (multi-langues)  
+
 
 
 

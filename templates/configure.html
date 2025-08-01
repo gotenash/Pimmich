@@ -10,6 +10,16 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
     <!-- Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Amélioration pour le défilement des onglets sur mobile */
+        .tabs::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .tabs {
+            -ms-overflow-style: none;  /* IE et Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
 </head>
 <body class="relative min-h-screen">
 
@@ -67,10 +77,12 @@
         </div>
         
 
-<div class="tabs">
+<!-- Ajout de flex, overflow-x-auto et pb-2 pour rendre les onglets défilables horizontalement sur mobile -->
+<div class="tabs flex overflow-x-auto pb-2">
   <button class="tablink active" onclick="openTab(event, 'tab-affichage')">{{ _('Affichage') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-heure')">{{ _('Heure, Météo et Marées') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-sources')">{{ _('Sources des photos') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-sources')">{{ _('Sources') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-telegram')">{{ _('Telegram') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-apercu')">{{ _('Aperçu') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-favoris')">{{ _('Favoris') }} <span id="favorites-count-badge" class="hidden bg-yellow-400 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
   <button class="tablink" onclick="openTab(event, 'tab-actions')">{{ _('Actions') }}</button>
@@ -121,12 +133,12 @@
                 {{ _("Activer l'effet de transition entre les photos") }}
             </label>
         </div>
-        <div style="display: flex; align-items: center; margin-top: 8px;">
-            <label for="transition_duration" style="min-width: 200px;">{{ _("Durée de transition (secondes) :") }}</label>
+        <div class="flex items-center mt-2">
+            <label for="transition_duration" class="w-52 flex-shrink-0">{{ _("Durée de transition (secondes) :") }}</label>
             <input type="number" step="0.1" id="transition_duration" name="transition_duration" value="{{ config.get('transition_duration', 1.0) }}">
         </div>
-        <div style="display: flex; align-items: center; margin-top: 8px;">
-            <label for="transition_type" style="min-width: 200px;">{{ _("Type de transition :") }}</label>
+        <div class="flex items-center mt-2">
+            <label for="transition_type" class="w-52 flex-shrink-0">{{ _("Type de transition :") }}</label>
             <select name="transition_type" id="transition_type">
                 <option value="fade" {% if config.get('transition_type') == 'fade' %}selected{% endif %}>{{ _('Fondu enchaîné') }}</option>
                 <option value="slide_left" {% if config.get('transition_type') == 'slide_left' %}selected{% endif %}>{{ _('Glisser depuis la gauche') }}</option>
@@ -425,6 +437,10 @@
             <input class="form-check-input" type="checkbox" id="display_source_smartphone" name="display_sources" value="smartphone" {% if 'smartphone' in config.display_sources %}checked{% endif %}>
             <label class="form-check-label" for="display_source_smartphone">{{ _("Photos Smartphone") }}</label>
         </div>
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_telegram" name="display_sources" value="telegram" {% if 'telegram' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_telegram">{{ _('Photos reçues par Telegram') }}</label>
+        </div>
     </fieldset>
     <fieldset class="mt-4">
         <legend><h3>{{ _("Configuration du partage Samba (Windows)") }}</h3></legend>
@@ -475,11 +491,99 @@
     </fieldset>
 </div>
 
-   
-    <button type="submit" id="save-changes-btn" class="save-button">{{ _("Enregistrer les modifications") }}</button>
+<div id="tab-telegram" class="tabcontent">
+    <fieldset>
+        <legend><h3>{{ _("Réception de photos par Telegram") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">
+            {{ _("Activez cette fonction pour permettre à des utilisateurs autorisés d'envoyer des photos directement sur le cadre via un bot Telegram. Les photos reçues seront ajoutées à la source \"Telegram\".") }}
+            <br>
+            {{ _("Pour créer un bot et obtenir un token, parlez à @BotFather sur Telegram. L'ID de l'administrateur est votre propre ID utilisateur Telegram (obtenu via @userinfobot par exemple).") }}
+        </p>
 
-</form>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="telegram_bot_enabled" {% if config.get('telegram_bot_enabled', False) %}checked{% endif %}>
+                {{ _("Activer le bot de réception Telegram") }}
+            </label>
+        </div>
 
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="telegram_bot_token" style="min-width: 200px;">{{ _("Token du Bot Telegram :") }}</label>
+            <input type="text" id="telegram_bot_token" name="telegram_bot_token" value="{{ config.get('telegram_bot_token', '') }}" class="w-full">
+        </div>
+
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="telegram_authorized_users" style="min-width: 200px;">{{ _("ID de l'administrateur :") }}</label>
+            <input type="text" id="telegram_authorized_users" name="telegram_authorized_users" value="{{ config.get('telegram_authorized_users', '') }}" class="w-full" placeholder="{{ _('Votre ID numérique Telegram') }}">
+        </div>
+
+        <div class="mt-4 mb-4">
+            <button type="button" id="testTelegramBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm inline-flex items-center"><i class="fas fa-plug mr-2"></i>{{ _("Tester le Token du Bot") }}</button>
+            <span id="telegramTestResult" class="ml-4 font-medium"></span>
+        </div>
+        <div id="telegram-bot-status-container" class="mt-4 p-3 bg-gray-100 rounded-lg border">
+            <p><strong>{{ _("État du bot :") }}</strong> <span id="telegram-bot-status-message" class="font-mono">...</span></p>
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Gestion des invitations pour les invités") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">
+            {{ _("Créez des codes d'invitation uniques pour permettre à vos amis et votre famille d'envoyer des photos au cadre. Ils devront envoyer ce code à votre bot Telegram pour être autorisés.") }}
+        </p>
+
+        <!-- Formulaire de création d'invitation -->
+        <div class="p-4 border rounded-lg bg-gray-50/50 mb-4">
+            <h4 class="font-semibold text-gray-800 mb-2">{{ _("Créer une nouvelle invitation") }}</h4>
+            <div class="flex items-center gap-4">
+                <input type="text" id="new-invite-name" class="flex-grow rounded-md border-gray-300 shadow-sm" placeholder="{{ _('Nom de l\'invité (ex: Mamie)') }}">
+                <select id="new-invite-duration" class="rounded-md border-gray-300 shadow-sm">
+                    <option value="7">{{ _("Valide 7 jours") }}</option>
+                    <option value="30">{{ _("Valide 30 jours") }}</option>
+                    <option value="90">{{ _("Valide 90 jours") }}</option>
+                </select>
+                <button type="button" id="create-invite-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                    <i class="fas fa-plus mr-2"></i>{{ _("Créer") }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Liste des invitations actives -->
+        <div>
+            <h4 class="font-semibold text-gray-800 mb-2">{{ _("Invitations actives") }}</h4>
+            <div id="invitations-list" class="space-y-2">
+                <!-- Les invitations seront chargées ici par JavaScript -->
+                <p class="text-gray-500 italic">{{ _("Chargement des invitations...") }}</p>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-4">
+        <legend><h3>{{ _("Source Telegram") }}</h3></legend>
+        <p class="mb-3 text-gray-700">{{ _("N'oubliez pas d'activer la source \"Telegram\" dans l'onglet \"Sources\" pour que les photos reçues apparaissent dans le diaporama.") }}</p>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Fréquence des Cartes Postales") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Augmentez temporairement la fréquence d'affichage des nouvelles cartes postales reçues pour qu'elles apparaissent plus souvent.") }}</p>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="telegram_boost_enabled" {% if config.get('telegram_boost_enabled', True) %}checked{% endif %}>
+                {{ _("Activer le boost pour les cartes postales récentes") }}
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="telegram_boost_duration_days" style="min-width: 200px;">{{ _("Durée du boost (jours) :") }}</label>
+            <input type="number" id="telegram_boost_duration_days" name="telegram_boost_duration_days" value="{{ config.get('telegram_boost_duration_days', 7) }}" min="1">
+        </div>
+        <div style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="telegram_boost_factor" style="min-width: 200px;">{{ _("Facteur de boost :") }}</label>
+            <input type="number" id="telegram_boost_factor" name="telegram_boost_factor" value="{{ config.get('telegram_boost_factor', 4) }}" min="0">
+            <p class="text-sm text-gray-600 ml-2">{{ _("(Ex: 4 = 5x plus de chances d'apparaître)") }}</p>
+        </div>
+    </fieldset>
+</div>
+<!-- La balise de formulaire est maintenant fermée après tous les contenus d'onglets -->
 <div id="tab-actions" class="tabcontent">
     <fieldset>
     <legend><h3>{{ _("Actions") }}</h3></legend>
@@ -530,6 +634,10 @@
                 <div id="samba-progress-bar" class="progress-bar"></div>
             </div>
             <div id="samba-import-status" class="status-messages"></div>
+
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <p class="text-sm text-gray-600">{{ _("L'import depuis Telegram se fait automatiquement à la réception des photos. Activez la source dans l'onglet \"Sources\" pour les voir.") }}</p>
+            </div>
 
             <!-- Smartphone Upload Form -->
             <form id="smartphone-upload-form" enctype="multipart/form-data" class="mt-4 pt-4 border-t border-gray-200">
@@ -625,11 +733,15 @@
                 <fieldset class="mb-6 p-4 border rounded-lg bg-gray-50/50">
                     <div class="flex justify-between items-center border-b pb-2 mb-4">
                         <h4 class="text-xl font-semibold text-gray-800">{{ source_name.capitalize() }}</h4>
-                        <!-- Bouton pour supprimer tous les médias de la source -->
-                        <button type="button" class="delete-all-btn bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded inline-flex items-center" data-source="{{ source_name }}" title="{{ _('Supprimer toutes les photos de la source \'%(source)s\'', source=source_name) }}">
-                            <i class="fas fa-trash-alt mr-2"></i>
-                            <span>{{ _("Tout supprimer") }}</span>
-                        </button>
+                        <div class="flex items-center gap-x-4">
+                            <!-- Compteur de photos -->
+                            <span class="text-sm text-gray-500 font-medium">{{ ngettext('%(num)d photo', '%(num)d photos', photos|length) }}</span>
+                            <!-- Bouton pour supprimer tous les médias de la source -->
+                            <button type="button" class="delete-all-btn bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded inline-flex items-center" data-source="{{ source_name }}" title="{{ _('Supprimer toutes les photos de la source \'%(source)s\'', source=source_name) }}">
+                                <i class="fas fa-trash-alt mr-2"></i>
+                                <span>{{ _("Tout supprimer") }}</span>
+                            </button>
+                        </div>
                     </div>
                         <div class="photo-grid">
                             {% for media in photos %}
@@ -649,7 +761,14 @@
                                     {% set thumb_url = media_url %}
                                     {% if media.active_filter == 'polaroid' and media.has_polaroid %}
                                         {% set polaroid_filename = media.path.rsplit('.', 1)[0] + '_polaroid.jpg' %}
-                                        {% set thumb_url = url_for('static', filename='prepared/' + polaroid_filename) %}
+                                        {% set polaroid_url = url_for('static', filename='prepared/' + polaroid_filename) %}
+                                        {% set thumb_url = polaroid_url %}
+                                        {% set media_url = polaroid_url %}
+                                    {% elif media.active_filter == 'postcard' and media.get('has_postcard') %}
+                                        {% set postcard_filename = media.path.rsplit('.', 1)[0] + '_postcard.jpg' %}
+                                        {% set postcard_url = url_for('static', filename='prepared/' + postcard_filename) %}
+                                        {% set thumb_url = postcard_url %}
+                                        {% set media_url = postcard_url %}
                                     {% endif %}
                                 {% elif media.type == 'video' and media.thumbnail_path %}
                                     {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
@@ -665,8 +784,8 @@
                                 </a>
                                 <!-- Actions alignées avec "justify-between" pour pousser la poubelle à droite -->
                                 {% if media.type == 'image' %}
-                                <div class="photo-actions mt-1 flex items-center justify-between w-full gap-x-2">
-                                    <select class="filter-select text-xs rounded border-gray-300 py-1" data-photo="{{ photo_path }}">
+                                <div class="photo-actions mt-1 flex flex-col w-full gap-y-1">
+                                    <select class="filter-select text-xs rounded border-gray-300 py-1 w-full" data-photo="{{ photo_path }}">
                                         <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
                                         <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
                                         <option value="sepia" {% if active_filter == 'sepia' %}selected{% endif %}>{{ _("Sépia") }}</option>
@@ -675,12 +794,20 @@
                                         {% if has_polaroid %}
                                         <option value="polaroid" {% if active_filter == 'polaroid' %}selected{% endif %}>{{ _("Polaroid") }}</option>
                                         {% endif %}
+                                        {% if media.get('has_postcard') %}
+                                        <option value="postcard" {% if active_filter == 'postcard' %}selected{% endif %}>{{ _("Carte Postale") }}</option>
+                                        {% endif %}
+                                        <option value="polaroid_vintage" {% if active_filter == 'polaroid_vintage' %}selected{% endif %}>{{ _("Polaroid Vintage") }}</option>
                                         <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                                     </select>
-                                    <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}">
-                                        <i class="fas fa-star"></i>
-                                    </button>
-                                    <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
+                                    <div class="flex justify-end w-full gap-x-2">
+                                        <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
+                                        <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
+                                    </div>
+                                </div>
+                                <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
+                                    <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
+                                    <span class="generic-text-status text-xs text-gray-500 ml-1"></span>
                                 </div>
                                 {% endif %}
                             </div>
@@ -719,7 +846,14 @@
                             {% set thumb_url = media_url %}
                             {% if media.active_filter == 'polaroid' and media.has_polaroid %}
                                 {% set polaroid_filename = media.path.rsplit('.', 1)[0] + '_polaroid.jpg' %}
-                                {% set thumb_url = url_for('static', filename='prepared/' + polaroid_filename) %}
+                                {% set polaroid_url = url_for('static', filename='prepared/' + polaroid_filename) %}
+                                {% set thumb_url = polaroid_url %}
+                                {% set media_url = polaroid_url %}
+                            {% elif media.active_filter == 'postcard' and media.get('has_postcard') %}
+                                {% set postcard_filename = media.path.rsplit('.', 1)[0] + '_postcard.jpg' %}
+                                {% set postcard_url = url_for('static', filename='prepared/' + postcard_filename) %}
+                                {% set thumb_url = postcard_url %}
+                                {% set media_url = postcard_url %}
                             {% endif %}
                         {% elif media.type == 'video' and media.thumbnail_path %}
                             {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
@@ -734,18 +868,30 @@
                           {% endif %}
                         </a>
                         {% if media.type == 'image' %}
-                        <div class="photo-actions mt-1 flex items-center justify-between w-full gap-x-2">
-                            <select class="filter-select text-xs rounded border-gray-300 py-1" data-photo="{{ photo_path }}">
+                        <div class="photo-actions mt-1 flex flex-col w-full gap-y-1">
+                            <select class="filter-select text-xs rounded border-gray-300 py-1 w-full" data-photo="{{ photo_path }}">
                                 <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
                                 <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
                                 <option value="sepia" {% if active_filter == 'sepia' %}selected{% endif %}>{{ _("Sépia") }}</option>
                                 <option value="vignette" {% if active_filter == 'vignette' %}selected{% endif %}>{{ _("Vignette") }}</option>
                                 <option value="vintage" {% if active_filter == 'vintage' %}selected{% endif %}>{{ _("Vintage") }}</option>
-                                {% if has_polaroid %}<option value="polaroid" {% if active_filter == 'polaroid' %}selected{% endif %}>{{ _("Polaroid") }}</option>{% endif %}
+                                {% if has_polaroid %}
+                                <option value="polaroid" {% if active_filter == 'polaroid' %}selected{% endif %}>{{ _("Polaroid") }}</option>
+                                {% endif %}
+                                {% if media.get('has_postcard') %}
+                                <option value="postcard" {% if active_filter == 'postcard' %}selected{% endif %}>{{ _("Carte Postale") }}</option>
+                                {% endif %}
+                                <option value="polaroid_vintage" {% if active_filter == 'polaroid_vintage' %}selected{% endif %}>{{ _("Polaroid Vintage") }}</option>
                                 <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                             </select>
-                            <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
-                            <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
+                            <div class="flex justify-end w-full gap-x-2">
+                                <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
+                                <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                        <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
+                            <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
+                            <span class="generic-text-status text-xs text-gray-500 ml-1"></span>
                         </div>
                         {% endif %}
                     </div>
@@ -934,6 +1080,11 @@
     </fieldset>
 </div>
 
+    <button type="submit" id="save-changes-btn" class="save-button">{{ _("Enregistrer les modifications") }}</button>
+
+</form>
+
+
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>
   const lightbox = GLightbox({
@@ -955,8 +1106,29 @@
     noSecurity: "{{ _('Aucune') }}",
     favoriteTooltip: "{{ _('Mettre en favori') }}",
     noFavorites: "{{ _("Vous n'avez aucune photo en favori pour le moment.") }}",
+    polaroidPlaceholder: "{{ _('Ajouter une légende...') }}",
     selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
   };
+
+  // Ajouter les traductions pour l'onglet Telegram
+  i18n.testing = "{{ _('Test en cours...') }}";
+  i18n.commErrorServer = "{{ _('Erreur de communication avec le serveur.') }}";
+  i18n.loading = "{{ _('Chargement...') }}";
+  i18n.noActiveInvites = "{{ _('Aucune invitation active.') }}";
+  i18n.usedBy = "{{ _('Utilisé par') }}";
+  i18n.notUsed = "{{ _('Non utilisé') }}";
+  i18n.expiresOn = "{{ _('Expire le') }}";
+  i18n.deleteInvite = "{{ _('Supprimer l\'invitation') }}";
+  i18n.errorLoadingInvites = "{{ _('Erreur lors du chargement des invitations.') }}";
+  i18n.enterGuestName = "{{ _('Veuillez entrer un nom pour l\'invité.') }}";
+  i18n.errorPrefix = "{{ _('Erreur :') }}";
+  i18n.confirmDeleteInvite = "{{ _('Êtes-vous sûr de vouloir supprimer cette invitation ?') }}";
+  i18n.connectionError = "{{ _('Erreur de connexion') }}";
+  i18n.revokeInvite = "{{ _('Révoquer l\'accès') }}";
+  i18n.confirmRevokeInvite = "{{ _('Êtes-vous sûr de vouloir révoquer l\'accès pour cet invité ? Il ne pourra plus envoyer de photos.') }}";
+  i18n.botUsernameError = "{{ _('Le nom d\'utilisateur du bot n\'a pas pu être récupéré.') }}";
+  i18n.copyLink = "{{ _('Copier le lien') }}";
+  i18n.copyFailed = "{{ _('La copie a échoué.') }}";
 
   // ----- GESTION DE LA VALIDATION (Fonctions globales) -----
   // On définit ces fonctions ici pour qu'elles soient accessibles partout et éviter les erreurs de chargement.
@@ -1032,6 +1204,170 @@
 </script>
 <script>
 
+function copyToClipboard(text, successCallback, errorCallback) {
+    // Try the modern Clipboard API first (works in secure contexts like HTTPS or localhost)
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(successCallback)
+            .catch(errorCallback);
+        return;
+    }
+
+    // Fallback for non-secure contexts (like HTTP on a local network) or older browsers
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Make it invisible and non-disruptive
+    textArea.style.position = "fixed";
+    textArea.style.top = "-9999px";
+    textArea.style.left = "-9999px";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            successCallback();
+        } else {
+            errorCallback(new Error('Fallback copy command failed.'));
+        }
+    } catch (err) {
+        errorCallback(err);
+    } finally {
+        document.body.removeChild(textArea);
+    }
+}
+
+async function loadInvitations() {
+    const invitationsListDiv = document.getElementById('invitations-list');
+    if (!invitationsListDiv) return;
+
+    invitationsListDiv.innerHTML = `<p class="text-gray-500 italic">${i18n.loading}</p>`;
+    
+    // Fetch bot info and invitations in parallel
+    try {
+        const cacheBuster = `?_=${new Date().getTime()}`;
+        const [invitesResponse, botInfoResponse] = await Promise.all([
+            fetch(`/api/telegram/invitations${cacheBuster}`),
+            fetch(`/api/telegram/bot_info${cacheBuster}`)
+        ]);
+
+        const invitations = await invitesResponse.json();
+        const botInfo = await botInfoResponse.json();
+
+        const botUsername = botInfo.success ? botInfo.username : null;
+        if (!botUsername) {
+            console.warn("Could not fetch bot username:", botInfo.message);
+        }
+
+        invitationsListDiv.innerHTML = ''; // Vider la liste
+
+        if (invitations.length === 0) {
+            invitationsListDiv.innerHTML = `<p class="text-gray-500 italic">${i18n.noActiveInvites}</p>`;
+            return;
+        }
+
+        invitations.forEach(invite => {
+            const isExpired = new Date(invite.expires_at) < new Date();
+            const expires = new Date(invite.expires_at).toLocaleString('fr-FR');
+            const usedBy = invite.used_by_user_name ? `${i18n.usedBy} ${invite.used_by_user_name}` : i18n.notUsed;
+            
+            const inviteLink = botUsername ? `https://t.me/${botUsername}?start=${invite.code}` : null;
+
+            const inviteEl = document.createElement('div');
+            inviteEl.className = 'p-4 bg-white border rounded-lg shadow-sm space-y-3';
+            
+            // --- Statut de l'invitation ---
+            let statusText, statusClass;
+            if (isExpired) {
+                statusText = 'Expirée';
+                statusClass = 'bg-red-100 text-red-800';
+            } else if (invite.used_by_user_id) {
+                statusText = 'Utilisée';
+                statusClass = 'bg-green-100 text-green-800';
+            } else {
+                statusText = 'En attente';
+                statusClass = 'bg-yellow-100 text-yellow-800';
+            }
+
+            const statusHtml = `
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                    ${statusText}
+                </span>
+                ${invite.used_by_user_name ? `<span class="text-sm text-gray-600 ml-2">par <strong>${invite.used_by_user_name}</strong></span>` : ''}
+            `;
+
+            // --- Lien d'invitation ---
+            let linkHtml = `<div class="text-xs text-gray-500 italic mt-1">${i18n.botUsernameError}</div>`;
+            if (inviteLink) {
+                linkHtml = `
+                    <div class="flex items-center gap-2">
+                        <input type="text" readonly value="${inviteLink}" class="flex-grow text-xs p-1 border rounded bg-gray-50 font-mono">
+                        <button type="button" class="copy-link-btn text-gray-500 hover:text-blue-600" data-link="${inviteLink}" title="${i18n.copyLink}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // --- Boutons d'action ---
+            const revokeBtnHtml = invite.used_by_user_id && !isExpired ? `
+                <button class="revoke-invite-btn text-orange-500 hover:text-orange-700" data-code="${invite.code}" title="${i18n.revokeInvite}">
+                    <i class="fas fa-user-slash"></i>
+                </button>
+            ` : '';
+            const deleteBtnHtml = `
+                <button class="delete-invite-btn text-red-500 hover:text-red-700" data-code="${invite.code}" title="${i18n.deleteInvite}">
+                    <i class="fas fa-trash-alt"></i>
+                </button>`;
+
+            inviteEl.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-lg font-semibold text-gray-900">${invite.guest_name}</p>
+                        <p class="text-sm text-gray-500 mt-1">${i18n.expiresOn} ${expires}</p>
+                    </div>
+                    <div class="flex items-center gap-x-3">
+                        ${revokeBtnHtml}
+                        ${deleteBtnHtml}
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 items-center pt-3 border-t">
+                    <div class="text-sm">${statusHtml}</div>
+                    <div>${linkHtml}</div>
+                </div>
+            `;
+            invitationsListDiv.appendChild(inviteEl);
+        });
+    } catch (error) {
+        invitationsListDiv.innerHTML = `<p class="text-red-500">${i18n.errorLoadingInvites}</p>`;
+        console.error("Error loading invitations or bot info:", error);
+    }
+}
+
+async function fetchTelegramBotStatus() {
+    const statusSpan = document.getElementById('telegram-bot-status-message');
+    if (!statusSpan) return;
+
+    try {
+        const response = await fetch('/telegram_bot_status');
+        const data = await response.json();
+        statusSpan.textContent = data.status_message;
+        if (data.status === 'running') {
+            statusSpan.className = 'font-mono text-green-600';
+        } else if (data.status === 'error') {
+            statusSpan.className = 'font-mono text-red-600';
+        } else {
+            statusSpan.className = 'font-mono text-gray-500';
+        }
+    } catch (error) {
+        statusSpan.textContent = i18n.connectionError;
+        statusSpan.className = 'font-mono text-red-600';
+    }
+}
+
 function openTab(evt, tabId) {
     // Si on clique sur l'onglet Favoris et qu'il n'est pas déjà actif, on recharge la page
     // pour s'assurer que la liste des favoris est à jour.
@@ -1074,14 +1410,20 @@ function openTab(evt, tabId) {
         saveButton.style.display = tabsWithoutSaveButton.includes(tabId) ? 'none' : 'block';
     }
 
+    // Si on ouvre l'onglet Telegram, on charge les invitations
+    if (tabId === 'tab-telegram') {
+        fetchTelegramBotStatus();
+        loadInvitations();
+    }
 }
 
 // Restaurer l'onglet actif au chargement de la page
-document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('load', function() {
     let activeTabId = localStorage.getItem('activeTab') || 'tab-affichage';
     if (!document.getElementById(activeTabId)) {
         activeTabId = 'tab-affichage';
     }
+    // On utilise l'événement 'load' (au lieu de DOMContentLoaded) pour s'assurer que tout est prêt.
     openTab(null, activeTabId);
 
     // Mettre à jour le badge au chargement (et la grille si l'onglet est déjà actif)
@@ -1223,6 +1565,11 @@ document.querySelectorAll('.filter-select').forEach(select => {
             const newSrc = `/static/prepared/${polaroidPath}?v=${new Date().getTime()}`;
             imgElement.src = newSrc;
             if (glightboxLink) glightboxLink.href = newSrc;
+        } else if (filter === 'postcard') {
+            const postcardPath = photo.replace('.jpg', '_postcard.jpg');
+            const newSrc = `/static/prepared/${postcardPath}?v=${new Date().getTime()}`;
+            imgElement.src = newSrc;
+            if (glightboxLink) glightboxLink.href = newSrc;
         } else {
             // Pour les autres filtres (y compris 'original'), les appliquer en direct
             if (spinnerOverlay) spinnerOverlay.classList.remove('hidden');
@@ -1313,6 +1660,69 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (error) { alert("Erreur de communication avec le serveur."); } 
             finally { btn.disabled = false; }
         });
+    });
+
+    // --- Gestion du texte sur les Polaroids ---
+    const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
+    };
+
+    const handleGenericTextInput = async (event) => {
+        const input = event.target;
+        const text = input.value;
+        const container = input.closest('.generic-text-input-container');
+        const photoPath = container.dataset.photo;
+        const statusSpan = container.querySelector('.generic-text-status');
+        const tile = input.closest('.photo-tile');
+        const imgElement = tile.querySelector('img');
+        const glightboxLink = tile.querySelector('a.glightbox');
+
+        if (statusSpan) statusSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        // Trouver le filtre actif pour savoir quelle API appeler
+        const filterSelect = document.querySelector(`.filter-select[data-photo="${photoPath}"]`);
+        const activeFilter = filterSelect ? filterSelect.value : 'none';
+
+        let apiUrl, bodyData;
+        if (activeFilter === 'polaroid') {
+            apiUrl = '/api/set_polaroid_text';
+            bodyData = { photo: photoPath, text: text };
+        } else {
+            apiUrl = '/api/set_image_text';
+            bodyData = { photo: photoPath, text: text };
+        }
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+            const result = await response.json();
+            if (result.success) {
+                if (statusSpan) { statusSpan.innerHTML = '<i class="fas fa-check text-green-500"></i>'; setTimeout(() => { statusSpan.innerHTML = ''; }, 2000); }
+                
+                let newSrc;
+                if (activeFilter === 'polaroid') {
+                    const polaroidFilename = photoPath.replace(/\.[^/.]+$/, "") + '_polaroid.jpg';
+                    newSrc = `/static/prepared/${polaroidFilename}?v=${new Date().getTime()}`;
+                } else {
+                    newSrc = `/static/prepared/${photoPath}?v=${new Date().getTime()}`;
+                }
+                imgElement.src = newSrc;
+                if (glightboxLink) glightboxLink.href = newSrc;
+            } else { if (statusSpan) statusSpan.innerHTML = `<i class="fas fa-times text-red-500" title="${result.message}"></i>`; }
+        } catch (error) { if (statusSpan) statusSpan.innerHTML = `<i class="fas fa-exclamation-triangle text-red-500" title="${error}"></i>`; }
+    };
+
+    document.querySelectorAll('.generic-text-input').forEach(input => {
+        input.addEventListener('input', debounce(handleGenericTextInput, 1000));
     });
 
     // ----- IMPORT USB AMÉLIORÉ -----
@@ -1567,6 +1977,132 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusSpan.className = "ml-4 font-medium text-red-600";
             } finally {
                 btn.disabled = false;
+            }
+        });
+    }
+
+    // ----- TEST TELEGRAM API -----
+    const testTelegramBtn = document.getElementById("testTelegramBtn");
+    if (testTelegramBtn) {
+        testTelegramBtn.addEventListener("click", async () => {
+            const btn = testTelegramBtn;
+            const statusSpan = document.getElementById("telegramTestResult");
+
+            const token = document.getElementById("telegram_bot_token").value;
+
+            statusSpan.textContent = i18n.testing;
+            statusSpan.className = "ml-4 font-medium text-blue-600";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/test-telegram', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: token }),
+                });
+
+                const result = await response.json();
+
+                statusSpan.textContent = result.message;
+                statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
+
+            } catch (error) {
+                statusSpan.textContent = i18n.commErrorServer;
+                statusSpan.className = "ml-4 font-medium text-red-600";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- Gestion des invitations Telegram ---
+    const createInviteBtn = document.getElementById('create-invite-btn');
+    const invitationsListDiv = document.getElementById('invitations-list');
+
+    if (createInviteBtn) {
+        createInviteBtn.addEventListener('click', async () => {
+            const name = document.getElementById('new-invite-name').value;
+            const duration = document.getElementById('new-invite-duration').value;
+
+            if (!name.trim()) {
+                alert(i18n.enterGuestName);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/telegram/invitations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, duration })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('new-invite-name').value = '';
+                    loadInvitations(); // Recharger la liste
+                } else {
+                    alert(`${i18n.errorPrefix} ${result.message}`);
+                }
+            } catch (error) {
+                alert(i18n.commErrorServer);
+            }
+        });
+    }
+
+    if (invitationsListDiv) {
+        invitationsListDiv.addEventListener('click', async (event) => {
+            const deleteBtn = event.target.closest('.delete-invite-btn');
+            const revokeBtn = event.target.closest('.revoke-invite-btn');
+            const copyBtn = event.target.closest('.copy-link-btn');
+
+            if (copyBtn) {
+                const linkToCopy = copyBtn.dataset.link;
+                const icon = copyBtn.querySelector('i');
+                copyToClipboard(linkToCopy,
+                    () => { // On Success
+                        icon.className = 'fas fa-check text-green-500';
+                        setTimeout(() => {
+                            icon.className = 'fas fa-copy';
+                        }, 2000);
+                    },
+                    (err) => { // On Error
+                        console.error('Failed to copy: ', err);
+                        alert(i18n.copyFailed);
+                    }
+                );
+            }
+
+            if (deleteBtn) {
+                const code = deleteBtn.dataset.code;
+                if (confirm(i18n.confirmDeleteInvite)) {
+                    try {
+                        const response = await fetch(`/api/telegram/invitations/${code}`, { method: 'DELETE' });
+                        const result = await response.json();
+                        if (result.success) {
+                            loadInvitations();
+                        } else {
+                            alert(`${i18n.errorPrefix} ${result.message}`);
+                        }
+                    } catch (error) {
+                        alert(i18n.commErrorServer);
+                    }
+                }
+            }
+
+            if (revokeBtn) {
+                const code = revokeBtn.dataset.code;
+                if (confirm(i18n.confirmRevokeInvite)) {
+                    try {
+                        const response = await fetch(`/api/telegram/invitations/${code}/revoke`, { method: 'POST' });
+                        const result = await response.json();
+                        if (result.success) {
+                            loadInvitations(); // Recharger la liste pour voir le changement de statut
+                        } else {
+                            alert(`${i18n.errorPrefix} ${result.message}`);
+                        }
+                    } catch (error) {
+                        alert(i18n.commErrorServer);
+                    }
+                }
             }
         });
     }
@@ -1918,6 +2454,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Mettre à jour toutes les 5 secondes et une fois au chargement
     setInterval(updateLivePreview, 5000);
     updateLivePreview();
+
+    setInterval(fetchTelegramBotStatus, 10000);
 
     // --- Informations Système et Logs ---
 
