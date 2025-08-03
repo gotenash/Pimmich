@@ -7,9 +7,12 @@
 ## 🛠️✅ Août 2025  - (Sortie prévue le 15 aoüt)
 
 - ✅ Gestion des vidéos
+- ✅ Ajout de la fonction "Carte Postle" par telegram
+    - ✅ sécurisation par lien d'invitation
 - ✅ Gestion accélération matérielle pour Pi3
 - ✅ Ajout traduction de l'application (Anglais et Espagnol)
 - ✅ Ajout QR Code première connexion
+- ✅ Ajout de l'effet "Carte postale" pour toutes les ources de photos
 - ✅ Ajout de la fonctionnalité "Ajout de texte"
 - ✅ Ajout de l'onglet Favoris (augmentation fréquence d'affichage d'une photo)
 - ✅ Corections des bugs
@@ -49,7 +52,11 @@
  
 ## 💡 Idées pour les versions suivantes
 
-- 📱 Création d’une APK Android pour contrôler le cadre     
+- 📱 Création d’une APK Android pour contrôler le cadre 
+- Pimmich télécomande
+- Pimmich Android TV
+- Import Google Photos
+- Import PhotoPrism    
 
 
 

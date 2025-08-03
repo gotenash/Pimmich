@@ -184,6 +184,8 @@ def prepare_video(source_path, dest_path, output_width, output_height):
                 print("[Video Prep] Utilisation de l'encodeur matériel : h264_omx")
             else:
                 print("[Video Prep] Aucun encodeur matériel trouvé, utilisation de l'encodeur logiciel (plus lent) : libx264")
+                # Forcer un profil compatible avec les décodeurs matériels des RPi (notamment Pi 3)
+                encoder_params.extend(['-profile:v', 'high', '-level', '4.0'])
         except Exception as e:
             print(f"[Video Prep] Avertissement : Impossible de détecter les encodeurs ({e}). Utilisation de l'encodeur logiciel par défaut.")
 

@@ -583,7 +583,12 @@
         </div>
     </fieldset>
 </div>
-<!-- La balise de formulaire est maintenant fermée après tous les contenus d'onglets -->
+
+<!-- Le bouton de sauvegarde est placé ici, à l'intérieur du formulaire mais après les onglets de configuration -->
+<button type="submit" id="save-changes-btn" class="save-button">{{ _("Enregistrer les modifications") }}</button>
+
+</form>
+
 <div id="tab-actions" class="tabcontent">
     <fieldset>
     <legend><h3>{{ _("Actions") }}</h3></legend>
@@ -1079,10 +1084,6 @@
         </div>
     </fieldset>
 </div>
-
-    <button type="submit" id="save-changes-btn" class="save-button">{{ _("Enregistrer les modifications") }}</button>
-
-</form>
 
 
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>

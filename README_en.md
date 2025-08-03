@@ -1,23 +1,23 @@
-📣 Announcement – (July 14, 2025): New release available
+📣 Announcement – New Version Scheduled for Release on August 15, 2025
 
+Current Version (July 14, 2025): New release now available online
 
+📆 Starting June 2025 — One major version every month
 
-# 🗺️ Pimmich Roadmap
+## 🛠️✅ August 2025 – (Scheduled Release: August 15)
 
-> 📆 Starting June 2025 — One major release per month
-
-## 🛠️✅ August 2025 – (Scheduled release: August 15)
-
-- ✅ Video support
-- ✅ Hardware acceleration support for Pi3
-- ✅ Application translation added (English and Spanish)
-- ✅ QR code for first-time connection
-- ✅ "Add text" feature added
-- ✅ Favorites tab added (increases photo display frequency)
-- ✅ Bug fixes
-    - ✅ Start time for slideshow
-    - ✅ Log clearing in the system tab
-
+✅ Video support
+✅ Introduction of the "Postcard" feature via Telegram
+  - ✅ Secured via invitation link
+✅ Hardware acceleration support for Pi3
+✅ App translation added (English and Spanish)
+✅ QR Code for first-time setup
+✅ "Postcard effect" added to all photo sources
+✅ Text overlay feature
+✅ Favorites tab added (to increase photo display frequency)
+✅ Bug fixes
+  - ✅ Photo display start time
+  - ✅ Log deletion in the system tab without container issues
 
 ## ✅ July 2025 – Current Version
 
