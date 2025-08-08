@@ -1873,24 +1873,36 @@ def get_tide_info_api():
         last_update_iso = cache_data.get('timestamp')
         last_update_dt = datetime.fromisoformat(last_update_iso)
         last_update_str = last_update_dt.strftime('%d/%m/%Y à %H:%M:%S')
-
-        tide_data = cache_data.get('data', {})
-        next_high_str = "N/A"
-        next_low_str = "N/A"
         api_status = "OK"
+        formatted_tides = []
 
         if cache_data.get('cooldown'):
             api_status = f"En cooldown (quota API probablement atteint). Prochaine tentative après { (last_update_dt + timedelta(hours=12)).strftime('%H:%M') }."
         
-        if tide_data.get('next_high') and tide_data['next_high'].get('time'):
-            high_time_dt = datetime.fromisoformat(tide_data['next_high']['time'])
-            next_high_str = f"{high_time_dt.strftime('%H:%M')} ({tide_data['next_high']['height']:.1f}m)"
+        tides_data = cache_data.get('data', [])
+        if not tides_data:
+            api_status = "Aucune donnée de marée dans le cache."
+        else:
+            today = datetime.now().date()
+            tomorrow = today + timedelta(days=1)
+            day_map = {'Mon':'Lun', 'Tue':'Mar', 'Wed':'Mer', 'Thu':'Jeu', 'Fri':'Ven', 'Sat':'Sam', 'Sun':'Dim'}
 
-        if tide_data.get('next_low') and tide_data['next_low'].get('time'):
-            low_time_dt = datetime.fromisoformat(tide_data['next_low']['time'])
-            next_low_str = f"{low_time_dt.strftime('%H:%M')} ({tide_data['next_low']['height']:.1f}m)"
-            
-        return jsonify({"success": True, "last_update": last_update_str, "next_high": next_high_str, "next_low": next_low_str, "api_status": api_status})
+            # On ne prend que les 5 prochaines marées pour l'affichage web
+            for tide in tides_data[:5]:
+                tide_dt = datetime.fromisoformat(tide['time']).astimezone()
+                tide_date = tide_dt.date()
+
+                if tide_date == today: day_str = "Aujourd'hui"
+                elif tide_date == tomorrow: day_str = "Demain"
+                else: day_str = day_map.get(tide_dt.strftime('%a'), tide_dt.strftime('%a'))
+
+                formatted_tides.append({
+                    "type": "Pleine Mer" if tide['type'] == 'high' else "Basse Mer",
+                    "time": f"{day_str} à {tide_dt.strftime('%H:%M')}",
+                    "height": f"{tide['height']:.2f}m"
+                })
+
+        return jsonify({"success": True, "last_update": last_update_str, "tides": formatted_tides, "api_status": api_status})
     except (json.JSONDecodeError, KeyError, Exception) as e:
         return jsonify({"success": False, "message": f"Erreur lecture du cache: {str(e)}"})
 

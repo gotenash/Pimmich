@@ -353,15 +353,14 @@
             <span id="forceTideUpdateResult" class="ml-4 font-medium"></span>
         </div>
 
-        <fieldset class="mt-6">
-            <legend><strong>{{ _("État Actuel des Marées") }}</strong></legend>
+        <div class="mt-6">
+            <h4 class="font-semibold text-gray-800 mb-2">{{ _("État Actuel des Marées") }}</h4>
             <div id="tide-status-container" class="p-3 bg-gray-100 rounded-lg border text-sm">
-                <p><strong>{{ _("Dernière mise à jour des données :") }}</strong> <span id="tide-last-update" class="font-mono">{{ _("Chargement...") }}</span></p>
-                <p><strong>{{ _("Prochaine Pleine Mer :") }}</strong> <span id="tide-next-high" class="font-mono">{{ _("Chargement...") }}</span></p>
-                <p><strong>{{ _("Prochaine Basse Mer :") }}</strong> <span id="tide-next-low" class="font-mono">{{ _("Chargement...") }}</span></p>
+                <div id="tide-list" class="space-y-1"></div>
+                <p class="mt-3 pt-2 border-t border-gray-300"><strong>{{ _("Dernière mise à jour des données :") }}</strong> <span id="tide-last-update" class="font-mono">{{ _("Chargement...") }}</span></p>
                 <p><strong>{{ _("État de l'API :") }}</strong> <span id="tide-api-status" class="font-mono text-gray-500">{{ _("Chargement...") }}</span></p>
             </div>
-        </fieldset>
+        </div>
     </fieldset>
 
     <fieldset class="mt-6">
@@ -2110,25 +2109,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- État des marées ---
     async function fetchTideInfo() {
+        const tideListDiv = document.getElementById('tide-list');
         const tideLastUpdate = document.getElementById('tide-last-update');
-        const tideNextHigh = document.getElementById('tide-next-high');
-        const tideNextLow = document.getElementById('tide-next-low');
         const tideApiStatus = document.getElementById('tide-api-status');
 
         try {
             const response = await fetch('/api/tide_info');
             const data = await response.json();
 
+            tideListDiv.innerHTML = ''; // Vider la liste
+
             if (data.success) {
                 tideLastUpdate.textContent = data.last_update || 'N/A';
-                tideNextHigh.textContent = data.next_high || 'N/A';
-                tideNextLow.textContent = data.next_low || 'N/A';
                 tideApiStatus.textContent = data.api_status || 'OK';
                 tideApiStatus.className = data.api_status.includes('cooldown') || data.api_status.includes('Erreur') ? 'font-mono text-yellow-600' : 'font-mono text-green-600';
+
+                if (data.tides && data.tides.length > 0) {
+                    data.tides.forEach(tide => {
+                        const p = document.createElement('p');
+                        p.innerHTML = `<strong>${tide.type}:</strong> <span class="font-mono">${tide.time} (${tide.height})</span>`;
+                        tideListDiv.appendChild(p);
+                    });
+                } else {
+                    tideListDiv.innerHTML = `<p class="italic">${"Aucune donnée de marée à afficher."}</p>`;
+                }
             } else {
-                tideLastUpdate.textContent = 'N/A';
-                tideNextHigh.textContent = 'N/A';
-                tideNextLow.textContent = 'N/A';
                 tideApiStatus.textContent = data.message || 'Impossible de charger les données.';
                 tideApiStatus.className = 'font-mono text-red-600';
             }

@@ -241,18 +241,17 @@ def get_tides(config):
                     _tides_data = None
                     return None
 
-                print("[Tides] Données de marée valides trouvées dans le cache fichier.")
-                # Reconstituer les objets datetime à partir des chaînes ISO
-                tide_data = cache_content.get('data', {})
-                if tide_data.get('next_high') and tide_data['next_high'].get('time'):
-                    tide_data['next_high']['time'] = datetime.fromisoformat(tide_data['next_high']['time']).astimezone()
-                if tide_data.get('next_low') and tide_data['next_low'].get('time'):
-                    tide_data['next_low']['time'] = datetime.fromisoformat(tide_data['next_low']['time']).astimezone()
-                
-                # Mettre à jour le cache en mémoire et son timer
-                _tides_data = tide_data
-                _last_tides_fetch = now
-                return tide_data
+                tide_data_from_cache = cache_content.get('data')
+
+                # --- NOUVEAU: Vérification du format du cache pour la compatibilité ascendante ---
+                if isinstance(tide_data_from_cache, list):
+                    print("[Tides] Données de marée valides (format liste) trouvées dans le cache fichier.")
+                    _tides_data = tide_data_from_cache
+                    _last_tides_fetch = now
+                    return tide_data_from_cache
+                else:
+                    print("[Tides] Ancien format de cache détecté (dictionnaire). Le cache sera invalidé et recréé.")
+                    # On laisse l'exécution continuer pour appeler l'API
         except Exception as e:
             print(f"[Tides] Erreur lecture du cache fichier, récupération depuis l'API. Erreur: {e}")
 
@@ -262,7 +261,7 @@ def get_tides(config):
 
     try:
         start_time_utc = datetime.utcnow()
-        end_time_utc = start_time_utc + timedelta(days=1)
+        end_time_utc = start_time_utc + timedelta(days=7) # --- MODIFICATION: Récupérer 7 jours de données ---
 
         headers = {'Authorization': api_key}
         params = {'lat': lat, 'lng': lon, 'start': start_time_utc.isoformat(), 'end': end_time_utc.isoformat()}
@@ -271,34 +270,23 @@ def get_tides(config):
         response.raise_for_status()
         extremes_data = response.json().get('data', [])
 
+        # Filtrer pour ne garder que les marées futures
         now_utc = datetime.utcnow().replace(tzinfo=None)
         future_extremes = [e for e in extremes_data if datetime.fromisoformat(e['time'].replace('Z', '+00:00')).replace(tzinfo=None) > now_utc]
 
-        next_high_raw = min((e for e in future_extremes if e['type'] == 'high'), key=lambda x: x['time'], default=None)
-        next_low_raw = min((e for e in future_extremes if e['type'] == 'low'), key=lambda x: x['time'], default=None)
-
-        _tides_data = {}
-        if next_high_raw:
-            _tides_data['next_high'] = {'time': datetime.fromisoformat(next_high_raw['time']).astimezone(), 'height': next_high_raw['height']}
-        if next_low_raw:
-            _tides_data['next_low'] = {'time': datetime.fromisoformat(next_low_raw['time']).astimezone(), 'height': next_low_raw['height']}
-        
-        # Si aucune marée n'a été trouvée, _tides_data sera vide.
-        # On retourne None pour que la logique d'affichage ne tente pas de dessiner.
-        if not _tides_data:
+        if not future_extremes:
             print("[Tides] Aucune marée future trouvée dans les données de l'API pour les prochaines 24h.")
             return None
 
-        data_to_cache = {'data': {}, 'timestamp': datetime.now().isoformat()}
-        if _tides_data.get('next_high'):
-            data_to_cache['data']['next_high'] = {'time': _tides_data['next_high']['time'].isoformat(), 'height': _tides_data['next_high']['height']}
-        if _tides_data.get('next_low'):
-            data_to_cache['data']['next_low'] = {'time': _tides_data['next_low']['time'].isoformat(), 'height': _tides_data['next_low']['height']}
+        # Sauvegarder la liste complète des marées futures dans le cache
+        data_to_cache = {'data': future_extremes, 'timestamp': datetime.now().isoformat()}
         
         with open(TIDES_CACHE_FILE, 'w') as f:
             json.dump(data_to_cache, f, indent=2)
         
         print("[Tides] Données de marée mises à jour et cache sauvegardé.")
+        # --- CORRECTION: Mettre à jour le cache en mémoire avant de retourner ---
+        _tides_data = future_extremes
         return _tides_data
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 402:
@@ -318,7 +306,7 @@ def get_tides(config):
     except Exception as e:
         print(f"[Tides] Erreur générale lors de la récupération des marées : {e}")
         traceback.print_exc()
-        _tides_data = None
+        _tides_data = [] # Retourner une liste vide en cas d'erreur
         return None
 
 def load_icon(icon_name, size, is_weather_icon=True):
@@ -356,12 +344,9 @@ def load_icon(icon_name, size, is_weather_icon=True):
             print(f"[Display] AVERTISSEMENT: Fichier icône non trouvé : {icon_path}")
             _icon_cache[warning_key] = True
     
-    # --- Placeholder en cas d'échec ---
-    print(f"[Display] Création d'un placeholder pour l'icône manquante/invalide '{icon_name}'.")
-    placeholder = pygame.Surface((size, size))
-    placeholder.fill((255, 0, 0)) # Red square
-    _icon_cache[icon_key] = placeholder # Cache the placeholder to avoid repeated errors
-    return placeholder
+    # --- Retourner None en cas d'échec ---
+    # Cela permet à la logique d'affichage de simplement ignorer l'icône.
+    return None
 
 def get_today_postcard_count():
     """Compte le nombre de cartes postales reçues aujourd'hui."""
@@ -610,25 +595,26 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
             except Exception as e:
                 print(f"[Display] Erreur préparation météo actuelle: {e}")
 
-        # Météo du lendemain
-        if weather_and_forecast and weather_and_forecast.get('forecast') and len(weather_and_forecast['forecast']) > 0:
-            try:
-                tomorrow_forecast = weather_and_forecast['forecast'][0]
-                
-                elements.append({'type': 'text', 'text': separator})
+        # --- Prévisions sur 3 jours ---
+        if weather_and_forecast and weather_and_forecast.get('forecast'):
+            for forecast_day in weather_and_forecast.get('forecast', []):
+                try:
+                    elements.append({'type': 'text', 'text': separator})
 
-                # Icône pour demain
-                tomorrow_icon_code = tomorrow_forecast.get('icon')
-                if tomorrow_icon_code:
-                    icon_surface = load_icon(tomorrow_icon_code, main_font.get_height(), is_weather_icon=True)
-                    if icon_surface:
-                        elements.append({'type': 'icon', 'surface': icon_surface, 'padding': icon_padding})
+                    # Icône pour le jour de prévision
+                    icon_code = forecast_day.get('icon')
+                    if icon_code:
+                        icon_surface = load_icon(icon_code, main_font.get_height(), is_weather_icon=True)
+                        if icon_surface:
+                            elements.append({'type': 'icon', 'surface': icon_surface, 'padding': icon_padding})
 
-                tomorrow_temp_str = f"{tomorrow_forecast['max_temp']}°/{tomorrow_forecast['min_temp']}°"
-                tomorrow_weather_str = f"Demain: {tomorrow_temp_str}"
-                elements.append({'type': 'text', 'text': " " + tomorrow_weather_str})
-            except (IndexError, KeyError) as e:
-                print(f"[Display] Erreur préparation météo du lendemain: {e}")
+                    # Texte de la prévision
+                    day_name = forecast_day.get('day', '')
+                    temp_str = f"{forecast_day['max_temp']}°/{forecast_day['min_temp']}°"
+                    weather_str = f"{day_name}: {temp_str}"
+                    elements.append({'type': 'text', 'text': " " + weather_str})
+                except (IndexError, KeyError) as e:
+                    print(f"[Display] Erreur préparation météo pour un jour: {e}")
 
         # --- Compteur de cartes postales du jour ---
         today_postcard_count = get_today_postcard_count()
@@ -706,16 +692,29 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
 
         # --- Bloc du bas pour les marées ---
         if config.get("show_tides", False):
-            tide_data = get_tides(config)
+            tides_data = get_tides(config)
             tide_text = None
             font_to_use = main_font
 
-            if tide_data:
+            if tides_data:
                 tide_parts = []
-                if tide_data.get('next_high') and tide_data['next_high'].get('time'):
-                    tide_parts.append(f"PM: {tide_data['next_high']['time'].strftime('%H:%M')} ({tide_data['next_high']['height']:.1f}m)")
-                if tide_data.get('next_low') and tide_data['next_low'].get('time'):
-                    tide_parts.append(f"BM: {tide_data['next_low']['time'].strftime('%H:%M')} ({tide_data['next_low']['height']:.1f}m)")
+                today = datetime.now().date()
+                tomorrow = today + timedelta(days=1)
+                day_map = {'Mon':'Lun', 'Tue':'Mar', 'Wed':'Mer', 'Thu':'Jeu', 'Fri':'Ven', 'Sat':'Sam', 'Sun':'Dim'}
+
+                # Afficher les 4 prochaines marées pour avoir une bonne visibilité sur les jours à venir
+                for tide in tides_data[:4]:
+                    tide_dt = datetime.fromisoformat(tide['time']).astimezone()
+                    tide_date = tide_dt.date()
+
+                    if tide_date == today: day_str = "Auj."
+                    elif tide_date == tomorrow: day_str = "Dem."
+                    else: day_str = day_map.get(tide_dt.strftime('%a'), tide_dt.strftime('%a'))
+
+                    type_str = "PM" if tide['type'] == 'high' else "BM"
+                    time_str = tide_dt.strftime('%H:%M')
+                    
+                    tide_parts.append(f"{day_str} {type_str}: {time_str}")
                 
                 if tide_parts:
                     tide_text = " | ".join(tide_parts)
@@ -983,9 +982,16 @@ def start_slideshow():
 
                     if new_postcard_path.exists():
                         # 2. Jouer le son
-                        notification_sound_path = SOUNDS_DIR / 'notification.wav'
+                        lang = config.get('language', 'fr') # Récupérer la langue, avec 'fr' comme défaut
+                        
+                        # Construire le chemin du son spécifique à la langue
+                        lang_sound_path = SOUNDS_DIR / f'notification_{lang}.wav'
+                        
+                        # Utiliser le son spécifique s'il existe, sinon le son par défaut
+                        notification_sound_path = lang_sound_path if lang_sound_path.exists() else SOUNDS_DIR / 'notification.wav'
+                        
                         if notification_sound_path.exists():
-                            if not pygame.mixer.get_init():
+                            if not pygame.mixer.get_init(): # S'assurer que le mixer est initialisé
                                 pygame.mixer.init()
                             notification_sound = pygame.mixer.Sound(str(notification_sound_path))
                             notification_sound.play()
@@ -1164,17 +1170,24 @@ def start_slideshow():
                     except Exception as e:
                         print(f"Erreur lors de la lecture de la température ou du contrôle du ventilateur : {e}")
 
+                # Vérifier si le fichier est une vidéo ou une image
+                is_video = any(photo_path.lower().endswith(ext) for ext in VIDEO_EXTENSIONS)
+
                 # Écrire le chemin de la photo actuelle dans le fichier d'état
                 try:
                     with open(CURRENT_PHOTO_FILE, "w") as f:
+                        path_to_write = Path(photo_path)
+                        if is_video:
+                            # Pour une vidéo, on écrit le chemin de sa vignette pour l'aperçu live
+                            thumbnail_path = path_to_write.with_name(f"{path_to_write.stem}_thumbnail.jpg")
+                            if thumbnail_path.exists():
+                                path_to_write = thumbnail_path
+
                         # Convertir le chemin absolu en chemin relatif au dossier 'static'
-                        relative_path = Path(photo_path).relative_to(Path(BASE_DIR) / 'static')
+                        relative_path = path_to_write.relative_to(Path(BASE_DIR) / 'static')
                         f.write(str(relative_path))
                 except Exception as e:
                     print(f"Erreur écriture fichier photo actuelle : {e}")
-
-                # Vérifier si le fichier est une vidéo ou une image
-                is_video = any(photo_path.lower().endswith(ext) for ext in VIDEO_EXTENSIONS)
 
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
