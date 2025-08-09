@@ -1,23 +1,22 @@
-# Spanish translations for PROJECT.
+# Spanish translations for .
 # Copyright (C) 2025 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
+# This file is distributed under the same license as the  project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Pimmich\n"
+"Project-Id-Version:  Pimmich\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-23 15:10+0200\n"
+"POT-Creation-Date: 2025-07-22 18:39+0200\n"
 "PO-Revision-Date: 2025-07-23 15:10+0200\n"
 "Last-Translator: \n"
-"Language-Team: es <LL@li.org>\n"
 "Language: es\n"
+"Language-Team: es <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.17.0\n"
-"X-Generator: Poedit 3.6\n"
 
 #: app.py:418 app.py:423
 msgid "Aucun fichier sélectionné."
@@ -50,11 +49,11 @@ msgstr "Se requieren SSID y país de Wi-Fi."
 
 #: app.py:1351
 msgid ""
-"Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la "
-"connexion. Veuillez patienter une minute et vérifier le statut."
+"Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer"
+" la connexion. Veuillez patienter une minute et vérifier le statut."
 msgstr ""
-"Configuración de Wi-Fi aplicada. Se ha reiniciado el servicio de red para "
-"forzar la conexión. Espere un minuto y verifique el estado."
+"Configuración de Wi-Fi aplicada. Se ha reiniciado el servicio de red para"
+" forzar la conexión. Espere un minuto y verifique el estado."
 
 #: app.py:1353
 #, python-format
@@ -72,15 +71,16 @@ msgstr "Las contraseñas no coinciden."
 #: app.py:1379
 msgid "Le mot de passe doit contenir au moins 6 caractères."
 msgstr ""
-"Contraseñas nLa contraseña debe contener al menos 6 caracteres.e no coinciden."
+"Contraseñas nLa contraseña debe contener al menos 6 caracteres.e no "
+"coinciden."
 
 #: app.py:1384
 msgid ""
-"Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine "
-"connexion."
+"Mot de passe mis à jour avec succès. Il sera nécessaire pour votre "
+"prochaine connexion."
 msgstr ""
-"Contraseña actualizada correctamente. La necesitarás para tu próximo inicio de "
-"sesión."
+"Contraseña actualizada correctamente. La necesitarás para tu próximo "
+"inicio de sesión."
 
 #: app.py:1386
 #, python-format
@@ -100,16 +100,16 @@ msgid ""
 "Configuration restaurée avec succès ! Le diaporama va redémarrer pour "
 "appliquer les changements."
 msgstr ""
-"¡Configuración restaurada correctamente! La presentación se reiniciará para "
-"aplicar los cambios."
+"¡Configuración restaurada correctamente! La presentación se reiniciará "
+"para aplicar los cambios."
 
 #: app.py:1455
 msgid ""
 "Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON "
 "valide."
 msgstr ""
-"Archivo de copia de seguridad no válido o dañado. Este no es un archivo JSON "
-"válido."
+"Archivo de copia de seguridad no válido o dañado. Este no es un archivo "
+"JSON válido."
 
 #: app.py:1457
 #, python-format
@@ -376,18 +376,19 @@ msgstr "Utiliza la API de"
 
 #: templates/configure.html:287
 msgid ""
-"Une clé API est requise. Vous pouvez trouver les coordonnées de votre port sur "
-"des sites comme"
+"Une clé API est requise. Vous pouvez trouver les coordonnées de votre "
+"port sur des sites comme"
 msgstr ""
-"Se requiere una clave API. Puede encontrar las coordenadas de su puerto en "
-"sitios como"
+"Se requiere una clave API. Puede encontrar las coordenadas de su puerto "
+"en sitios como"
 
 #: templates/configure.html:288
 msgid ""
-"Note : Cette API fournit les hauteurs de marée, mais pas le coefficient de "
-"marée."
+"Note : Cette API fournit les hauteurs de marée, mais pas le coefficient "
+"de marée."
 msgstr ""
-"Nota: Esta API proporciona alturas de marea, pero no el coeficiente de marea."
+"Nota: Esta API proporciona alturas de marea, pero no el coeficiente de "
+"marea."
 
 #: templates/configure.html:293
 msgid "Afficher les informations de marée"
@@ -462,21 +463,21 @@ msgstr "Atención :"
 
 #: templates/configure.html:349
 msgid ""
-"La détection automatique du fuseau horaire a échoué lors de l'installation. Le "
-"système est configuré sur <strong>UTC</strong>. L'heure affichée peut être "
-"incorrecte."
+"La détection automatique du fuseau horaire a échoué lors de "
+"l'installation. Le système est configuré sur <strong>UTC</strong>. "
+"L'heure affichée peut être incorrecte."
 msgstr ""
 "La detección automática de zona horaria falló durante la instalación. El "
-"sistema está configurado en <strong>UTC</strong>. La hora mostrada podría ser "
-"incorrecta."
+"sistema está configurado en <strong>UTC</strong>. La hora mostrada podría"
+" ser incorrecta."
 
 #: templates/configure.html:351
 msgid ""
-"Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi (via "
-"SSH) et en exécutant la commande :"
+"Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi "
+"(via SSH) et en exécutant la commande :"
 msgstr ""
-"Puedes solucionarlo manualmente iniciando sesión en Raspberry Pi (a través de "
-"SSH) y ejecutando el comando:"
+"Puedes solucionarlo manualmente iniciando sesión en Raspberry Pi (a "
+"través de SSH) y ejecutando el comando:"
 
 #: templates/configure.html:351
 msgid "(remplacez par votre région/ville)."
@@ -532,11 +533,11 @@ msgstr "Fuentes para mostrar en la presentación de diapositivas"
 
 #: templates/configure.html:397
 msgid ""
-"Sélectionnez les sources de photos à inclure dans le diaporama. Les photos "
-"seront mélangées entre les sources sélectionnées."
+"Sélectionnez les sources de photos à inclure dans le diaporama. Les "
+"photos seront mélangées entre les sources sélectionnées."
 msgstr ""
-"Seleccione las fuentes de fotos que desea incluir en la presentación. Las "
-"fotos se mezclarán entre las fuentes seleccionadas."
+"Seleccione las fuentes de fotos que desea incluir en la presentación. Las"
+" fotos se mezclarán entre las fuentes seleccionadas."
 
 #: templates/configure.html:401
 msgid "Photos Immich"
@@ -604,13 +605,13 @@ msgstr "Omitir la primera importación automática al iniciar"
 
 #: templates/configure.html:461
 msgid ""
-"Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne "
-"se lanceront pas immédiatement après un redémarrage du cadre, mais attendront "
-"le prochain cycle programmé."
+"Si cette option est cochée, les mises à jour automatiques (Immich, Samba)"
+" ne se lanceront pas immédiatement après un redémarrage du cadre, mais "
+"attendront le prochain cycle programmé."
 msgstr ""
-"Si esta opción está marcada, las actualizaciones automáticas (Immich, Samba) "
-"no se iniciarán inmediatamente después de reiniciar el marco, sino que "
-"esperarán hasta el próximo ciclo programado."
+"Si esta opción está marcada, las actualizaciones automáticas (Immich, "
+"Samba) no se iniciarán inmediatamente después de reiniciar el marco, sino"
+" que esperarán hasta el próximo ciclo programado."
 
 #: templates/configure.html:466
 msgid "Enregistrer les modifications"
@@ -677,8 +678,8 @@ msgid ""
 "Approuvez ou rejetez les photos envoyées. Les photos approuvées seront "
 "ajoutées à la source \"Smartphone\"."
 msgstr ""
-"Aprueba o rechaza las fotos enviadas. Las fotos aprobadas se añadirán a la "
-"fuente \"Smartphone\"."
+"Aprueba o rechaza las fotos enviadas. Las fotos aprobadas se añadirán a "
+"la fuente \"Smartphone\"."
 
 #: templates/configure.html:543 templates/configure.html:838
 msgid "Actualiser"
@@ -690,11 +691,11 @@ msgstr "Vista previa de fotos preparadas"
 
 #: templates/configure.html:607
 msgid ""
-"Voici les photos qui sont prêtes à être affichées par le diaporama, classées "
-"par source. Cliquez sur une photo pour l'agrandir."
+"Voici les photos qui sont prêtes à être affichées par le diaporama, "
+"classées par source. Cliquez sur une photo pour l'agrandir."
 msgstr ""
-"Aquí están las fotos listas para mostrarse en la presentación, ordenadas por "
-"origen. Haga clic en una foto para ampliarla."
+"Aquí están las fotos listas para mostrarse en la presentación, ordenadas "
+"por origen. Haga clic en una foto para ampliarla."
 
 #: templates/configure.html:616
 #, python-format
@@ -734,16 +735,6 @@ msgstr "Aniguo"
 msgid "Polaroid"
 msgstr "Polaroid"
 
-#: templates/configure.html:615
-#, python-format
-msgid "%(num)d photo"
-msgid_plural "%(num)d photos"
-msgstr[0] "%(num)d foto"
-msgstr[1] "%(num)d fotos"
-
-#: templates/configure.html:666 templates/configure.html:726
-msgid "Carte Postale"
-msgstr "Postal"
 #: templates/configure.html:665
 msgid "Original"
 msgstr "Original"
@@ -754,10 +745,11 @@ msgstr "Eliminar esta foto"
 
 #: templates/configure.html:677
 msgid ""
-"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet "
-"\"Actions\"."
+"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis "
+"l'onglet \"Actions\"."
 msgstr ""
-"No se encontraron fotos preparadas. Sube una desde la pestaña \"Acciones\"."
+"No se encontraron fotos preparadas. Sube una desde la pestaña "
+"\"Acciones\"."
 
 #: templates/configure.html:684
 msgid "État de la connexion Wi-Fi"
@@ -841,13 +833,15 @@ msgstr "Aplicar configuración de Wi-Fi"
 
 #: templates/configure.html:723
 msgid ""
-"Note : Après avoir appliqué les paramètres, la connexion peut prendre jusqu'à "
-"une minute. Si le statut de connexion ci-dessus ne passe pas à \"Connecté\", "
-"vérifiez le mot de passe puis essayez de redémarrer le système."
+"Note : Après avoir appliqué les paramètres, la connexion peut prendre "
+"jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à "
+"\"Connecté\", vérifiez le mot de passe puis essayez de redémarrer le "
+"système."
 msgstr ""
-"Nota: Después de aplicar la configuración, el inicio de sesión puede tardar "
-"hasta un minuto. Si el estado de inicio de sesión anterior no cambia a "
-"\"Conectado\", verifique la contraseña y luego intente reiniciar el sistema."
+"Nota: Después de aplicar la configuración, el inicio de sesión puede "
+"tardar hasta un minuto. Si el estado de inicio de sesión anterior no "
+"cambia a \"Conectado\", verifique la contraseña y luego intente reiniciar"
+" el sistema."
 
 #: templates/configure.html:727
 msgid "Gestion des Interfaces Réseau"
@@ -855,14 +849,14 @@ msgstr "Gestión de interfaz de red"
 
 #: templates/configure.html:728
 msgid ""
-"Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, c'est "
-"souvent un problème de priorité. Désactivez l'interface Ethernet pour forcer "
-"le système à utiliser exclusivement le Wi-Fi. Cette action redémarre le "
-"service réseau."
+"Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, "
+"c'est souvent un problème de priorité. Désactivez l'interface Ethernet "
+"pour forcer le système à utiliser exclusivement le Wi-Fi. Cette action "
+"redémarre le service réseau."
 msgstr ""
-"Si el Wi-Fi no se conecta aunque haya un cable Ethernet conectado, suele ser "
-"un problema prioritario. Desactive la interfaz Ethernet para que el sistema "
-"use exclusivamente Wi-Fi. Esto reinicia el servicio de red."
+"Si el Wi-Fi no se conecta aunque haya un cable Ethernet conectado, suele "
+"ser un problema prioritario. Desactive la interfaz Ethernet para que el "
+"sistema use exclusivamente Wi-Fi. Esto reinicia el servicio de red."
 
 #: templates/configure.html:733
 msgid "Interface Filaire (eth0)"
@@ -874,11 +868,13 @@ msgstr "Redes Wi-Fi cercanas"
 
 #: templates/configure.html:746
 msgid ""
-"Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. Cliquer "
-"sur un réseau dans la liste remplira automatiquement le champ SSID ci-dessus."
+"Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. "
+"Cliquer sur un réseau dans la liste remplira automatiquement le champ "
+"SSID ci-dessus."
 msgstr ""
-"Haga clic en el botón para buscar redes Wi-Fi disponibles. Al hacer clic en "
-"una red de la lista, se completará automáticamente el campo SSID de arriba."
+"Haga clic en el botón para buscar redes Wi-Fi disponibles. Al hacer clic "
+"en una red de la lista, se completará automáticamente el campo SSID de "
+"arriba."
 
 #: templates/configure.html:749 templates/configure.html:869
 msgid "Lancer le scan"
@@ -914,11 +910,12 @@ msgstr "Copia de seguridad y restauración"
 
 #: templates/configure.html:777
 msgid ""
-"Sauvegardez votre configuration (API, partages, affichage...) dans un fichier. "
-"Vous pourrez le restaurer plus tard ou sur une nouvelle installation."
+"Sauvegardez votre configuration (API, partages, affichage...) dans un "
+"fichier. Vous pourrez le restaurer plus tard ou sur une nouvelle "
+"installation."
 msgstr ""
-"Guarde su configuración (API, recursos compartidos, visualización, etc.) en un "
-"archivo. Puede restaurarla más tarde o en una nueva instalación."
+"Guarde su configuración (API, recursos compartidos, visualización, etc.) "
+"en un archivo. Puede restaurarla más tarde o en una nueva instalación."
 
 #: templates/configure.html:781
 msgid "Sauvegarder la configuration"
@@ -937,8 +934,8 @@ msgid ""
 "Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du "
 "fichier de sauvegarde."
 msgstr ""
-"¿Está seguro? La configuración actual se sobrescribirá con el contenido del "
-"archivo de copia de seguridad."
+"¿Está seguro? La configuración actual se sobrescribirá con el contenido "
+"del archivo de copia de seguridad."
 
 #: templates/configure.html:791
 msgid "Restaurer"
@@ -1074,11 +1071,11 @@ msgstr "Error al conectarse a la API de registros."
 
 #: templates/configure.html:1938
 msgid ""
-"Êtes-vous sûr de vouloir effacer le contenu du log \"__LOG_NAME__\" ? Cette "
-"action est irréversible."
+"Êtes-vous sûr de vouloir effacer le contenu du log \"__LOG_NAME__\" ? "
+"Cette action est irréversible."
 msgstr ""
-"¿Está seguro de que desea eliminar el contenido del registro \"__LOG_NAME__\"? "
-"Esta acción es irreversible."
+"¿Está seguro de que desea eliminar el contenido del registro "
+"\"__LOG_NAME__\"? Esta acción es irreversible."
 
 #: templates/configure.html:1953
 msgid "Erreur lors de l'effacement du log :"
@@ -1187,7 +1184,8 @@ msgstr[1] ""
 #: venv/lib/python3.11/site-packages/click/core.py:2404
 #, python-brace-format
 msgid ""
-"DeprecationWarning: The {param_type} {name!r} is deprecated.{extra_message}"
+"DeprecationWarning: The {param_type} {name!r} is "
+"deprecated.{extra_message}"
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/click/core.py:2807
@@ -1425,34 +1423,45 @@ msgid_plural "{len_type} values are required, but {len_value} were given."
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/configure.html:75
-msgid "Favoris"
-msgstr "Favoritos"
+#~ msgid "Favoris"
+#~ msgstr "Favoritos"
 
-#: templates/configure.html:667 templates/configure.html:727 templates/configure.html:875
-msgid "Mettre en favori"
-msgstr "Marcar como favorito"
+#~ msgid "Mettre en favori"
+#~ msgstr "Marcar como favorito"
 
-#: templates/configure.html:682
-msgid "Vos photos favorites"
-msgstr "Tus fotos favoritas"
+#~ msgid "Vos photos favorites"
+#~ msgstr "Tus fotos favoritas"
 
-#: templates/configure.html:683
-msgid "Voici toutes vos photos marquées comme favorites. Vous pouvez les gérer ici."
-msgstr "Aquí están todas tus fotos marcadas como favoritas. Puedes gestionarlas aquí."
+#~ msgid ""
+#~ "Voici toutes vos photos marquées comme"
+#~ " favorites. Vous pouvez les gérer "
+#~ "ici."
+#~ msgstr ""
+#~ "Aquí están todas tus fotos marcadas "
+#~ "como favoritas. Puedes gestionarlas aquí."
 
-#: templates/configure.html:744 templates/configure.html:876
-msgid "Vous n'avez aucune photo en favori pour le moment."
-msgstr "No tienes fotos favoritas por el momento."
+#~ msgid "Vous n'avez aucune photo en favori pour le moment."
+#~ msgstr "No tienes fotos favoritas por el momento."
 
-#: templates/configure.html:155
-msgid "Activer le décodage vidéo matériel (plus fluide, mais peut être instable)"
-msgstr "Activar la decodificación de video por hardware (más fluida, pero puede ser inestable)"
+#~ msgid ""
+#~ "Activer le décodage vidéo matériel (plus"
+#~ " fluide, mais peut être instable)"
+#~ msgstr ""
+#~ "Activar la decodificación de video por"
+#~ " hardware (más fluida, pero puede ser"
+#~ " inestable)"
 
-#: templates/configure.html:157
-msgid "Cochez cette case pour une lecture plus fluide sur les Raspberry Pi. Décochez si vous rencontrez des écrans bleus/noirs après les vidéos."
-msgstr "Marque esta casilla para una reproducción más fluida en Raspberry Pi. Desmarque si experimenta pantallas azules/negras después de los videos."
+#~ msgid ""
+#~ "Cochez cette case pour une lecture "
+#~ "plus fluide sur les Raspberry Pi. "
+#~ "Décochez si vous rencontrez des écrans"
+#~ " bleus/noirs après les vidéos."
+#~ msgstr ""
+#~ "Marque esta casilla para una "
+#~ "reproducción más fluida en Raspberry Pi."
+#~ " Desmarque si experimenta pantallas "
+#~ "azules/negras después de los videos."
 
-#: templates/configure.html:670 templates/configure.html:730 templates/configure.html:884
-msgid "Ajouter une légende..."
-msgstr "Añadir un subtítulo..."
+#~ msgid "Ajouter une légende..."
+#~ msgstr "Añadir un subtítulo..."
+

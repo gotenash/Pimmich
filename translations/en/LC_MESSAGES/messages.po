@@ -10,14 +10,13 @@ msgstr ""
 "POT-Creation-Date: 2025-07-22 18:39+0200\n"
 "PO-Revision-Date: 2025-07-22 20:18+0200\n"
 "Last-Translator: \n"
-"Language-Team: en <LL@li.org>\n"
 "Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.17.0\n"
-"X-Generator: Poedit 3.6\n"
 
 #: app.py:418 app.py:423
 msgid "Aucun fichier sélectionné."
@@ -50,8 +49,8 @@ msgstr "SSID and Wi-Fi country are mandatory."
 
 #: app.py:1351
 msgid ""
-"Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer la "
-"connexion. Veuillez patienter une minute et vérifier le statut."
+"Paramètres Wi-Fi appliqués. Le service réseau a été redémarré pour forcer"
+" la connexion. Veuillez patienter une minute et vérifier le statut."
 msgstr ""
 "Wi-Fi settings applied. The network service has been restarted to force "
 "connection. Please wait a minute and check the status."
@@ -75,8 +74,8 @@ msgstr "Password must contain at least 6 characters."
 
 #: app.py:1384
 msgid ""
-"Mot de passe mis à jour avec succès. Il sera nécessaire pour votre prochaine "
-"connexion."
+"Mot de passe mis à jour avec succès. Il sera nécessaire pour votre "
+"prochaine connexion."
 msgstr "Password successfully updated. It will be required for your next login."
 
 #: app.py:1386
@@ -94,15 +93,16 @@ msgstr "No backup file selected."
 
 #: app.py:1453
 msgid ""
-"Configuration restaurée avec succès ! Le diaporama va redémarrer pour appliquer "
-"les changements."
+"Configuration restaurée avec succès ! Le diaporama va redémarrer pour "
+"appliquer les changements."
 msgstr ""
-"Configuration successfully restored! The slideshow will restart to apply the "
-"changes."
+"Configuration successfully restored! The slideshow will restart to apply "
+"the changes."
 
 #: app.py:1455
 msgid ""
-"Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON valide."
+"Fichier de sauvegarde invalide ou corrompu. Ce n'est pas un fichier JSON "
+"valide."
 msgstr "Invalid or corrupted backup file. This is not a valid JSON file."
 
 #: app.py:1457
@@ -370,16 +370,19 @@ msgstr "Uses the API"
 
 #: templates/configure.html:287
 msgid ""
-"Une clé API est requise. Vous pouvez trouver les coordonnées de votre port sur "
-"des sites comme"
+"Une clé API est requise. Vous pouvez trouver les coordonnées de votre "
+"port sur des sites comme"
 msgstr ""
-"An API key is required. You can find the coordinates of your port on sites like"
+"An API key is required. You can find the coordinates of your port on "
+"sites like"
 
 #: templates/configure.html:288
 msgid ""
-"Note : Cette API fournit les hauteurs de marée, mais pas le coefficient de marée."
+"Note : Cette API fournit les hauteurs de marée, mais pas le coefficient "
+"de marée."
 msgstr ""
-"Note : Cette API provides the tidal heights, but not the tidal coefficient."
+"Note : Cette API provides the tidal heights, but not the tidal "
+"coefficient."
 
 #: templates/configure.html:293
 msgid "Afficher les informations de marée"
@@ -454,20 +457,20 @@ msgstr "Attention :"
 
 #: templates/configure.html:349
 msgid ""
-"La détection automatique du fuseau horaire a échoué lors de l'installation. Le "
-"système est configuré sur <strong>UTC</strong>. L'heure affichée peut être "
-"incorrecte."
+"La détection automatique du fuseau horaire a échoué lors de "
+"l'installation. Le système est configuré sur <strong>UTC</strong>. "
+"L'heure affichée peut être incorrecte."
 msgstr ""
-"Automatic time zone detection failed during installation. The system is set to "
-"<strong>UTC</strong>. The displayed time may be incorrect."
+"Automatic time zone detection failed during installation. The system is "
+"set to <strong>UTC</strong>. The displayed time may be incorrect."
 
 #: templates/configure.html:351
 msgid ""
-"Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi (via "
-"SSH) et en exécutant la commande :"
+"Vous pouvez le corriger manuellement en vous connectant au Raspberry Pi "
+"(via SSH) et en exécutant la commande :"
 msgstr ""
-"You can fix it manually by logging into the Raspberry Pi (via SSH) and running "
-"the command:"
+"You can fix it manually by logging into the Raspberry Pi (via SSH) and "
+"running the command:"
 
 #: templates/configure.html:351
 msgid "(remplacez par votre région/ville)."
@@ -523,11 +526,11 @@ msgstr "Sources to display in the slideshow"
 
 #: templates/configure.html:397
 msgid ""
-"Sélectionnez les sources de photos à inclure dans le diaporama. Les photos "
-"seront mélangées entre les sources sélectionnées."
+"Sélectionnez les sources de photos à inclure dans le diaporama. Les "
+"photos seront mélangées entre les sources sélectionnées."
 msgstr ""
-"Select the photo sources to include in the slideshow. The photos will be mixed "
-"between the selected sources."
+"Select the photo sources to include in the slideshow. The photos will be "
+"mixed between the selected sources."
 
 #: templates/configure.html:401
 msgid "Photos Immich"
@@ -595,13 +598,13 @@ msgstr "Skip the first automatic import on startup"
 
 #: templates/configure.html:461
 msgid ""
-"Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne se "
-"lanceront pas immédiatement après un redémarrage du cadre, mais attendront le "
-"prochain cycle programmé."
+"Si cette option est cochée, les mises à jour automatiques (Immich, Samba)"
+" ne se lanceront pas immédiatement après un redémarrage du cadre, mais "
+"attendront le prochain cycle programmé."
 msgstr ""
-"If this option is checked, automatic updates (Immich, Samba) will not start "
-"immediately after a framework restart, but will wait for the next scheduled "
-"cycle."
+"If this option is checked, automatic updates (Immich, Samba) will not "
+"start immediately after a framework restart, but will wait for the next "
+"scheduled cycle."
 
 #: templates/configure.html:466
 msgid "Enregistrer les modifications"
@@ -665,11 +668,11 @@ msgstr "Photos awaiting validation"
 
 #: templates/configure.html:542
 msgid ""
-"Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées "
-"à la source \"Smartphone\"."
+"Approuvez ou rejetez les photos envoyées. Les photos approuvées seront "
+"ajoutées à la source \"Smartphone\"."
 msgstr ""
-"Approve or reject photos. Approved photos will be added to the \"Smartphone\" "
-"source."
+"Approve or reject photos. Approved photos will be added to the "
+"\"Smartphone\" source."
 
 #: templates/configure.html:543 templates/configure.html:838
 msgid "Actualiser"
@@ -681,11 +684,11 @@ msgstr "Preview of prepared photos"
 
 #: templates/configure.html:607
 msgid ""
-"Voici les photos qui sont prêtes à être affichées par le diaporama, classées par "
-"source. Cliquez sur une photo pour l'agrandir."
+"Voici les photos qui sont prêtes à être affichées par le diaporama, "
+"classées par source. Cliquez sur une photo pour l'agrandir."
 msgstr ""
-"Here are the photos ready to be displayed in the slideshow, sorted by source. "
-"Click on a photo to enlarge."
+"Here are the photos ready to be displayed in the slideshow, sorted by "
+"source. Click on a photo to enlarge."
 
 #: templates/configure.html:616
 #, python-format
@@ -725,16 +728,6 @@ msgstr "Vintage"
 msgid "Polaroid"
 msgstr "Polaroid"
 
-#: templates/configure.html:615
-#, python-format
-msgid "%(num)d photo"
-msgid_plural "%(num)d photos"
-msgstr[0] "%(num)d photo"
-msgstr[1] "%(num)d photos"
-
-#: templates/configure.html:666 templates/configure.html:726
-msgid "Carte Postale"
-msgstr "Postcard"
 #: templates/configure.html:665
 msgid "Original"
 msgstr "Original"
@@ -745,8 +738,8 @@ msgstr "Delete this photo"
 
 #: templates/configure.html:677
 msgid ""
-"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet "
-"\"Actions\"."
+"Aucune photo préparée n'a été trouvée. Veuillez en importer depuis "
+"l'onglet \"Actions\"."
 msgstr "No prepared photos were found. Please upload one from the \"Actions\" tab."
 
 #: templates/configure.html:684
@@ -771,11 +764,11 @@ msgstr "Wi-Fi Configuration"
 
 #: templates/configure.html:699
 msgid ""
-"La sélection du pays est obligatoire pour activer l'interface Wi-Fi et respecter "
-"les réglementations locales sur les fréquences radio."
+"La sélection du pays est obligatoire pour activer l'interface Wi-Fi et "
+"respecter les réglementations locales sur les fréquences radio."
 msgstr ""
-"Country selection is mandatory to enable the Wi-Fi interface and comply with "
-"local radio frequency regulations."
+"Country selection is mandatory to enable the Wi-Fi interface and comply "
+"with local radio frequency regulations."
 
 #: templates/configure.html:702
 msgid "Pays (pour la réglementation Wi-Fi)"
@@ -831,13 +824,14 @@ msgstr "Apply Wi-Fi settings"
 
 #: templates/configure.html:723
 msgid ""
-"Note : Après avoir appliqué les paramètres, la connexion peut prendre jusqu'à "
-"une minute. Si le statut de connexion ci-dessus ne passe pas à \"Connecté\", "
-"vérifiez le mot de passe puis essayez de redémarrer le système."
+"Note : Après avoir appliqué les paramètres, la connexion peut prendre "
+"jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à "
+"\"Connecté\", vérifiez le mot de passe puis essayez de redémarrer le "
+"système."
 msgstr ""
-"Note: After applying the settings, the connection may take up to a minute. If "
-"the connection status above does not change to \"Connected\", check the password "
-"and try rebooting the system."
+"Note: After applying the settings, the connection may take up to a "
+"minute. If the connection status above does not change to \"Connected\", "
+"check the password and try rebooting the system."
 
 #: templates/configure.html:727
 msgid "Gestion des Interfaces Réseau"
@@ -845,14 +839,14 @@ msgstr "Network Interface Management"
 
 #: templates/configure.html:728
 msgid ""
-"Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, c'est "
-"souvent un problème de priorité. Désactivez l'interface Ethernet pour forcer le "
-"système à utiliser exclusivement le Wi-Fi. Cette action redémarre le service "
-"réseau."
+"Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, "
+"c'est souvent un problème de priorité. Désactivez l'interface Ethernet "
+"pour forcer le système à utiliser exclusivement le Wi-Fi. Cette action "
+"redémarre le service réseau."
 msgstr ""
-"If Wi-Fi doesn't connect when an Ethernet cable is plugged in, it's often a "
-"problem of priority. Disable the Ethernet interface to force the system to use "
-"Wi-Fi exclusively. This will restart the network service."
+"If Wi-Fi doesn't connect when an Ethernet cable is plugged in, it's often"
+" a problem of priority. Disable the Ethernet interface to force the "
+"system to use Wi-Fi exclusively. This will restart the network service."
 
 #: templates/configure.html:733
 msgid "Interface Filaire (eth0)"
@@ -864,11 +858,12 @@ msgstr "Nearby Wi-Fi networks"
 
 #: templates/configure.html:746
 msgid ""
-"Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. Cliquer sur "
-"un réseau dans la liste remplira automatiquement le champ SSID ci-dessus."
+"Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. "
+"Cliquer sur un réseau dans la liste remplira automatiquement le champ "
+"SSID ci-dessus."
 msgstr ""
-"Click on the button to search for available Wi-Fi networks. Clicking on a "
-"network in the list will automatically fill in the SSID field above."
+"Click on the button to search for available Wi-Fi networks. Clicking on a"
+" network in the list will automatically fill in the SSID field above."
 
 #: templates/configure.html:749 templates/configure.html:869
 msgid "Lancer le scan"
@@ -904,11 +899,12 @@ msgstr "Backup and Restore"
 
 #: templates/configure.html:777
 msgid ""
-"Sauvegardez votre configuration (API, partages, affichage...) dans un fichier. "
-"Vous pourrez le restaurer plus tard ou sur une nouvelle installation."
+"Sauvegardez votre configuration (API, partages, affichage...) dans un "
+"fichier. Vous pourrez le restaurer plus tard ou sur une nouvelle "
+"installation."
 msgstr ""
-"Save your configuration (API, shares, display...) in a file. You can restore it "
-"later or on a new installation."
+"Save your configuration (API, shares, display...) in a file. You can "
+"restore it later or on a new installation."
 
 #: templates/configure.html:781
 msgid "Sauvegarder la configuration"
@@ -924,11 +920,11 @@ msgstr "Restore a configuration"
 
 #: templates/configure.html:789
 msgid ""
-"Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du fichier "
-"de sauvegarde."
+"Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du "
+"fichier de sauvegarde."
 msgstr ""
-"Are you sure? The current configuration will be overwritten by the contents of "
-"the backup file."
+"Are you sure? The current configuration will be overwritten by the "
+"contents of the backup file."
 
 #: templates/configure.html:791
 msgid "Restaurer"
@@ -1044,7 +1040,7 @@ msgstr "None"
 
 #: templates/configure.html:876
 msgid "Cliquer pour sélectionner ce réseau"
-msgstr "Click to select this network"
+msgstr "Error retrieving system information"
 
 #: templates/configure.html:1890
 msgid "Erreur lors de la récupération des infos système:"
@@ -1064,11 +1060,11 @@ msgstr "Error connecting to the logs API."
 
 #: templates/configure.html:1938
 msgid ""
-"Êtes-vous sûr de vouloir effacer le contenu du log \"__LOG_NAME__\" ? Cette "
-"action est irréversible."
+"Êtes-vous sûr de vouloir effacer le contenu du log \"__LOG_NAME__\" ? "
+"Cette action est irréversible."
 msgstr ""
-"Are you sure you want to delete the contents of the log \"__LOG_NAME__\"? This "
-"action is irreversible."
+"Are you sure you want to delete the contents of the log \"__LOG_NAME__\"?"
+" This action is irreversible."
 
 #: templates/configure.html:1953
 msgid "Erreur lors de l'effacement du log :"
@@ -1176,7 +1172,9 @@ msgstr[1] ""
 
 #: venv/lib/python3.11/site-packages/click/core.py:2404
 #, python-brace-format
-msgid "DeprecationWarning: The {param_type} {name!r} is deprecated.{extra_message}"
+msgid ""
+"DeprecationWarning: The {param_type} {name!r} is "
+"deprecated.{extra_message}"
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/click/core.py:2807
@@ -1414,42 +1412,48 @@ msgid_plural "{len_type} values are required, but {len_value} were given."
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/configure.html:75
-msgid "Favoris"
-msgstr "Favorites"
+#~ msgid "Favoris"
+#~ msgstr "Favorites"
 
-#: templates/configure.html:141
-msgid "Fréquence des favoris (nombre d'ajouts supplémentaires dans la liste de lecture) :"
-msgstr "Favorites frequency (number of extra additions to the playlist):"
+#~ msgid ""
+#~ "Fréquence des favoris (nombre d'ajouts "
+#~ "supplémentaires dans la liste de "
+#~ "lecture) :"
+#~ msgstr "Favorites frequency (number of extra additions to the playlist):"
 
-#: templates/configure.html:143
-msgid "Ex: 0 = pas de boost, 2 = 3x plus de chances d'apparaître."
-msgstr "Ex: 0 = no boost, 2 = 3x more likely to appear."
+#~ msgid "Ex: 0 = pas de boost, 2 = 3x plus de chances d'apparaître."
+#~ msgstr "Ex: 0 = no boost, 2 = 3x more likely to appear."
 
-#: templates/configure.html:155
-msgid "Activer le décodage vidéo matériel (plus fluide, mais peut être instable)"
-msgstr "Enable hardware video decoding (smoother, but can be unstable)"
+#~ msgid ""
+#~ "Activer le décodage vidéo matériel (plus"
+#~ " fluide, mais peut être instable)"
+#~ msgstr "Enable hardware video decoding (smoother, but can be unstable)"
 
-#: templates/configure.html:157
-msgid "Cochez cette case pour une lecture plus fluide sur les Raspberry Pi. Décochez si vous rencontrez des écrans bleus/noirs après les vidéos."
-msgstr "Check this box for smoother playback on Raspberry Pi. Uncheck if you experience blue/black screens after videos."
+#~ msgid ""
+#~ "Cochez cette case pour une lecture "
+#~ "plus fluide sur les Raspberry Pi. "
+#~ "Décochez si vous rencontrez des écrans"
+#~ " bleus/noirs après les vidéos."
+#~ msgstr ""
+#~ "Check this box for smoother playback "
+#~ "on Raspberry Pi. Uncheck if you "
+#~ "experience blue/black screens after videos."
 
-#: templates/configure.html:667 templates/configure.html:727 templates/configure.html:875
-msgid "Mettre en favori"
-msgstr "Mark as favorite"
+#~ msgid "Mettre en favori"
+#~ msgstr "Mark as favorite"
 
-#: templates/configure.html:670 templates/configure.html:730 templates/configure.html:884
-msgid "Ajouter une légende..."
-msgstr "Add a caption..."
+#~ msgid "Ajouter une légende..."
+#~ msgstr "Add a caption..."
 
-#: templates/configure.html:682
-msgid "Vos photos favorites"
-msgstr "Your Favorite Photos"
+#~ msgid "Vos photos favorites"
+#~ msgstr "Your Favorite Photos"
 
-#: templates/configure.html:683
-msgid "Voici toutes vos photos marquées comme favorites. Vous pouvez les gérer ici."
-msgstr "Here are all your photos marked as favorites. You can manage them here."
+#~ msgid ""
+#~ "Voici toutes vos photos marquées comme"
+#~ " favorites. Vous pouvez les gérer "
+#~ "ici."
+#~ msgstr "Here are all your photos marked as favorites. You can manage them here."
 
-#: templates/configure.html:744 templates/configure.html:876
-msgid "Vous n'avez aucune photo en favori pour le moment."
-msgstr "You don't have any favorite photos at the moment."
+#~ msgid "Vous n'avez aucune photo en favori pour le moment."
+#~ msgstr "You don't have any favorite photos at the moment."
+
