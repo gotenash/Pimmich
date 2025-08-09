@@ -1023,7 +1023,24 @@
     </fieldset>
 
     <fieldset class="mt-6">
+        <legend><h3>{{ _("Mise à jour de l'application") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Cliquez sur le bouton pour rechercher et installer les dernières mises à jour de Pimmich depuis GitHub. L'application redémarrera automatiquement après la mise à jour.") }}</p>
+        <button type="button" id="update-app-btn" class="system-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}
+        </button>
+        <div id="update-progress-container" class="progress-container hidden mt-4">
+            <div id="update-progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="update-status" class="status-messages mt-2"></div>
+    </fieldset>
+
+    <fieldset class="mt-6">
         <legend><h3>{{ _("Contrôle du système") }}</h3></legend>
+        <form method="POST" action="/restart_app" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir redémarrer UNIQUEMENT l\'application web ? Le système d\'exploitation ne sera pas redémarré.') }}');">
+            <button type="submit" class="system-button bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-redo"></i> {{ _("Redémarrer l'application web") }}
+            </button>
+        </form>
         <form method="POST" action="/reboot" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir REDÉMARRER le système ?') }}');">
             <button type="submit" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded">
                 <i class="fas fa-sync-alt"></i> {{ _("Redémarrer le système") }}
@@ -2749,6 +2766,72 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
         });
     }
+
+    // ----- APP UPDATE -----
+    document.getElementById("update-app-btn").addEventListener("click", () => {
+        if (!confirm("{{ _('Êtes-vous sûr de vouloir lancer la mise à jour ? L\'application sera indisponible pendant le processus et redémarrera automatiquement.') }}")) {
+            return;
+        }
+
+        const btn = document.getElementById("update-app-btn");
+        const progressBar = document.getElementById("update-progress-bar");
+        const progressContainer = document.getElementById("update-progress-container");
+        const statusDiv = document.getElementById("update-status");
+        const allActionButtons = document.querySelectorAll('.import-button, .system-button, #update-app-btn, #samba-test-btn, #testWeatherApiKeyBtn, #testTelegramBtn, #create-invite-btn, #scan-wifi-btn, #toggle-eth0-btn, #clear-logs-btn');
+
+        // Disable all major action buttons
+        allActionButtons.forEach(b => {
+            b.disabled = true;
+            b.classList.add("opacity-50", "cursor-not-allowed");
+        });
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>{{ _("Mise à jour en cours...") }}`;
+
+        // Reset UI
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        progressContainer.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+
+        const eventSource = new EventSource('/api/update_app');
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                if (data.percent !== undefined) {
+                    progressBar.style.width = `${data.percent}%`;
+                    progressBar.textContent = `${data.percent}%`;
+                }
+                
+                if (data.message) {
+                    displayMessage(statusDiv, data.message, data.type || 'info');
+                }
+
+                if (data.stage === 'RESTART') {
+                    eventSource.close();
+                    displayMessage(statusDiv, "{{ _('Mise à jour terminée. L\'application va redémarrer. La page se rechargera dans quelques instants...') }}", 'success');
+                    setTimeout(() => {
+                        document.body.innerHTML = `<div class="fixed inset-0 bg-gray-800 text-white flex flex-col items-center justify-center text-center p-4 z-50"><i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p></div>`;
+                        setInterval(() => { location.reload(true); }, 3000);
+                    }, 5000);
+                } else if (data.type === 'error') {
+                    eventSource.close();
+                    allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
+                    btn.innerHTML = `<i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}`;
+                }
+            } catch (e) {
+                displayMessage(statusDiv, "{{ _('Données invalides reçues du serveur.') }}", 'error');
+            }
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            displayMessage(statusDiv, "{{ _('Erreur de connexion au serveur pour la mise à jour.') }}", 'error');
+            allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
+            btn.innerHTML = `<i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}`;
+        };
+    });
+
 });
 </script>
 

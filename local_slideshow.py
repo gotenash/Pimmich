@@ -10,6 +10,7 @@ import socket
 import subprocess, sys
 import glob
 import collections
+import math
 from datetime import datetime, timedelta
 import json
 import qrcode
@@ -787,21 +788,31 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
             scaled_pil_image = pil_image.resize((scaled_width, scaled_height), Image.Resampling.LANCZOS)
             scaled_pygame_image = pygame.image.fromstring(scaled_pil_image.tobytes(), scaled_pil_image.size, scaled_pil_image.mode)
 
-            # Define pan start and end points (offsets from top-left of scaled image to top-left of screen)
-            # Ensure the pan stays within the bounds of the scaled image
-            
-            # Possible top-left corners of the viewable screen area within the scaled image
-            # (x_offset, y_offset)
-            possible_start_offsets = [
-                (0, 0), # Top-left of scaled image
-                (scaled_width - screen_width, 0), # Top-right of scaled image
-                (0, scaled_height - screen_height), # Bottom-left of scaled image
-                (scaled_width - screen_width, scaled_height - screen_height) # Bottom-right of scaled image
-            ]
-            
-            start_offset = random.choice(possible_start_offsets)
-            # Choose an end offset that is different from the start
-            end_offset = random.choice([o for o in possible_start_offsets if o != start_offset])
+            # --- NOUVELLE LOGIQUE DE PANNING AMÉLIORÉE ---
+            max_x_offset = scaled_width - screen_width
+            max_y_offset = scaled_height - screen_height
+
+            # S'assurer que les offsets ne sont pas négatifs (si l'image est plus petite que l'écran)
+            max_x_offset = max(0, max_x_offset)
+            max_y_offset = max(0, max_y_offset)
+
+            def get_random_edge_point(max_x, max_y):
+                """Génère un point aléatoire sur l'un des quatre bords du rectangle de rognage."""
+                edge = random.choice(['top', 'bottom', 'left', 'right'])
+                if edge == 'top':
+                    return (random.randint(0, max_x), 0)
+                elif edge == 'bottom':
+                    return (random.randint(0, max_x), max_y)
+                elif edge == 'left':
+                    return (0, random.randint(0, max_y))
+                else: # right
+                    return (max_x, random.randint(0, max_y))
+
+            # Générer un point de départ et un point d'arrivée qui ne sont pas identiques
+            start_offset = get_random_edge_point(max_x_offset, max_y_offset)
+            end_offset = get_random_edge_point(max_x_offset, max_y_offset)
+            while end_offset == start_offset:
+                end_offset = get_random_edge_point(max_x_offset, max_y_offset)
 
             start_x, start_y = start_offset
             end_x, end_y = end_offset
@@ -811,11 +822,13 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
             while time.time() - start_animation_time < display_duration:
                 elapsed_animation_time = time.time() - start_animation_time
-                progress = elapsed_animation_time / display_duration
+                # Appliquer une fonction d'accélération/décélération (ease-in-out) pour un mouvement plus doux
+                raw_progress = min(1.0, elapsed_animation_time / display_duration)
+                eased_progress = 0.5 * (1 - math.cos(raw_progress * math.pi))
 
                 # Calculate current pan position
-                current_x = int(start_x + (end_x - start_x) * progress)
-                current_y = int(start_y + (end_y - start_y) * progress)
+                current_x = int(start_x + (end_x - start_x) * eased_progress)
+                current_y = int(start_y + (end_y - start_y) * eased_progress)
 
                 # Blit the portion of the scaled image onto the screen
                 screen.blit(scaled_pygame_image, (0, 0), (current_x, current_y, screen_width, screen_height))
@@ -891,38 +904,27 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             '--no-config',
             f'--hwdec={hwdec_mode}',
             '--vo=gpu',
-            '--ao=pulse',
+            '--ao=pulse', # PulseAudio (ou PipeWire-Pulse) est un bon défaut pour la compatibilité
             '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop',
             video_path
         ]
 
         if audio_enabled:
+            # On ne spécifie plus de périphérique de sortie audio.
+            # mpv utilisera la sortie par défaut du système, ce qui est plus robuste.
+            # L'utilisateur peut configurer la sortie par défaut via les paramètres du système d'exploitation.
             command.extend([f'--volume={audio_volume}', '--no-mute'])
-            # --- NOUVELLE LOGIQUE : Noms de périphériques hardcodés pour PulseAudio ---
-            device_name = None
-            if audio_output == 'hdmi':
-                # Le nom du périphérique HDMI pour PulseAudio sur un RPi 4/5
-                device_name = 'alsa_output.platform-vc4-hdmi-0.stereo-fallback'
-                print(f"[Audio] Tentative d'utilisation du périphérique HDMI : {device_name}")
-            elif audio_output == 'jack':
-                # Le nom du périphérique Jack 3.5mm pour PulseAudio sur un RPi 4
-                device_name = 'alsa_output.platform-bcm2835_audio.stereo-fallback'
-                print(f"[Audio] Tentative d'utilisation du périphérique Jack : {device_name}")
-            
-            if device_name:
-                command.append(f'--audio-device={device_name}')
         else:
              command.append('--no-audio')
         
         print(f"[Slideshow] Executing mpv command: {' '.join(command)}")
-        # Redirection de la sortie vers DEVNULL pour éviter de remplir la mémoire
-        subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # On retire la redirection de la sortie d'erreur pour pouvoir diagnostiquer les problèmes de mpv dans les logs.
+        subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
 
     except FileNotFoundError:
         print(f"ERREUR: Commande introuvable. Assurez-vous que 'mpv' et 'amixer' (alsa-utils) sont installés.")
     except subprocess.CalledProcessError as e:
-        # On ne peut plus afficher stderr, mais on peut signaler l'échec
-        print(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur.")
+        print(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur. Vérifiez les logs slideshow_stderr.log pour les détails.")
     except Exception as e:
         print(f"Erreur inattendue lors de la lecture de la vidéo {video_path}: {e}")
     finally:
@@ -1158,6 +1160,11 @@ def start_slideshow():
 
             random.shuffle(playlist)
             for photo_path in playlist:
+                # --- CORRECTIF: Vérifier si le fichier existe avant de tenter de l'afficher ---
+                if not os.path.exists(photo_path):
+                    print(f"[Slideshow] Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
+                    continue
+
                 # La gestion de la veille/réveil est maintenant gérée par le planificateur dans app.py
 
                 print(f"[Slideshow] Preparing to display: {photo_path}")
@@ -1193,6 +1200,8 @@ def start_slideshow():
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
                     
                     # --- NOUVEAU: Utilisation de la fonction de réinitialisation centralisée ---
+                    # On réinitialise Pygame pour libérer les ressources audio/vidéo.
+                    # Le 'break' force la boucle principale à redémarrer, ce qui recharge la police et la config.
                     screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
                     break # Forcer la boucle principale à redémarrer pour recharger la police et la config
                 else: # C'est une image

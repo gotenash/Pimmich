@@ -16,6 +16,7 @@ from werkzeug.utils import secure_filename
 from pathlib import Path
 from werkzeug.security import check_password_hash
 import secrets
+import signal
 import traceback
 
 from utils.download_album import download_and_extract_album
@@ -1593,6 +1594,24 @@ def reboot():
     os.system('sudo reboot')
     return redirect(url_for('configure'))
 
+@app.route('/restart_app', methods=['POST'])
+@login_required
+def restart_app():
+    """Redémarre uniquement l'application web Flask."""
+    
+    def do_restart():
+        # Laisser le temps au navigateur de recevoir la réponse avant de tuer le processus
+        time.sleep(2)
+        print("[Restart] Redémarrage de l'application web demandé par l'utilisateur.")
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    # Lancer le redémarrage dans un thread pour ne pas bloquer la réponse HTTP
+    restart_thread = threading.Thread(target=do_restart)
+    restart_thread.start()
+    
+    flash(_("L'application web redémarre... La page sera inaccessible pendant quelques instants."), "success")
+    return redirect(url_for('configure'))
+
 @app.route('/get_current_resolution')
 @login_required
 def get_current_resolution_route():
@@ -1857,6 +1876,73 @@ def clear_logs_api():
             return jsonify({"success": False, "message": f"Fichier de log '{log_file_path}' non trouvé."})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/update_app', methods=['GET'])
+@login_required
+def update_app():
+    """
+    Met à jour l'application depuis GitHub et la redémarre.
+    Utilise Server-Sent Events pour donner un feedback en direct.
+    """
+    @stream_with_context
+    def generate():
+        def stream_event(data):
+            """Formate les données en événement Server-Sent Event (SSE)."""
+            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+        update_script_path = Path(app.root_path) / 'update_script.sh'
+
+        if not update_script_path.exists():
+            yield stream_event({"type": "error", "message": "Le script de mise à jour 'update_script.sh' est introuvable."})
+            return
+
+        try:
+            os.chmod(update_script_path, 0o755)
+        except OSError as e:
+            yield stream_event({"type": "error", "message": f"Impossible de rendre le script de mise à jour exécutable : {e}"})
+            return
+
+        yield stream_event({"type": "info", "percent": 5, "message": "Lancement du script de mise à jour..."})
+
+        process = subprocess.Popen(
+            ['/bin/bash', str(update_script_path)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            universal_newlines=True,
+            encoding='utf-8'
+        )
+
+        for line in iter(process.stdout.readline, ''):
+            line = line.strip()
+            if not line: continue
+
+            if line.startswith("STEP:PULL:"):
+                yield stream_event({"type": "info", "percent": 25, "message": line.replace("STEP:PULL:", "").strip()})
+            elif line.startswith("STEP:PIP:"):
+                yield stream_event({"type": "info", "percent": 75, "message": line.replace("STEP:PIP:", "").strip()})
+            elif line.startswith("STEP:RESTART:"):
+                yield stream_event({"type": "info", "percent": 95, "message": line.replace("STEP:RESTART:", "").strip()})
+            else:
+                yield stream_event({"type": "info", "message": line})
+
+        process.stdout.close()
+        return_code = process.wait()
+
+        if return_code == 0:
+            yield stream_event({"stage": "RESTART", "percent": 100, "message": "Mise à jour terminée. Redémarrage en cours..."})
+            def restart_server():
+                time.sleep(3)
+                print("[Update] Redémarrage du serveur suite à la mise à jour...")
+                os.kill(os.getpid(), signal.SIGTERM)
+            
+            restart_thread = threading.Thread(target=restart_server)
+            restart_thread.start()
+        else:
+            yield stream_event({"type": "error", "message": f"La mise à jour a échoué. Le script a retourné le code d'erreur {return_code}."})
+
+    return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
 @app.route('/api/tide_info')
 @login_required
