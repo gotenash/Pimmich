@@ -55,12 +55,28 @@ else
 fi
 
 echo "=== [5/12] Installation et configuration de NGINX pour redirection sans :5000 ==="
-# Installer NGINX si ce n'est pas déjà fait
+
+# Vérifier si nginx est installé
 if ! command -v nginx &> /dev/null; then
-    echo "Installation de NGINX..."
-    sudo apt install -y nginx
+    echo "📦 NGINX non détecté, tentative d'installation..."
+
+    # Vérifie que la liste des paquets est à jour
+    echo "🔄 Mise à jour de la liste des paquets..."
+    sudo apt-get update --fix-missing
+
+    # Installer NGINX
+    if ! sudo apt-get install -y nginx; then
+        echo "❌ Échec de l'installation de NGINX. Vérifie ta connexion Internet ou tes dépôts apt."
+        exit 1
+    fi
 else
     echo "✅ NGINX est déjà installé"
+fi
+
+# Vérifie l'existence du dossier /etc/nginx
+if [ ! -d /etc/nginx ]; then
+    echo "❌ Le dossier /etc/nginx est introuvable. L'installation de NGINX semble incomplète."
+    exit 1
 fi
 
 # Supprimer la config par défaut si elle existe
@@ -70,6 +86,7 @@ if [ -f /etc/nginx/sites-enabled/default ]; then
 fi
 
 # Créer une nouvelle config pour Pimmich
+sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
 sudo tee /etc/nginx/sites-available/pimmich > /dev/null <<'EOL'
 server {
     listen 80;
@@ -79,12 +96,11 @@ server {
 
     location / {
         proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
 
-        # Augmenter les timeouts pour les opérations longues comme l'import de vidéos
         proxy_connect_timeout 600s;
         proxy_send_timeout 600s;
         proxy_read_timeout 600s;
@@ -99,8 +115,12 @@ if [ ! -f /etc/nginx/sites-enabled/pimmich ]; then
 fi
 
 # Redémarrer NGINX
-sudo systemctl restart nginx
-echo "✅ NGINX redémarré et prêt"
+if sudo systemctl restart nginx; then
+    echo "✅ NGINX redémarré et prêt"
+else
+    echo "❌ Impossible de redémarrer NGINX. Vérifie la configuration avec : sudo nginx -t"
+    exit 1
+fi
 
 echo "=== [6/12] Création de l’environnement Python ==="
 cd "$(dirname "$0")"
