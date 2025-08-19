@@ -1742,181 +1742,104 @@ document.addEventListener("DOMContentLoaded", () => {
         input.addEventListener('input', debounce(handleGenericTextInput, 1000));
     });
 
-    // ----- IMPORT USB AMÉLIORÉ -----
-    document.getElementById("usb-import-btn").addEventListener("click", () => {
-        const btn = document.getElementById("usb-import-btn");
-        const progressBar = document.getElementById("usb-progress-bar");
-        const progressContainer = document.getElementById("usb-progress-container");
-        const statusDiv = document.getElementById("usb-import-status");
+    // ----- NOUVELLE GESTION DES IMPORTS (USB, IMMICH, SAMBA) -----
+    function handleImportProcess(source) {
+        const btn = document.getElementById(`${source}-import-btn`);
+        const progressBar = document.getElementById(`${source}-progress-bar`);
+        const progressContainer = document.getElementById(`${source}-progress-container`);
+        const statusDiv = document.getElementById(`${source}-import-status`);
+        const allImportButtons = document.querySelectorAll('.import-button, #import-smartphone-btn');
 
-        // Désactiver le bouton pendant l'import
-        btn.disabled = true;
-        btn.textContent = "Import en cours...";
-        btn.classList.add("opacity-50", "cursor-not-allowed");
+        const originalBtnHTML = btn.innerHTML;
 
-        // Reset de l'interface
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
-        progressContainer.classList.remove("hidden");
-        statusDiv.innerHTML = "";
-        
-        let importTermine = false;
-        let timeoutId = null;
-
-        const eventSource = new EventSource('/import-usb');
-
-        eventSource.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                
-                progressBar.style.width = `${data.percent || 0}%`;
-                progressBar.textContent = `${data.percent || 0}%`;
-                
-                displayMessage(statusDiv, data.message, data.type);
-
-                if (data.type === 'done') {
-                    eventSource.close();
-                    displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
-                    setTimeout(() => { location.reload(); }, 2000);
-                } else if (data.type === 'error') {
-                    eventSource.close();
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.textContent = "Importer depuis la clé USB";
-                        btn.classList.remove("opacity-50", "cursor-not-allowed");
-                    }, 5000);
-                }
-            } catch (e) {
-                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
-            }
-        };
-
-        eventSource.onerror = () => {
-            eventSource.close();
-            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import USB.", 'error');
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = "Importer depuis la clé USB";
-                btn.classList.remove("opacity-50", "cursor-not-allowed");
-                progressContainer.classList.add("hidden");
-                statusDiv.innerHTML = "";
-            }, 5000);
-        };
-    });
-
-    // ----- IMPORT IMMICH AMÉLIORÉ -----
-    document.getElementById("immich-import-btn").addEventListener("click", () => {
-        const btn = document.getElementById("immich-import-btn");
-        const progressBar = document.getElementById("immich-progress-bar");
-        const progressContainer = document.getElementById("immich-progress-container");
-        const statusDiv = document.getElementById("immich-import-status");
-        // Désactiver le bouton pendant l'import
-        btn.disabled = true;
-        btn.textContent = "Import en cours...";
-        btn.classList.add("opacity-50", "cursor-not-allowed");
-        // Reset de l'interface
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
-        progressContainer.classList.remove("hidden");
-        statusDiv.innerHTML = "";
-        
-        const eventSource = new EventSource('/import-immich');
-
-        eventSource.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                
-                progressBar.style.width = `${data.percent || 0}%`;
-                progressBar.textContent = `${data.percent || 0}%`;
-                
-                displayMessage(statusDiv, data.message, data.type);
-
-                if (data.type === 'done') {
-                    eventSource.close();
-                    displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
-                    setTimeout(() => { location.reload(); }, 2000);
-                } else if (data.type === 'error') {
-                    eventSource.close();
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.textContent = "Importer les photos depuis Immich";
-                        btn.classList.remove("opacity-50", "cursor-not-allowed");
-                    }, 5000);
-                }
-            } catch (e) {
-                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
-            }
-        };
-
-        eventSource.onerror = () => {
-            eventSource.close();
-            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import Immich.", 'error');
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = "Importer les photos depuis Immich";
-                btn.classList.remove("opacity-50", "cursor-not-allowed");
-                progressContainer.classList.add("hidden");
-                statusDiv.innerHTML = "";
-            }, 5000);
-        };
-    });
-
-    // ----- IMPORT SAMBA -----
-    document.getElementById("samba-import-btn").addEventListener("click", () => {
-        const btn = document.getElementById("samba-import-btn");
-        const progressBar = document.getElementById("samba-progress-bar");
-        const progressContainer = document.getElementById("samba-progress-container");
-        const statusDiv = document.getElementById("samba-import-status");
-
-        btn.disabled = true;
-        btn.textContent = "Import en cours...";
-        btn.classList.add("opacity-50", "cursor-not-allowed");
+        allImportButtons.forEach(b => {
+            b.disabled = true;
+            b.classList.add("opacity-50", "cursor-not-allowed");
+        });
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Import en cours...`;
 
         progressBar.style.width = "0%";
         progressBar.textContent = "0%";
         progressContainer.classList.remove("hidden");
         statusDiv.innerHTML = "";
 
-        const eventSource = new EventSource('/import-samba');
+        function restoreButtons() {
+            allImportButtons.forEach(b => {
+                b.disabled = false;
+                b.classList.remove("opacity-50", "cursor-not-allowed");
+            });
+            btn.innerHTML = originalBtnHTML;
+        }
 
-        eventSource.onmessage = (event) => {
+        function startPreparation() {
+            displayMessage(statusDiv, "Étape 1/2: Importation terminée. Démarrage de la préparation...", 'info');
+            progressBar.style.width = "0%";
+            progressBar.textContent = "0%";
+
+            const prepareEventSource = new EventSource(`/prepare-photos?source=${source}`);
+
+            prepareEventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    progressBar.style.width = `${data.percent || 0}%`;
+                    progressBar.textContent = `${data.percent || 0}%`;
+                    displayMessage(statusDiv, `(2/2) ${data.message}`, data.type);
+
+                    if (data.type === 'done' || data.stage === 'PREPARING_COMPLETE') {
+                        prepareEventSource.close();
+                        displayMessage(statusDiv, "Préparation terminée ! Rechargement de la page...", 'success');
+                        setTimeout(() => { location.reload(); }, 2000);
+                    } else if (data.type === 'error') {
+                        prepareEventSource.close();
+                        restoreButtons();
+                    }
+                } catch (e) {
+                    displayMessage(statusDiv, "Données de préparation invalides reçues du serveur.", 'error');
+                    prepareEventSource.close();
+                    restoreButtons();
+                }
+            };
+
+            prepareEventSource.onerror = () => {
+                prepareEventSource.close();
+                displayMessage(statusDiv, "Erreur de connexion au serveur pour la préparation des photos.", 'error');
+                restoreButtons();
+            };
+        }
+
+        const importEventSource = new EventSource(`/import-${source}`);
+
+        importEventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                
                 progressBar.style.width = `${data.percent || 0}%`;
                 progressBar.textContent = `${data.percent || 0}%`;
-                
-                displayMessage(statusDiv, data.message, data.type);
+                displayMessage(statusDiv, `(1/2) ${data.message}`, data.type);
 
                 if (data.type === 'done') {
-                    eventSource.close();
-                    displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
-                    setTimeout(() => { location.reload(); }, 2000);
+                    importEventSource.close();
+                    startPreparation();
                 } else if (data.type === 'error') {
-                    eventSource.close();
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.textContent = "Importer depuis Samba";
-                        btn.classList.remove("opacity-50", "cursor-not-allowed");
-                    }, 5000);
+                    importEventSource.close();
+                    restoreButtons();
                 }
             } catch (e) {
-                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+                displayMessage(statusDiv, `Données d'import invalides reçues du serveur.`, 'error');
+                importEventSource.close();
+                restoreButtons();
             }
         };
 
-        eventSource.onerror = () => {
-            eventSource.close();
-            displayMessage(statusDiv, "Erreur de connexion au serveur pour l'import Samba.", 'error');
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = "Importer depuis Samba";
-                btn.classList.remove("opacity-50", "cursor-not-allowed");
-                progressContainer.classList.add("hidden");
-                statusDiv.innerHTML = "";
-            }, 5000);
+        importEventSource.onerror = () => {
+            importEventSource.close();
+            displayMessage(statusDiv, `Erreur de connexion au serveur pour l'import ${source}.`, 'error');
+            restoreButtons();
         };
-    });
+    }
+
+    document.getElementById("usb-import-btn").addEventListener("click", () => handleImportProcess('usb'));
+    document.getElementById("immich-import-btn").addEventListener("click", () => handleImportProcess('immich'));
+    document.getElementById("samba-import-btn").addEventListener("click", () => handleImportProcess('samba'));
 
     // ----- TEST SAMBA CONNECTION -----
     document.getElementById("samba-test-btn").addEventListener("click", async () => {

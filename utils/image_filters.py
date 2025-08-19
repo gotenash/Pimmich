@@ -4,9 +4,28 @@ from pathlib import Path
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter, ImageDraw, ImageFont
 import random
 import piexif
+import json
 from datetime import date
 
 POLAROID_FONT_PATH = Path(__file__).parent.parent / "static" / "fonts" / "Caveat-Regular.ttf"
+# Chemin vers le cache des textes saisis par l'utilisateur
+USER_TEXT_MAP_CACHE_FILE = Path(__file__).parent.parent / "cache" / "user_texts.json"
+
+def _load_user_texts():
+    """Charge le dictionnaire des textes utilisateur depuis le cache."""
+    if not USER_TEXT_MAP_CACHE_FILE.exists():
+        return {}
+    try:
+        with open(USER_TEXT_MAP_CACHE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+def _save_user_texts(texts_map):
+    """Sauvegarde le dictionnaire des textes utilisateur dans le cache."""
+    USER_TEXT_MAP_CACHE_FILE.parent.mkdir(exist_ok=True)
+    with open(USER_TEXT_MAP_CACHE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(texts_map, f, indent=2, ensure_ascii=False)
 
 def _get_content_bbox(image_with_exif):
     """Lit les métadonnées EXIF pour trouver la 'bounding box' du contenu."""
@@ -316,12 +335,31 @@ def apply_filter_to_image(image_path_str, filter_name):
 
 def add_text_to_image(image_path_str, text):
     """
-    Ajoute un texte sur n'importe quelle image avec un fond semi-transparent.
-    Modifie l'image sur place. Utilise le système de backup pour la réversibilité.
+    Met à jour le texte pour une image, le sauvegarde, et régénère l'image de base
+    et sa version carte postale si elle existe.
     """
     image_path = Path(image_path_str)
     
-    # Logique de backup, similaire à apply_filter_to_image
+    # --- 1. Mettre à jour le fichier de cache des textes ---
+    try:
+        # La clé est le chemin relatif depuis 'prepared', ex: 'immich/photo.jpg'
+        relative_path_key = '/'.join(image_path.parts[-2:])
+        user_texts = _load_user_texts()
+        
+        if text and text.strip():
+            user_texts[relative_path_key] = text
+        else:
+            # Si le texte est vide, on le supprime du cache
+            user_texts.pop(relative_path_key, None)
+            
+        _save_user_texts(user_texts)
+    except Exception as e:
+        print(f"Erreur lors de la mise à jour du cache de texte : {e}")
+        # On ne s'arrête pas, on essaie quand même de régénérer l'image
+
+    # --- 2. Régénérer les images (base et carte postale) ---
+
+    # Logique de backup
     try:
         prepared_index = image_path.parts.index('prepared')
         backup_base_path = Path(*image_path.parts[:prepared_index]) / '.backups'
@@ -329,60 +367,87 @@ def add_text_to_image(image_path_str, text):
     except ValueError:
         raise ValueError("Le chemin de la photo ne semble pas être dans un dossier 'prepared'.")
 
-    # Crée une sauvegarde si elle n'existe pas
     if not backup_path.exists():
+        # Si pas de backup, l'image actuelle est la source. On en crée un.
         backup_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(image_path, backup_path)
 
     # Toujours partir de la version propre (le backup)
-    img = Image.open(backup_path)
-    exif_bytes = img.info.get('exif')
-    
-    # Si le texte est vide, on restaure simplement le backup et on arrête
+    base_image_from_backup = Image.open(backup_path)
+    exif_bytes = base_image_from_backup.info.get('exif')
+
+    # --- 2a. Régénérer la carte postale ---
+    postcard_path = image_path.with_name(f"{image_path.stem}_postcard.jpg")
+    if postcard_path.exists():
+        try:
+            background_img = base_image_from_backup.copy()
+            if background_img.mode != 'RGB':
+                background_img = background_img.convert('RGB')
+
+            content_bbox = _get_content_bbox(background_img)
+            if not content_bbox:
+                raise ValueError("Bounding box non trouvée pour régénérer la carte postale.")
+
+            content_img = background_img.crop(content_bbox)
+            output_width, output_height = background_img.size
+
+            postcard_img_content = content_img.copy()
+            scale_factor = 0.85
+            postcard_img_content.thumbnail(
+                (int(output_width * scale_factor), int(output_height * scale_factor)), 
+                Image.Resampling.LANCZOS
+            )
+            
+            postcard_effect_img = create_postcard_effect(postcard_img_content, caption=text)
+
+            final_postcard_img = background_img.copy()
+            postcard_x_offset = (output_width - postcard_effect_img.width) // 2
+            postcard_y_offset = (output_height - postcard_effect_img.height) // 2
+            final_postcard_img.paste(postcard_effect_img, (postcard_x_offset, postcard_y_offset), postcard_effect_img)
+
+            final_postcard_img.save(postcard_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes)
+            print(f"[Text Update] Carte postale mise à jour pour {image_path.name}")
+
+        except Exception as e:
+            print(f"--- ERREUR MISE À JOUR CARTE POSTALE pour {image_path.name}: {e} ---")
+
+    # --- 2b. Mettre à jour l'image de base ---
     if not text or not text.strip():
-        img_to_save = img.convert('RGB') # Convertir en RGB pour sauvegarder en JPEG
-        if exif_bytes:
-            img_to_save.save(image_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes)
-        else:
-            img_to_save.save(image_path, 'JPEG', quality=90, optimize=True)
-        return
+        img_to_save = base_image_from_backup.convert('RGB')
+    else:
+        img_rgba = base_image_from_backup.copy()
+        if img_rgba.mode != 'RGBA':
+            img_rgba = img_rgba.convert('RGBA')
 
-    # Convertir l'image de base en RGBA pour le compositing
-    if img.mode != 'RGBA':
-        img = img.convert('RGBA')
+        overlay = Image.new('RGBA', img_rgba.size, (255, 255, 255, 0))
+        draw = ImageDraw.Draw(overlay)
+        width, height = img_rgba.size
 
-    # Créer une couche de dessin transparente
-    overlay = Image.new('RGBA', img.size, (255, 255, 255, 0))
-    draw = ImageDraw.Draw(overlay)
-    width, height = img.size
+        try:
+            font_path = str(POLAROID_FONT_PATH)
+            font_size = int(height * 0.05)
+            font = ImageFont.truetype(font_path, font_size)
+        except IOError:
+            font = ImageFont.load_default()
 
-    # --- Paramètres du texte et du fond ---
-    try:
-        font_path = str(POLAROID_FONT_PATH)
-        font_size = int(height * 0.05)
-        font = ImageFont.truetype(font_path, font_size)
-    except IOError:
-        font = ImageFont.load_default()
+        text_width = font.getlength(text)
+        _, text_top, _, text_bottom = font.getbbox(text)
+        text_height = text_bottom - text_top
 
-    # Utiliser font.getlength() et font.getbbox() pour des métriques précises
-    text_width = font.getlength(text)
-    _, text_top, _, text_bottom = font.getbbox(text)
-    text_height = text_bottom - text_top
+        rect_padding = int(font_size * 0.4)
+        rect_height = text_height + (rect_padding * 2)
+        rect_width = text_width + (rect_padding * 2)
+        rect_x1 = (width - rect_width) / 2
+        rect_y1 = height - rect_height - (height * 0.03)
+        rect_x2 = rect_x1 + rect_width
+        rect_y2 = rect_y1 + rect_height
+        
+        _draw_rounded_rectangle(draw, (rect_x1, rect_y1, rect_x2, rect_y2), int(font_size * 0.3), fill=(255, 255, 255, 180))
+        draw.text((rect_x1 + rect_width / 2, rect_y1 + rect_height / 2), text, font=font, fill=(0, 0, 0, 255), anchor="mm")
+        
+        img_composited = Image.alpha_composite(img_rgba, overlay)
+        img_to_save = img_composited.convert('RGB')
 
-    rect_padding = int(font_size * 0.4)
-    rect_height = text_height + (rect_padding * 2)
-    rect_width = text_width + (rect_padding * 2)
-    rect_x1 = (width - rect_width) / 2
-    rect_y1 = height - rect_height - (height * 0.03) # Positionné à 3% du bas
-    rect_x2 = rect_x1 + rect_width
-    rect_y2 = rect_y1 + rect_height
-    
-    _draw_rounded_rectangle(draw, (rect_x1, rect_y1, rect_x2, rect_y2), int(font_size * 0.3), fill=(255, 255, 255, 180))
-    # Utiliser l'ancre "mm" (middle-middle) pour un centrage parfait du texte dans le rectangle
-    draw.text((rect_x1 + rect_width / 2, rect_y1 + rect_height / 2), text, font=font, fill=(0, 0, 0, 255), anchor="mm")
-    img_composited = Image.alpha_composite(img, overlay)
-    img_to_save = img_composited.convert('RGB')
-    
     if exif_bytes:
         img_to_save.save(image_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes)
     else:

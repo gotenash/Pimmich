@@ -14,6 +14,7 @@ def generate_random_password(length=12):
 def create_credentials_file(output_path, username="admin"):
     """Génère un nouveau mot de passe, le hache et crée le fichier credentials.json."""
     password = generate_random_password()
+    flask_secret_key = secrets.token_hex(24) # Génère une clé sécurisée de 24 octets pour Flask
     
     # Hacher le mot de passe en utilisant une méthode sécurisée.
     # Werkzeug gère automatiquement le salage (salt).
@@ -21,7 +22,8 @@ def create_credentials_file(output_path, username="admin"):
     
     credentials = {
         "username": username,
-        "password_hash": password_hash
+        "password_hash": password_hash,
+        "flask_secret_key": flask_secret_key
     }
     
     try:

@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import time
 
-TARGET_DIR = Path("static/photos")
+TARGET_DIR = Path("static/photos/usb")
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
 
 def is_image_file(filename):
@@ -77,10 +77,14 @@ def import_usb_photos():
 
         yield {"type": "progress", "stage": "DETECTED", "percent": 10, "message": f"Clé USB détectée : {mount_path}"}
 
-        # Vider le dossier de destination avant l'import pour éviter les mélanges.
+        # Vider les dossiers de destination (source et préparé) avant l'import pour éviter les mélanges.
+        prepared_usb_dir = Path("static/prepared/usb")
         if TARGET_DIR.exists():
             shutil.rmtree(TARGET_DIR)
         TARGET_DIR.mkdir(parents=True, exist_ok=True)
+        if prepared_usb_dir.exists():
+            shutil.rmtree(prepared_usb_dir)
+        prepared_usb_dir.mkdir(parents=True, exist_ok=True)
 
         yield {"type": "progress", "stage": "SCANNING", "percent": 15, "message": "Analyse des images sur la clé USB..."}
         

@@ -8,10 +8,11 @@ import glob
 
 PID_FILE = "/tmp/pimmich_slideshow.pid"
 
-def get_active_output_name():
+def get_display_output_name():
     """
-    Détecte le nom de la sortie d'affichage active via swaymsg.
+    Détecte le nom de la sortie d'affichage principale.
     Retourne le nom (ex: "HDMI-A-1") ou None si non trouvé.
+    On ne se base plus sur 'active' car l'écran peut être en veille.
     """
     try:
         # Assurer que SWAYSOCK est défini pour communiquer avec Sway
@@ -22,22 +23,27 @@ def get_active_output_name():
             if socks:
                 os.environ["SWAYSOCK"] = socks[0]
             else:
-                print("AVERTISSEMENT: SWAYSOCK non trouvé, impossible de contrôler l'écran.")
+                print("AVERTISSEMENT: Variable d'environnement SWAYSOCK non trouvée, impossible de contrôler l'écran.")
                 return None
 
         result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True, env=os.environ)
         outputs = json.loads(result.stdout)
         
+        # On cherche la première sortie qui a un mode configuré.
+        # C'est plus fiable que de se baser sur 'active', car l'écran peut être désactivé.
         for output in outputs:
-            if output.get('active', False):
-                print(f"Sortie active détectée : {output.get('name')}")
-                return output.get('name')
+            if output.get('current_mode'):
+                output_name = output.get('name')
+                print(f"Sortie d'affichage principale détectée : {output_name}")
+                return output_name
+        
+        print("AVERTISSEMENT: Aucune sortie d'affichage avec un mode configuré n'a été trouvée.")
         return None
     except Exception as e:
-        print(f"Erreur lors de la détection de la sortie active : {e}.")
+        print(f"Erreur lors de la détection de la sortie d'affichage : {e}.")
         return None
 
-HDMI_OUTPUT = get_active_output_name()
+HDMI_OUTPUT = get_display_output_name()
 _log_files = {} # Dictionnaire pour garder les références aux fichiers de log ouverts
 
 def is_slideshow_running():

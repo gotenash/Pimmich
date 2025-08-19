@@ -4,9 +4,16 @@ Current Version (July 14, 2025): New release now available online
 
 📆 Starting June 2025 — One major version every month
 
+## 🗓️ September 2025 - (Planned)
+- 📱 Android APK to control the frame (Pimmich remote)
+- 🗣️ Voice command support to control the frame (next photo, pause, etc.).
+- 🔘 Physical button support to start/stop the slideshow.
+- 🗂️ Album management directly from the Pimmich interface (create, rename, etc.).
+
 ## 🛠️✅ August 2025 – (Scheduled Release: August 15)
 
 ✅ Video support
+✅ Added video thumbnail in the Actions tab
 ✅ Introduction of the "Postcard" feature via Telegram
   - ✅ Secured via invitation link
 ✅ Hardware acceleration support for Pi3
@@ -14,7 +21,9 @@ Current Version (July 14, 2025): New release now available online
 ✅ QR Code for first-time setup
 ✅ "Postcard effect" added to all photo sources
 ✅ Text overlay feature
+✅ Added "Restart Web App" button
 ✅ Favorites tab added (to increase photo display frequency)
+✅ Weather and tides updated to show 3-day forecasts
 ✅ Bug fixes
   - ✅ Photo display start time
   - ✅ Log deletion in the system tab without container issues
@@ -50,8 +59,9 @@ Current Version (July 14, 2025): New release now available online
 
 ## 💡 Ideas for Future Releases
 
-- 📱 Android APK to control the frame  
- 
+- Pimmich for Android TV
+- Google Photos Import
+- PhotoPrism Import
 
 ---
 

@@ -897,11 +897,13 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # Commande pour mpv
         # --ao=pulse: Utilise la couche de compatibilité PulseAudio de PipeWire, qui est souvent plus robuste
         # --hwdec=auto : Tente d'utiliser le décodage vidéo matériel, crucial pour les RPi
+        # --hwdec=v4l2m2m-copy : Décodeur matériel spécifique et optimisé pour Raspberry Pi.
         # --vo=gpu : Utilise le rendu GPU, plus efficace
-        hwdec_mode = 'auto' if hwdec_enabled else 'no'
+        hwdec_mode = 'v4l2m2m-copy' if hwdec_enabled else 'no'
         command = [
             'mpv',
             '--no-config',
+            '--no-terminal', # Pour des logs propres, sans barres de progression
             f'--hwdec={hwdec_mode}',
             '--vo=gpu',
             '--ao=pulse', # PulseAudio (ou PipeWire-Pulse) est un bon défaut pour la compatibilité
@@ -918,13 +920,15 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
              command.append('--no-audio')
         
         print(f"[Slideshow] Executing mpv command: {' '.join(command)}")
-        # On retire la redirection de la sortie d'erreur pour pouvoir diagnostiquer les problèmes de mpv dans les logs.
-        subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
+        # On capture la sortie pour un meilleur diagnostic en cas d'erreur.
+        subprocess.run(command, check=True, capture_output=True, text=True)
 
     except FileNotFoundError:
         print(f"ERREUR: Commande introuvable. Assurez-vous que 'mpv' et 'amixer' (alsa-utils) sont installés.")
     except subprocess.CalledProcessError as e:
-        print(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur. Vérifiez les logs slideshow_stderr.log pour les détails.")
+        print(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur.")
+        print(f"Sortie de mpv (stdout):\n{e.stdout}")
+        print(f"Erreur de mpv (stderr):\n{e.stderr}")
     except Exception as e:
         print(f"Erreur inattendue lors de la lecture de la vidéo {video_path}: {e}")
     finally:

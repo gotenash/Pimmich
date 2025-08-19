@@ -2,9 +2,14 @@ import os
 import requests
 import shutil
 import time
-from utils.config import get_album_id_by_name
+import json
+from pathlib import Path
 from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
-from utils.prepare_all_photos import prepare_all_photos
+
+# Définir le chemin du cache pour le mappage des descriptions
+CACHE_DIR = Path("cache")
+CACHE_DIR.mkdir(exist_ok=True)
+DESCRIPTION_MAP_CACHE_FILE = CACHE_DIR / "immich_description_map.json"
 
 def download_and_extract_album(config):
     server_url = config.get("immich_url")
@@ -44,12 +49,31 @@ def download_and_extract_album(config):
     response.raise_for_status()
 
     album_data = response.json()
-    asset_ids = [asset["id"] for asset in album_data.get("assets", [])]
+    assets = album_data.get("assets", [])
+    asset_ids = [asset["id"] for asset in assets]
 
     if not asset_ids:
         yield {"type": "error", "message": "L'album est vide ou ne contient aucune photo accessible."}
         return
     
+    # Créer un mappage nom de fichier -> description
+    filename_to_description_map = {}
+    for asset in assets:
+        original_filename = asset.get("originalFileName")
+        # La description est dans exifInfo
+        description = asset.get("exifInfo", {}).get("description")
+        if original_filename and description:
+            filename_to_description_map[original_filename] = description
+
+    # Sauvegarder le mappage dans un fichier cache pour que l'étape de préparation puisse l'utiliser.
+    try:
+        with open(DESCRIPTION_MAP_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(filename_to_description_map, f, ensure_ascii=False, indent=2)
+        print(f"[Immich Import] Mappage des descriptions sauvegardé dans {DESCRIPTION_MAP_CACHE_FILE}")
+    except Exception as e:
+        # On ne bloque pas le processus, on affiche juste un avertissement.
+        yield {"type": "warning", "message": f"Avertissement : Impossible de sauvegarder le mappage des descriptions : {e}"}
+
     nb_photos = len(asset_ids)
     yield {"type": "progress", "stage": "DOWNLOADING", "percent": 25, "message": f"Téléchargement de l'archive ({nb_photos} photos)..."}
 
@@ -64,11 +88,18 @@ def download_and_extract_album(config):
         return
 
     yield {"type": "progress", "stage": "EXTRACTING", "percent": 60, "message": "Extraction des photos..."}
-    photos_folder = os.path.join("static", "photos")
-    # Vider le dossier de destination avant l'import pour éviter les mélanges.
+    photos_folder = os.path.join("static", "photos", "immich")
+    prepared_folder = os.path.join("static", "prepared", "immich")
+
+    # Vider les dossiers de destination (source et préparé) avant l'import pour éviter les mélanges.
     if os.path.exists(photos_folder):
         shutil.rmtree(photos_folder)
-    os.makedirs(photos_folder)
+    os.makedirs(photos_folder, exist_ok=True)
+
+    if os.path.exists(prepared_folder):
+        shutil.rmtree(prepared_folder)
+    os.makedirs(prepared_folder, exist_ok=True)
+
     try:
         unzip_archive(zip_path, photos_folder)
         clean_archive(zip_path)
@@ -76,4 +107,4 @@ def download_and_extract_album(config):
         yield {"type": "error", "message": f"Erreur lors de l'extraction : {str(e)}"}
         return
 
-    yield {"type": "done", "stage": "DOWNLOAD_COMPLETE", "percent": 80, "message": f"{nb_photos} photos prêtes pour préparation.", "total_downloaded": nb_photos}
+    yield { "type": "done", "stage": "DOWNLOAD_COMPLETE", "percent": 80, "message": f"{nb_photos} photos prêtes pour préparation.", "total_downloaded": nb_photos }

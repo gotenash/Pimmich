@@ -9,6 +9,7 @@ import glob
 import time
 import requests
 import threading
+import logging
 import asyncio
 import shutil
 from datetime import datetime, timedelta
@@ -37,7 +38,21 @@ from smbprotocol.exceptions import SMBException
 
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
+
+# --- Clé secrète ---
+# Il est recommandé de ne pas hardcoder la clé secrète.
+# On essaie de la charger depuis les credentials, sinon on en génère une pour le fallback.
+try:
+    credentials = load_credentials()
+    app.secret_key = credentials.get('flask_secret_key', 'supersecretkey_fallback_should_be_changed')
+except Exception:
+    app.secret_key = 'supersecretkey_fallback_should_be_changed'
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    handlers=[logging.StreamHandler()]) # Envoie les logs vers la sortie standard/erreur, qui est redirigée vers les fichiers de log.
+
 
 def get_locale():
     # 1. Si un argument 'lang' est passé dans l'URL
@@ -132,12 +147,16 @@ def get_screen_resolution():
         result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True, env=os.environ)
         outputs = json.loads(result.stdout)
         
+        # --- MODIFICATION ---
+        # On cherche la première sortie qui a un mode configuré, qu'elle soit active ou non.
+        # C'est plus robuste car l'écran peut être désactivé (en veille).
         for output in outputs:
-            if output.get('active', False) and output.get('current_mode'):
+            if output.get('current_mode'):
                 mode = output['current_mode']
+                print(f"Résolution détectée sur la sortie '{output.get('name')}': {mode['width']}x{mode['height']} (Active: {output.get('active', False)})")
                 return mode['width'], mode['height']
         
-        print("Aucune sortie active trouvée, utilisation de la résolution par défaut.")
+        print("Aucune sortie avec un mode configuré trouvée, utilisation de la résolution par défaut.")
         return default_width, default_height
     except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError, IndexError) as e:
         print(f"Erreur lors de la détection de la résolution de l'écran : {e}. Utilisation de la résolution par défaut.")
@@ -390,7 +409,8 @@ def handle_new_telegram_photo(temp_photo_path_str, caption, user_name=None):
             # 3. Préparer la photo
             from utils.prepare_all_photos import prepare_photo # Import local pour éviter dépendance circulaire
             prepared_photo_path = prepared_dir / f"{new_filename_base}.jpg"
-            screen_width, screen_height = get_screen_resolution()
+            config = load_config()
+            screen_width, screen_height = config.get("display_width", 1920), config.get("display_height", 1080)
             prepare_photo(str(source_photo_path), str(prepared_photo_path), screen_width, screen_height, source_type='telegram', caption=final_caption)
             
             # 4. Gérer la légende
@@ -515,45 +535,6 @@ def get_telegram_bot_info():
 
 # --- Routes principales ---
 
-def _handle_photo_preparation_stream(source_name, screen_width, screen_height):
-    """
-    Générateur pour gérer la phase de préparation des photos et streamer les mises à jour.
-    Cette fonction est conçue pour être appelée depuis les routes d'import.
-    Elle retourne True si la préparation s'est bien déroulée, False sinon.
-    """
-    def stream_event(data):
-        """Formate les données en événement Server-Sent Event (SSE)."""
-        return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-
-    source_dir = Path("static/photos")
-    photo_files = [f for f in source_dir.iterdir() if f.is_file() and f.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif']]
-    total_photos = len(photo_files)
-
-    if total_photos > 0:
-        yield stream_event({
-            "type": "progress", "stage": "PREPARING", "percent": 80,
-            "message": f"Préparation de {total_photos} photos pour l'affichage..."
-        })
-
-        for update in prepare_all_photos_with_progress(screen_width, screen_height, source_name):
-            if update.get("type") == "progress":
-                prep_percent = update.get("percent", 0)
-                main_progress_update = {
-                    "type": "progress",
-                    "percent": 80 + int(prep_percent * 0.20), # Pourcentage mis à l'échelle (80% -> 100%)
-                    "message": f"Préparation de {total_photos} photos pour l'affichage..."
-                }
-                yield stream_event(main_progress_update)
-            elif update.get("type") in ["warning", "error"]:
-                yield stream_event({"type": update.get("type"), "message": update.get("message")})
-        
-        yield stream_event({"type": "done", "percent": 100, "message": f"Import terminé ! {total_photos} photos sont prêtes."})
-        return True
-    else:
-        yield stream_event({"type": "warning", "message": "Aucune photo n'a été importée ou trouvée pour la préparation."})
-        return False
-
-
 @app.route('/upload', methods=['GET'])
 def upload_page():
     """Affiche la page publique pour envoyer des photos."""
@@ -648,7 +629,8 @@ def manage_pending_photo():
         shutil.copy(str(pending_path), str(source_dir / pending_path.name))
 
         # Lancer la préparation
-        screen_width, screen_height = get_screen_resolution()
+        config = load_config()
+        screen_width, screen_height = config.get("display_width", 1920), config.get("display_height", 1080)
         try:
             preparation_successful = False
             for update in _handle_photo_preparation_stream("smartphone", screen_width, screen_height):
@@ -673,12 +655,14 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        if check_credentials(request.form['username'], request.form['password']): # type: ignore
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username and password and check_credentials(username, password):
             session['logged_in'] = True
             flash(_("Connexion réussie"), "success")
             return redirect(url_for('configure'))
         else:
-            flash(_("Identifiants invalides"), "danger")
+            flash(_("Identifiants invalides"), "error")
     return render_template('login.html')
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -812,104 +796,48 @@ def configure():
 
 @app.route("/import-usb")
 @login_required
-def progress():
+def import_usb():
     @stream_with_context
     def generate():
         def stream_event(data):
             """Formate les données en événement Server-Sent Event (SSE)."""
             return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-
-        screen_width, screen_height = get_screen_resolution()
-
         try:
-            # --- Étape 1: Import depuis la clé USB ---
             for update in import_usb_photos():
-                if update.get("type") == "error": # type: ignore
-                    yield stream_event({"type": "error", "message": update.get("message")})
-                    return  # Arrêter le flux en cas d'erreur
-                
-                # Simplifier l'événement pour le client, ne garder que l'essentiel
-                if update.get("type") in ["progress", "done"]:
-                    yield stream_event({"type": "progress", "percent": update.get("percent"), "message": update.get("message")})
-                elif update.get("type") == "warning":
-                    yield stream_event(update)
-
-            # --- Étape 2: Préparation des photos (logique centralisée) ---
-            yield from _handle_photo_preparation_stream("usb", screen_width, screen_height)
-
+                yield stream_event(update)
         except Exception as e:
             yield stream_event({"type": "error", "message": f"Erreur critique : {str(e)}"})
 
-    return Response(generate(), mimetype="text/event-stream", headers={
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive"
-    })
-
+    return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
 @app.route("/import-immich")
 @login_required
 def import_immich():
     config = load_config()
-
     @stream_with_context
     def generate():
         def stream_event(data):
+            """Formate les données en événement Server-Sent Event (SSE)."""
             return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-
-        screen_width, screen_height = get_screen_resolution()
-
         try:
-            # --- Étape 1: Téléchargement depuis Immich ---
             for update in download_and_extract_album(config):
-                if update.get("type") == "error": # type: ignore
-                    yield stream_event({"type": "error", "message": update.get("message")})
-                    return  # Stop on error
-                
-                # Simplifier l'événement pour le client, ne garder que l'essentiel
-                if update.get("type") in ["progress", "done"]:
-                    yield stream_event({"type": "progress", "percent": update.get("percent"), "message": update.get("message")})
-                elif update.get("type") == "warning":
-                    yield stream_event(update)
-            
-            # --- Étape 2: Préparation des photos (logique centralisée) ---
-            yield from _handle_photo_preparation_stream("immich", screen_width, screen_height)
-
+                yield stream_event(update)
         except Exception as e:
             yield stream_event({"type": "error", "message": f"Erreur critique : {str(e)}"})
 
-    return Response(generate(), mimetype='text/event-stream', headers={
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive"
-    })
+    return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
 @app.route("/import-samba")
 @login_required
 def import_samba():
     config = load_config()
-
     @stream_with_context
     def generate():
         def stream_event(data):
             return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-
-        screen_width, screen_height = get_screen_resolution()
-
         try:
-            # --- Étape 1: Import depuis Samba ---
             for update in import_samba_photos(config):
-                if update.get("type") == "error": # type: ignore
-                    yield stream_event({"type": "error", "message": update.get("message")})
-                    return
-
-                # Simplifier l'événement pour le client, ne garder que'l'essentiel
-                if update.get("type") in ["progress", "done"]:
-                    yield stream_event({"type": "progress", "percent": update.get("percent"), "message": update.get("message")})
-                elif update.get("type") == "warning":
-                    yield stream_event(update)
-            
-            # --- Étape 2: Préparation des photos (logique centralisée) ---
-            yield from _handle_photo_preparation_stream("samba", screen_width, screen_height)
-
+                yield stream_event(update)
         except Exception as e:
             yield stream_event({"type": "error", "message": f"Erreur critique : {str(e)}"})
 
@@ -926,8 +854,9 @@ def import_smartphone():
         def stream_event(data):
             return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
-        screen_width, screen_height = get_screen_resolution()
-        source_dir = Path("static/photos")
+        config = load_config()
+        screen_width, screen_height = config.get("display_width", 1920), config.get("display_height", 1080)
+        source_dir = Path("static") / "photos" / "smartphone"
 
         try:
             # --- Étape 1: Réception et sauvegarde des fichiers ---
@@ -949,7 +878,7 @@ def import_smartphone():
             yield stream_event({"type": "progress", "stage": "PREPARING", "percent": 80, "message": f"{len(uploaded_files)} photos reçues, préparation en cours..."})
 
             # --- Étape 2: Préparation des photos ---
-            yield from _handle_photo_preparation_stream("smartphone", screen_width, screen_height)
+            # La préparation est maintenant gérée par un appel séparé depuis le client.
 
         except Exception as e:
             yield stream_event({"type": "error", "message": f"Erreur critique lors de l'import : {str(e)}"})
@@ -1002,6 +931,61 @@ def test_samba_connection():
         return jsonify({"success": False, "message": f"Erreur Samba : {e}"})
     except Exception as e:
         return jsonify({"success": False, "message": f"Erreur inattendue : {e}"})
+
+@app.route('/prepare-photos')
+@login_required
+def prepare_photos():
+    """
+    Route pour lancer la préparation des photos pour une source donnée.
+    Utilise Server-Sent Events (SSE) pour streamer le progrès.
+    """
+    source = request.args.get('source')
+    if not source:
+        def error_stream():
+            error_update = {"type": "error", "message": "Le paramètre 'source' est manquant."}
+            yield f"data: {json.dumps(error_update)}\n\n"
+        return Response(stream_with_context(error_stream()), mimetype='text/event-stream')
+
+    def generate_preparation_stream():
+        """Générateur qui produit les événements de progression."""
+        try:
+            config = load_config()
+            screen_width = config.get('display_width')
+            screen_height = config.get('display_height')
+
+            # --- NOUVELLE LOGIQUE DE FUSION DES LÉGENDES ---
+            # On centralise ici la préparation des légendes pour donner la priorité
+            # au texte saisi manuellement dans Pimmich.
+
+            # 1. Charger les descriptions de base (ex: depuis le cache Immich)
+            base_description_map = {}
+            if source == "immich":
+                immich_cache_path = Path("cache") / "immich_description_map.json"
+                if immich_cache_path.exists():
+                    try:
+                        with open(immich_cache_path, 'r', encoding='utf-8') as f:
+                            base_description_map = json.load(f)
+                    except Exception as e:
+                        print(f"[App] Avertissement: Impossible de charger le cache de description Immich: {e}")
+
+            # 2. Charger les légendes manuelles de Pimmich
+            manual_captions = load_text_states()
+
+            # 3. Fusionner, en donnant la priorité aux légendes manuelles
+            final_caption_map = base_description_map.copy()
+            for path, caption in manual_captions.items():
+                # La clé est 'source/fichier.jpg', on extrait juste le nom du fichier
+                filename = Path(path).name
+                final_caption_map[filename] = caption
+
+            # Lancer la préparation et streamer les mises à jour.
+            for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type=source, description_map=final_caption_map):
+                yield f"data: {json.dumps(update, ensure_ascii=False)}\n\n"
+        except Exception as e:
+            error_update = {"type": "error", "message": f"Erreur serveur lors de la préparation : {str(e)}"}
+            yield f"data: {json.dumps(error_update)}\n\n"
+
+    return Response(stream_with_context(generate_preparation_stream()), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
 @app.route('/test-weather-api', methods=['POST'])
 @login_required
@@ -1224,12 +1208,14 @@ def schedule_worker():
     Thread en arrière-plan qui gère le démarrage et l'arrêt du diaporama
     en fonction des heures d'activité configurées.
     """
-    print("== Démarrage du worker de planification du diaporama ==")
+    logging.info("== Démarrage du worker de planification du diaporama ==")
+    previous_in_schedule = None # Pour suivre les changements d'état du planning
     while True:
         try:
             config = load_config()
             start_str = config.get("active_start", "07:00")
             end_str = config.get("active_end", "22:00")
+            manual_override = config.get('manual_override', False)
             
             now_time = datetime.now().time()
             start_time = datetime.strptime(start_str, "%H:%M").time()
@@ -1246,13 +1232,13 @@ def schedule_worker():
             slideshow_is_running = is_slideshow_running()
 
             if in_schedule and not slideshow_is_running:
-                print("[Scheduler] Heure active détectée et diaporama arrêté. Démarrage...")
+                logging.info("[Scheduler] Heure active détectée et diaporama arrêté. Démarrage...")
                 start_slideshow()
             elif not in_schedule and slideshow_is_running:
-                print("[Scheduler] Heure inactive détectée et diaporama en cours. Arrêt...")
+                logging.info("[Scheduler] Heure inactive détectée et diaporama en cours. Arrêt...")
                 stop_slideshow()
         except Exception as e:
-            print(f"[Scheduler] Erreur dans le worker de planification : {e}")
+            logging.error(f"[Scheduler] Erreur dans le worker de planification : {e}", exc_info=True)
 
         # Attendre 60 secondes avant la prochaine vérification
         time.sleep(60)
@@ -1261,7 +1247,7 @@ def immich_update_worker():
     """
     Thread en arrière-plan qui vérifie et met à jour l'album Immich périodiquement.
     """
-    print("== Démarrage du worker de mise à jour automatique Immich ==")
+    logging.info("== Démarrage du worker de mise à jour automatique Immich ==")
     while True:
         config = load_config()
         is_enabled = config.get("immich_auto_update", False)
@@ -1270,7 +1256,7 @@ def immich_update_worker():
 
         global _immich_first_run_skipped
         if not _immich_first_run_skipped and skip_initial:
-            print("[Auto-Update Immich] Import initial skipped as per configuration.")
+            logging.info("[Auto-Update Immich] Import initial skipped as per configuration.")
             immich_status_manager.update_status(message="Import initial ignoré.")
             _immich_first_run_skipped = True
             # Calculate next run and sleep, then continue to next iteration
@@ -1284,34 +1270,49 @@ def immich_update_worker():
         
         if is_enabled:
             status_msg = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
-            print(f"[Auto-Update Immich] {status_msg}")
+            logging.info(f"[Auto-Update Immich] {status_msg}")
             immich_status_manager.update_status(message=status_msg)
             
             try:
                 immich_status_manager.update_status(message="Lancement du téléchargement...")
-                print("[Auto-Update] Lancement du téléchargement et de la préparation...")
+                logging.info("[Auto-Update Immich] Lancement du téléchargement et de la préparation...")
                 
                 # Étape 1: Téléchargement
                 download_success = False
+                description_map = {} # Initialiser un mappage vide
                 for update in download_and_extract_album(config):
+                    # NOUVEAU: Afficher les messages de progression du worker dans les logs pour le débogage
+                    if update.get("message"):
+                        logging.info(f"[Auto-Update Immich] {update.get('message')}")
+
                     if update.get("type") == "error":
-                        print(f"[Auto-Update] Erreur lors du téléchargement : {update.get('message')}")
+                        logging.error(f"[Auto-Update Immich] Erreur lors du téléchargement : {update.get('message')}")
                         immich_status_manager.update_status(message=f"Erreur téléchargement: {update.get('message')}")
-                        break # Sortir de la boucle de téléchargement
                     immich_status_manager.update_status(message=update.get('message', '')) # Update status with download message
                     if update.get("type") == "done":
                         download_success = True
+                        description_map = update.get("description_map", {}) # Récupérer le mappage
 
                 # Étape 2: Préparation et redémarrage du diaporama
                 if download_success:
+                    # Fusionner les descriptions d'Immich et celles de l'interface Pimmich
+                    manual_captions = load_text_states()
+                    final_description_map = description_map.copy()
+                    # Les légendes manuelles (clés "source/fichier.jpg") écrasent celles d'Immich (clés "fichier.jpg")
+                    for path, caption in manual_captions.items():
+                        path_obj = Path(path)
+                        if path_obj.parts and path_obj.parts[0] == "immich":
+                            filename = path_obj.name
+                            final_description_map[filename] = caption
+
                     immich_status_manager.update_status(message="Préparation des photos...")
                     screen_width = config.get("display_width", 1920) # Utiliser la résolution configurée
                     screen_height = config.get("display_height", 1080) # Utiliser la résolution configurée
                     prep_successful = False
-                    for update in prepare_all_photos_with_progress(screen_width, screen_height, "immich"):
+                    for update in prepare_all_photos_with_progress(screen_width=screen_width, screen_height=screen_height, source_type="immich", description_map=final_description_map):
                         immich_status_manager.update_status(message=update.get('message', '')) # Update status with preparation message
                         if update.get("type") == "error":
-                            print(f"[Auto-Update] Erreur lors de la préparation : {update.get('message')}")
+                            logging.error(f"[Auto-Update Immich] Erreur lors de la préparation : {update.get('message')}")
                             immich_status_manager.update_status(message=f"Erreur préparation: {update.get('message')}")
                             break # Sortir de la boucle de préparation
                         if update.get("type") == "done":
@@ -1328,8 +1329,8 @@ def immich_update_worker():
                         immich_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
 
             except Exception as e:
-                print(f"[Auto-Update] Erreur critique dans le worker : {e}")
-                immich_status_manager.update_status(message=f"Erreur : {e}")
+                logging.error(f"[Auto-Update Immich] Erreur critique dans le worker : {e}", exc_info=True)
+                immich_status_manager.update_status(message=f"Erreur critique : {e}")
 
         else:
             status_msg = "Mise à jour automatique désactivée."
@@ -1383,21 +1384,29 @@ def samba_update_worker():
                     if update.get("type") == "error":
                         print(f"[Auto-Update Samba] Erreur lors de l'import : {update.get('message')}")
                         samba_status_manager.update_status(message=f"Erreur import: {update.get('message')}")
-                        break # Sortir de la boucle d'import
                     samba_status_manager.update_status(message=update.get('message', '')) # Update status with import message
                     if update.get("type") == "done":
                         import_success = True
 
                 if import_success:
                     samba_status_manager.update_status(message="Préparation des photos...")
+                    # Charger les légendes manuelles pour Samba
+                    manual_captions = load_text_states()
+                    final_description_map = {}
+                    for path, caption in manual_captions.items():
+                        path_obj = Path(path)
+                        if path_obj.parts and path_obj.parts[0] == "samba":
+                            filename = path_obj.name
+                            final_description_map[filename] = caption
+
                     screen_width = config.get("display_width", 1920) # Utiliser la résolution configurée
                     screen_height = config.get("display_height", 1080) # Utiliser la résolution configurée
                     prep_successful = False
-                    for update in prepare_all_photos_with_progress(screen_width, screen_height, "samba"):
+                    for update in prepare_all_photos_with_progress(screen_width, screen_height, "samba", description_map=final_description_map):
                         samba_status_manager.update_status(message=update.get('message', '')) # Update status with preparation message
-                        if update.get("type") == "error": # This block is already handled by the outer loop
-                            samba_status_manager.update_status(message=f"Erreur préparation: {update.get('message')}") # This update is redundant if outer loop handles it
-                            break # This break is also redundant if outer loop handles it
+                        if update.get("type") == "error":
+                            samba_status_manager.update_status(message=f"Erreur préparation: {update.get('message')}")
+                            break
                         if update.get("type") == "done":
                             prep_successful = True
                     
@@ -1411,8 +1420,8 @@ def samba_update_worker():
                     else:
                         samba_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
             except Exception as e:
-                print(f"[Auto-Update Samba] Erreur critique dans le worker : {e}")
-                samba_status_manager.update_status(message=f"Erreur : {e}")
+                logging.error(f"[Auto-Update Samba] Erreur critique dans le worker : {e}", exc_info=True)
+                samba_status_manager.update_status(message=f"Erreur critique : {e}")
         else:
             samba_status_manager.update_status(message="Mise à jour automatique Samba désactivée.")
         

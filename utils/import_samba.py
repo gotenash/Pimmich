@@ -4,7 +4,7 @@ from pathlib import Path
 import smbclient
 from smbprotocol.exceptions import SMBException
 
-TARGET_DIR = Path("static/photos")
+TARGET_DIR = Path("static/photos/samba")
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif'}
 
 def is_image_file(filename):
@@ -43,11 +43,14 @@ def import_samba_photos(config):
         # --- Phase 1: Lister les fichiers distants et locaux ---
         yield {"type": "progress", "stage": "SCANNING", "percent": 10, "message": "Analyse des fichiers distants et locaux..."}
         
-        # Vider le dossier de destination avant l'import pour éviter les mélanges.
-        # Cela transforme la synchronisation en une copie complète, mais garantit l'isolation.
+        # Vider les dossiers de destination (source et préparé) avant l'import pour éviter les mélanges.
+        prepared_samba_dir = Path("static/prepared/samba")
         if TARGET_DIR.exists():
             shutil.rmtree(TARGET_DIR)
         TARGET_DIR.mkdir(parents=True, exist_ok=True)
+        if prepared_samba_dir.exists():
+            shutil.rmtree(prepared_samba_dir)
+        prepared_samba_dir.mkdir(parents=True, exist_ok=True)
 
         # Récupérer les fichiers distants avec leur date de modification
         remote_files = {}

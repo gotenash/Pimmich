@@ -4,9 +4,16 @@
 
 > 📆 À partir de juin 2025 — Une version majeure chaque mois
 
+## 🗓️ Septembre 2025 - (Prévu)
+- 📱 Création d’une APK Android pour contrôler le cadre (Pimmich télécommande)
+- 🗣️ Ajout de la commande vocale pour piloter le cadre (photo suivante, pause, etc.).
+- 🔘 Gestion d'un bouton physique pour démarrer/arrêter le diaporama.
+- 🗂️ Gestion des albums directement depuis l'interface Pimmich (créer, renommer, etc.).
+
 ## 🛠️✅ Août 2025  - (Sortie prévue le 15 aoüt)
 
 - ✅ Gestion des vidéos
+- ✅ Ajout d'une vignette lors de lecture de la vidéo (onglet Actions)
 - ✅ Ajout de la fonction "Carte Postle" par telegram
     - ✅ sécurisation par lien d'invitation
 - ✅ Gestion accélération matérielle pour Pi3
@@ -14,7 +21,9 @@
 - ✅ Ajout QR Code première connexion
 - ✅ Ajout de l'effet "Carte postale" pour toutes les ources de photos
 - ✅ Ajout de la fonctionnalité "Ajout de texte"
+- ✅ Ajout d'un bouton "Redémarrer l'appli Web"
 - ✅ Ajout de l'onglet Favoris (augmentation fréquence d'affichage d'une photo)
+- ✅ Modification météo et marées pour afficher 3 jours de prévisions
 - ✅ Corections des bugs
     - ✅ Heude début d'affichage
     - ✅ Effacement des logs dans l'onglet système sans problème de container
@@ -187,5 +196,3 @@ Dans ce cadre vous pourrez régler le temps d'affichage de chaque photo (pour l'
 ## configuration de l'import des photos
 
 ![Menu Clef API](https://drive.google.com/uc?id=1AwUgYbzGcdskt99q32VlaOc7jM303Tbd)
-
-

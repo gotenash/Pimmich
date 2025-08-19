@@ -1,11 +1,13 @@
 import os
 from PIL import Image, ImageFilter, ImageDraw, ImageFont
+import json
 import pillow_heif
 import subprocess, sys
 from utils.config import load_config # Import load_config to get screen_height_percent
 import piexif
 from utils.image_filters import create_polaroid_effect, create_postcard_effect
 from utils.exif import get_rotation_angle # Import get_rotation_angle for EXIF rotation
+import re
 from pathlib import Path
 
 # Configuration
@@ -14,6 +16,11 @@ SOURCE_DIR = "static/photos"
 DEFAULT_OUTPUT_WIDTH = 1920
 DEFAULT_OUTPUT_HEIGHT = 1080
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
+
+# Chemin vers le cache du mappage des descriptions (utilisé par l'import Immich)
+DESCRIPTION_MAP_CACHE_FILE = Path("cache") / "immich_description_map.json"
+# NOUVEAU: Chemin vers le cache des textes saisis par l'utilisateur
+USER_TEXT_MAP_CACHE_FILE = Path("cache") / "user_texts.json"
 
 def prepare_photo(source_path, dest_path, output_width, output_height, source_type=None, caption=None):
     """Prépare une photo pour l'affichage avec redimensionnement, rotation EXIF et fond flou."""
@@ -121,8 +128,9 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
         except Exception as polaroid_e:
             print(f"[Polaroid] Avertissement: Impossible de créer la version Polaroid pour {os.path.basename(source_path)}: {polaroid_e}")
 
-        # Générer et sauvegarder la version Carte Postale (pour toutes les orientations).
-        # Le caption ne sera présent que pour les photos Telegram.
+        # Générer et sauvegarder la version Carte Postale.
+        # La légende (caption) est utilisée si elle est fournie (ex: depuis Immich ou Telegram).
+        # Si cette étape échoue, la photo principale sera quand même disponible.
         try:
             # --- Réduction de la taille de l'image pour la carte postale ---
             # On crée une copie plus petite de l'image de contenu pour s'assurer
@@ -148,7 +156,12 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
             postcard_dest_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_postcard.jpg")
             postcard_final_img.save(postcard_dest_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes_to_add)
         except Exception as postcard_e:
-            print(f"[Postcard] Avertissement: Impossible de créer la version Carte Postale pour {os.path.basename(source_path)}: {postcard_e}")
+            # Rendre l'erreur plus visible dans les logs pour le débogage.
+            # L'importation des autres photos continuera.
+            print(f"--- ERREUR CRÉATION CARTE POSTALE pour {os.path.basename(source_path)} ---")
+            print(f"Détails de l'erreur : {postcard_e}")
+            print("Vérifiez que les polices (static/fonts) et les timbres (static/stamps) sont présents et accessibles.")
+            print("--------------------------------------------------------------------")
 
         # 3. Sauvegarder l'image principale préparée (avec fond flou ou noir)
         img_to_save = final_img
@@ -200,6 +213,7 @@ def prepare_video(source_path, dest_path, output_width, output_height):
         raise Exception(f"Erreur lors du traitement de la vidéo '{os.path.basename(source_path)}' avec ffmpeg: {video_e}")
 
     # --- 2. Générer la vignette à partir de la vidéo source ---
+    thumbnail_path = None
     try:
         dest_path_obj = Path(dest_path)
         thumbnail_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_thumbnail.jpg")
@@ -213,51 +227,77 @@ def prepare_video(source_path, dest_path, output_width, output_height):
         # Ne pas bloquer tout le processus si la vignette échoue, juste afficher un avertissement.
         print(f"[Vignette] Avertissement: Impossible de créer la vignette pour {os.path.basename(source_path)}: {thumb_e}")
 
-def prepare_all_photos_with_progress(screen_width=None, screen_height=None, source_type="unknown"):
+def prepare_all_photos_with_progress(screen_width=None, screen_height=None, source_type="unknown", description_map=None):
     """Prépare les photos et retourne des objets structurés (dict) pour le suivi."""
+    
+    # S'assurer que description_map est un dictionnaire pour éviter les erreurs
+    if description_map is None:
+        description_map = {}
+
+    # --- NOUVEAU: Charger les textes saisis par l'utilisateur ---
+    user_text_map = {}
+    if USER_TEXT_MAP_CACHE_FILE.exists():
+        try:
+            with open(USER_TEXT_MAP_CACHE_FILE, 'r', encoding='utf-8') as f:
+                user_text_map = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            print(f"Avertissement: Impossible de charger le fichier de textes utilisateur {USER_TEXT_MAP_CACHE_FILE}")
+
     # Déterminer la résolution de sortie réelle, en utilisant les valeurs par défaut si non fournies
     actual_output_width = screen_width if screen_width is not None else DEFAULT_OUTPUT_WIDTH
     actual_output_height = screen_height if screen_height is not None else DEFAULT_OUTPUT_HEIGHT
-
+    
+    # --- NOUVEAU: Définir les chemins source et préparé dynamiquement ---
+    SOURCE_DIR_FOR_PREP = Path("static") / "photos" / source_type
     PREPARED_SOURCE_DIR = Path("static") / "prepared" / source_type
 
-    if not os.path.isdir(SOURCE_DIR):
-        yield {"type": "error", "message": f"Le dossier source '{SOURCE_DIR}' n'existe pas."}
+    if not SOURCE_DIR_FOR_PREP.is_dir():
+        yield {"type": "error", "message": f"Le dossier source '{SOURCE_DIR_FOR_PREP}' n'existe pas."}
         return
 
     PREPARED_SOURCE_DIR.mkdir(parents=True, exist_ok=True)
 
     # --- Nouvelle logique de synchronisation intelligente ---
 
-    # 1. Obtenir les noms de base des photos sources (sans extension)
-    source_files = {f: os.path.splitext(f)[0] for f in os.listdir(SOURCE_DIR) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif') + VIDEO_EXTENSIONS)}
+    # 1. Obtenir les noms de base des médias sources (sans extension)
+    source_files = {f: os.path.splitext(f)[0] for f in os.listdir(SOURCE_DIR_FOR_PREP) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif') + VIDEO_EXTENSIONS)}
     source_basenames = set(source_files.values())
 
-    # 2. Obtenir les noms de base des photos déjà préparées
-    prepared_basenames = {os.path.splitext(f.name)[0] for f in PREPARED_SOURCE_DIR.iterdir() if f.is_file() and f.suffix.lower() == '.jpg' and not f.name.endswith('_polaroid.jpg')}
+    # 2. Obtenir les noms de base des médias déjà préparés
+    # Cette logique est plus robuste car elle gère les images, les vidéos et leurs variantes (_polaroid, _thumbnail, etc.)
+    prepared_basenames = set()
+    if PREPARED_SOURCE_DIR.exists():
+        for f in PREPARED_SOURCE_DIR.iterdir():
+            if f.is_file():
+                # Enlève les suffixes connus pour obtenir le vrai nom de base.
+                # ex: 'photo1_polaroid' -> 'photo1', 'video1_thumbnail' -> 'video1', 'photo2' -> 'photo2'
+                base = re.sub(r'(_polaroid|_postcard|_thumbnail)$', '', f.stem)
+                prepared_basenames.add(base)
 
-    # 3. Déterminer les photos à supprimer (obsolètes)
-    # On ne supprime les photos obsolètes que pour les sources qui sont synchronisées (pas pour le smartphone qui est additif)
+    # 3. Déterminer les médias à supprimer (obsolètes)
+    # On ne supprime les médias obsolètes que pour les sources qui sont synchronisées (pas pour le smartphone qui est additif)
+    basenames_to_delete = set()
     if source_type != "smartphone":
         basenames_to_delete = prepared_basenames - source_basenames
-        if basenames_to_delete:
-            yield {"type": "progress", "stage": "CLEANING", "message": f"Suppression de {len(basenames_to_delete)} photos obsolètes..."}
-            for basename in basenames_to_delete:
-                prepared_photo_path = PREPARED_SOURCE_DIR / f"{basename}.jpg"
-                polaroid_photo_path = PREPARED_SOURCE_DIR / f"{basename}_polaroid.jpg"
-                backup_photo_path = PREPARED_SOURCE_DIR.parent.parent / '.backups' / source_type / f"{basename}.jpg"
-                
+    
+    if basenames_to_delete:
+        yield {"type": "progress", "stage": "CLEANING", "message": f"Suppression de {len(basenames_to_delete)} médias obsolètes..."}
+        for basename in basenames_to_delete:
+            # Supprimer tous les fichiers associés à ce nom de base dans le dossier préparé
+            for file_to_delete in PREPARED_SOURCE_DIR.glob(f"{basename}*"):
                 try:
-                    if prepared_photo_path.is_file():
-                        prepared_photo_path.unlink()
-                    if polaroid_photo_path.is_file():
-                        polaroid_photo_path.unlink()
-                    if backup_photo_path.is_file():
-                        backup_photo_path.unlink()
+                    if file_to_delete.is_file():
+                        file_to_delete.unlink()
                 except OSError as e:
-                    yield {"type": "warning", "message": f"Impossible de supprimer {basename}.jpg : {e}"}
+                    yield {"type": "warning", "message": f"Impossible de supprimer {file_to_delete.name} : {e}"}
 
-    # 4. Déterminer les photos à préparer (nouvelles)
+            # Nettoyer également la sauvegarde correspondante
+            backup_dir = PREPARED_SOURCE_DIR.parent.parent / '.backups' / source_type
+            if backup_dir.exists():
+                for backup_file_to_delete in backup_dir.glob(f"{basename}*"):
+                    if backup_file_to_delete.is_file(): backup_file_to_delete.unlink()
+
+    # 4. Déterminer les médias à préparer (nouveaux)
     basenames_to_prepare = source_basenames - prepared_basenames
     files_to_prepare = [f for f, basename in source_files.items() if basename in basenames_to_prepare]
     
@@ -271,7 +311,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
 
     for i, filename in enumerate(files_to_prepare, start=1):
-        src_path = os.path.join(SOURCE_DIR, filename)
+        src_path = os.path.join(SOURCE_DIR_FOR_PREP, filename)
         
         try:
             base_name, extension = os.path.splitext(filename)
@@ -286,7 +326,19 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
                 # C'est une image
                 dest_filename = f"{base_name}.jpg"
                 dest_path = PREPARED_SOURCE_DIR / dest_filename
-                prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height, source_type=source_type)
+                
+                # --- MODIFIÉ: Logique de priorité pour la légende ---
+                # La clé est le chemin relatif depuis 'prepared', ex: 'immich/photo.jpg'
+                relative_path_key = f"{source_type}/{dest_filename}"
+                
+                # Priorité 1: Texte de l'utilisateur
+                caption = user_text_map.get(relative_path_key)
+                
+                # Priorité 2: Description d'Immich (si aucun texte utilisateur)
+                if caption is None:
+                    caption = description_map.get(filename)
+
+                prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height, source_type=source_type, caption=caption)
                 message_type = "photo"
 
             percent = int((i / total) * 100)
