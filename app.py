@@ -11,6 +11,7 @@ import requests
 import threading
 import logging
 import asyncio
+import collections
 import shutil
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -22,12 +23,13 @@ import traceback
 
 from utils.download_album import download_and_extract_album
 from utils.auth import login_required
-from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow
-from utils.slideshow_manager import HDMI_OUTPUT # Pour la détection de résolution
+from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow, PID_FILE
+from utils.slideshow_manager import HDMI_OUTPUT, get_display_output_name # Pour la détection de résolution
 from utils.config_manager import load_config, save_config
+from utils.playlist_manager import load_playlists, save_playlists
 from utils.auth_manager import change_password
 from utils.network_manager import get_interface_status, set_interface_state
-from utils.wifi_manager import set_wifi_config, get_wifi_status # Import the new utility
+from utils.wifi_manager import set_wifi_config # Import the new utility
 from utils.prepare_all_photos import prepare_all_photos_with_progress
 from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
 from utils.import_samba import import_samba_photos
@@ -120,6 +122,15 @@ class WorkerStatus:
 immich_status_manager = WorkerStatus()
 samba_status_manager = WorkerStatus()
 telegram_status_manager = WorkerStatus()
+
+# Historique pour le graphique de température CPU (conserve les 60 dernières mesures)
+cpu_temp_history = collections.deque(maxlen=60)
+# NOUVEAU: Historique pour le graphique d'utilisation CPU
+cpu_usage_history = collections.deque(maxlen=60)
+# NOUVEAU: Historique pour le graphique d'utilisation RAM
+ram_usage_history = collections.deque(maxlen=60)
+# NOUVEAU: Historique pour le graphique d'utilisation Disque
+disk_usage_history = collections.deque(maxlen=60)
 
 def get_screen_resolution():
     """
@@ -1621,6 +1632,250 @@ def restart_app():
     flash(_("L'application web redémarre... La page sera inaccessible pendant quelques instants."), "success")
     return redirect(url_for('configure'))
 
+@app.route('/api/playlists/play', methods=['POST'])
+@login_required
+def play_playlist():
+    """Lance le diaporama avec une playlist personnalisée."""
+    data = request.get_json()
+    playlist_id = data.get('id')
+    if not playlist_id:
+        return jsonify({"success": False, "message": "ID de la playlist manquant."}), 400
+
+    playlists = load_playlists()
+    target_playlist = next((p for p in playlists if p.get('id') == playlist_id), None)
+
+    if not target_playlist:
+        return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
+
+    photo_paths = target_playlist.get('photos', [])
+    if not photo_paths:
+        return jsonify({"success": False, "message": "La playlist est vide."})
+
+    # Écrire la liste des photos dans le fichier temporaire que le diaporama lira
+    custom_playlist_file = "/tmp/pimmich_custom_playlist.json"
+    try:
+        with open(custom_playlist_file, 'w') as f:
+            json.dump(photo_paths, f)
+    except IOError as e:
+        return jsonify({"success": False, "message": f"Impossible d'écrire le fichier de playlist temporaire : {e}"}), 500
+
+    # Arrêter et redémarrer le diaporama pour qu'il prenne en compte la playlist
+    if is_slideshow_running():
+        stop_slideshow()
+        time.sleep(1) # Laisser le temps au processus de s'arrêter
+    start_slideshow()
+
+    return jsonify({"success": True, "message": _("Lancement de la playlist '%(name)s'...", name=target_playlist['name'])})
+
+# --- API pour la gestion des Playlists ---
+
+@app.route('/api/playlists', methods=['GET'])
+@login_required
+def get_playlists():
+    """Retourne la liste de toutes les playlists."""
+    playlists = load_playlists()
+    return jsonify(playlists)
+
+@app.route('/api/playlists', methods=['POST'])
+@login_required
+def create_playlist():
+    """Crée une nouvelle playlist."""
+    data = request.get_json()
+    name = data.get('name')
+    if not name or not name.strip():
+        return jsonify({"success": False, "message": "Le nom de la playlist est requis."}), 400
+
+    playlists = load_playlists()
+    
+    # Vérifier si une playlist avec le même nom existe déjà
+    if any(p['name'].lower() == name.strip().lower() for p in playlists):
+        return jsonify({"success": False, "message": "Une playlist avec ce nom existe déjà."}), 409
+
+    new_playlist = {
+        "id": secrets.token_hex(8),
+        "name": name.strip(),
+        "photos": []
+    }
+    playlists.append(new_playlist)
+    save_playlists(playlists)
+    return jsonify({"success": True, "playlist": new_playlist}), 201
+
+@app.route('/api/playlists/<playlist_id>', methods=['DELETE'])
+@login_required
+def delete_playlist(playlist_id):
+    """Supprime une playlist."""
+    playlists = load_playlists()
+    playlists = [p for p in playlists if p.get('id') != playlist_id]
+    save_playlists(playlists)
+    return jsonify({"success": True})
+
+@app.route('/api/playlists/<playlist_id>/rename', methods=['POST'])
+@login_required
+def rename_playlist(playlist_id):
+    """Renomme une playlist."""
+    data = request.get_json()
+    new_name = data.get('name')
+    if not new_name or not new_name.strip():
+        return jsonify({"success": False, "message": "Le nouveau nom ne peut pas être vide."}), 400
+
+    playlists = load_playlists()
+    
+    if any(p['name'].lower() == new_name.strip().lower() and p.get('id') != playlist_id for p in playlists):
+        return jsonify({"success": False, "message": "Une autre playlist avec ce nom existe déjà."}), 409
+
+    found = False
+    for playlist in playlists:
+        if playlist.get('id') == playlist_id:
+            playlist['name'] = new_name.strip()
+            found = True
+            break
+    
+    save_playlists(playlists)
+    return jsonify({"success": True, "message": "Playlist renommée."})
+
+@app.route('/api/playlists/<playlist_id>/photos', methods=['POST'])
+@login_required
+def add_photo_to_playlist(playlist_id):
+    """Ajoute une photo à une playlist."""
+    data = request.get_json()
+    photo_path = data.get('photo_path')
+    if not photo_path:
+        return jsonify({"success": False, "message": "Chemin de la photo manquant."}), 400
+
+    playlists = load_playlists()
+    for playlist in playlists:
+        if playlist.get('id') == playlist_id:
+            if photo_path not in playlist['photos']:
+                playlist['photos'].append(photo_path)
+            save_playlists(playlists)
+            return jsonify({"success": True})
+    return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
+
+@app.route('/api/playlists/<playlist_id>/photos/<path:photo_path>', methods=['DELETE'])
+@login_required
+def remove_photo_from_playlist(playlist_id, photo_path):
+    """Retire une photo d'une playlist."""
+    playlists = load_playlists()
+    for playlist in playlists:
+        if playlist.get('id') == playlist_id:
+            if photo_path in playlist['photos']:
+                playlist['photos'].remove(photo_path)
+            save_playlists(playlists)
+            return jsonify({"success": True})
+    return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
+
+
+def _send_slideshow_signal(sig):
+    """Helper function to send a signal to the slideshow process."""
+    if not is_slideshow_running():
+        return jsonify({"success": False, "message": "Le diaporama n'est pas en cours."}), 404
+    try:
+        with open(PID_FILE, "r") as f:
+            pid = int(f.read())
+        os.kill(pid, sig)
+        return jsonify({"success": True})
+    except (FileNotFoundError, ValueError, ProcessLookupError) as e:
+        return jsonify({"success": False, "message": f"Impossible de communiquer avec le diaporama : {e}"}), 500
+
+@app.route('/api/slideshow/next', methods=['POST'])
+@login_required
+def slideshow_next():
+    return _send_slideshow_signal(signal.SIGUSR1)
+
+@app.route('/api/slideshow/previous', methods=['POST'])
+@login_required
+def slideshow_previous():
+    return _send_slideshow_signal(signal.SIGUSR2)
+
+@app.route('/api/slideshow/toggle_pause', methods=['POST'])
+@login_required
+def slideshow_toggle_pause():
+    return _send_slideshow_signal(signal.SIGTSTP)
+
+@app.route('/api/slideshow/status')
+@login_required
+def slideshow_status():
+    if not is_slideshow_running():
+        return jsonify({"running": False, "paused": False})
+    try:
+        with open("/tmp/pimmich_slideshow_status.json", "r") as f:
+            status = json.load(f)
+        return jsonify({"running": True, **status})
+    except (FileNotFoundError, json.JSONDecodeError):
+        return jsonify({"running": True, "paused": False}) # Assume not paused if file is missing
+
+@app.route('/api/get_available_resolutions')
+@login_required
+def get_available_resolutions():
+    """
+    Récupère les résolutions disponibles pour la sortie d'affichage principale.
+    """
+    try:
+        output_name = get_display_output_name()
+        if not output_name:
+            return jsonify({"success": False, "message": "Aucune sortie d'affichage principale trouvée."})
+
+        result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True, env=os.environ)
+        outputs = json.loads(result.stdout)
+
+        resolutions = []
+        for output in outputs:
+            if output.get('name') == output_name and 'modes' in output:
+                for mode in output['modes']:
+                    resolutions.append({
+                        "width": mode['width'],
+                        "height": mode['height'],
+                        "refresh": mode['refresh'] / 1000, # Convertir de mHz à Hz
+                        "text": f"{mode['width']}x{mode['height']} @ {mode['refresh']/1000:.2f}Hz"
+                    })
+                # Inverser pour avoir les plus hautes résolutions en premier
+                resolutions.reverse()
+                return jsonify({"success": True, "resolutions": resolutions})
+
+        return jsonify({"success": False, "message": "Aucun mode trouvé pour la sortie principale."})
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur lors de la récupération des résolutions : {e}"})
+
+@app.route('/api/set_resolution', methods=['POST'])
+@login_required
+def set_resolution():
+    """
+    Applique une nouvelle résolution à l'écran et la sauvegarde dans la configuration.
+    """
+    data = request.get_json()
+    width = data.get('width')
+    height = data.get('height')
+
+    if not width or not height:
+        return jsonify({"success": False, "message": "Largeur et hauteur requises."}), 400
+
+    try:
+        output_name = get_display_output_name()
+        if not output_name:
+            return jsonify({"success": False, "message": "Aucune sortie d'affichage à configurer."})
+
+        # Appliquer la résolution via swaymsg
+        subprocess.run(['swaymsg', 'output', output_name, 'resolution', f'{width}x{height}'], check=True)
+
+        # Sauvegarder dans la configuration pour la persistance
+        config = load_config()
+        config['display_width'] = int(width)
+        config['display_height'] = int(height)
+        save_config(config)
+
+        # Redémarrer le diaporama pour qu'il prenne en compte la nouvelle résolution
+        if is_slideshow_running():
+            stop_slideshow()
+            start_slideshow()
+            message = _("Résolution appliquée : %(width)sx%(height)s. Le diaporama a été redémarré.", width=width, height=height)
+        else:
+            message = _("Résolution appliquée : %(width)sx%(height)s. Le diaporama n'était pas en cours.", width=width, height=height)
+
+        return jsonify({"success": True, "message": message})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur lors de l'application de la résolution : {e}"}), 500
+
 @app.route('/get_current_resolution')
 @login_required
 def get_current_resolution_route():
@@ -1681,6 +1936,38 @@ def save_wifi_settings():
     except Exception as e:
         flash(_("Erreur lors de l'application des paramètres Wi-Fi : %(error)s", error=e), "danger")
     return redirect(url_for('configure'))
+
+def get_wifi_status():
+    """
+    Récupère l'état de la connexion Wi-Fi de manière optimisée en un seul appel à nmcli.
+    Cette fonction est plus robuste et rapide que de multiples appels à des commandes différentes.
+    """
+    interface = "wlan0" # On assume que wlan0 est l'interface Wi-Fi
+    try:
+        # Commande optimisée pour récupérer toutes les infos en une fois, de manière concise (-t)
+        cmd = ['nmcli', '-t', '-f', 'GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS', 'dev', 'show', interface]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=5)
+        
+        output_map = {}
+        for line in result.stdout.strip().split('\n'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                output_map[key] = value
+
+        state_code_str = output_map.get('GENERAL.STATE', '0').split(' ')[0]
+        state_code = int(state_code_str) if state_code_str.isdigit() else 0
+        is_connected = (state_code == 100)
+        
+        if is_connected:
+            ssid = output_map.get('GENERAL.CONNECTION', 'Inconnu')
+            ip_address = output_map.get('IP4.ADDRESS[1]', 'N/A').split('/')[0]
+            return {"is_connected": True, "ssid": ssid, "ip_address": ip_address}
+        else:
+            return {"is_connected": False, "ssid": "Non connecté", "ip_address": "N/A"}
+
+    except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired, IndexError, ValueError) as e:
+        print(f"Erreur lors de la récupération du statut Wi-Fi : {e}")
+        return {"is_connected": False, "ssid": "Erreur", "ip_address": "N/A"}
 
 @app.route('/api/wifi_status')
 @login_required
@@ -1787,49 +2074,88 @@ def restore_settings_api():
     
     return redirect(url_for('configure'))
 
+def get_cpu_temperature():
+    """
+    Tente de récupérer la température du CPU en utilisant plusieurs méthodes.
+    Retourne la température formatée ou "N/A" en cas d'échec.
+    """
+    # Méthode 1: vcgencmd (spécifique au Raspberry Pi)
+    try:
+        temp_output = subprocess.check_output(['vcgencmd', 'measure_temp']).decode('utf-8')
+        match = re.search(r"temp=([\d\.]*)'C", temp_output)
+        if match:
+            return float(match.group(1))
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass  # Si la commande échoue, on passe à la méthode suivante
+
+    # Méthode 2: sysfs thermal_zone0 (Linux générique)
+    try:
+        with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+            temp_raw = int(f.read())
+            return temp_raw / 1000.0
+    except (FileNotFoundError, ValueError):
+        pass # Si le fichier n'existe pas ou est invalide, on passe à la suite
+
+    return None # Valeur par défaut si toutes les méthodes échouent
+
 @app.route('/api/system_info')
 @login_required
 def get_system_info_api():
     """Retourne les informations système (température, CPU, RAM, stockage) en JSON."""
     try:
+        # Obtenir l'heure une seule fois pour les deux mesures
+        current_time_str = datetime.now().strftime("%H:%M:%S")
+
         # Température CPU
-        cpu_temp = "N/A"
-        try:
-            # Essai avec vcgencmd (spécifique Raspberry Pi)
-            temp_output = subprocess.check_output(['vcgencmd', 'measure_temp']).decode('utf-8')
-            match = re.search(r"temp=(\d+\.?\d*)'C", temp_output)
-            if match:
-                cpu_temp = f"{float(match.group(1)):.1f}°C"
-            else:
-                # Fallback pour les systèmes Linux génériques
-                with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
-                    temp_raw = int(f.read())
-                    cpu_temp = f"{temp_raw / 1000:.1f}°C"
-        except Exception:
-            try: # Second fallback if first generic fails
-                with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
-                    temp_raw = int(f.read())
-                    cpu_temp = f"{temp_raw / 1000:.1f}°C"
-            except Exception:
-                pass # Keep N/A
+        current_temp_float = get_cpu_temperature()
+        
+        # Ajouter la mesure à l'historique si elle est valide
+        if current_temp_float is not None:
+            cpu_temp_history.append({
+                "time": current_time_str,
+                "temp": current_temp_float
+            })
+            cpu_temp_str = f"{current_temp_float:.1f}°C"
+        else:
+            cpu_temp_str = "N/A"
 
         # Utilisation CPU
-        cpu_usage = f"{psutil.cpu_percent(interval=0.1)}%" # Short interval for quick snapshot
+        # interval=None le rend non-bloquant et compare à l'appel précédent. Idéal pour le polling.
+        current_cpu_usage_float = psutil.cpu_percent(interval=None)
+        cpu_usage_history.append({
+            "time": current_time_str,
+            "usage": current_cpu_usage_float
+        })
+        cpu_usage_str = f"{current_cpu_usage_float}%"
 
         # Utilisation RAM
         ram = psutil.virtual_memory()
-        ram_usage = f"{ram.percent}% ({ram.used / (1024**3):.1f}GB / {ram.total / (1024**3):.1f}GB)"
+        ram_usage_percent_float = ram.percent
+        ram_usage_history.append({
+            "time": current_time_str,
+            "usage": ram_usage_percent_float
+        })
+        ram_usage_str = f"{ram.percent}% ({ram.used / (1024**3):.1f}GB / {ram.total / (1024**3):.1f}GB)"
 
         # Utilisation Disque
         disk = psutil.disk_usage('/')
-        disk_usage = f"{disk.percent}% ({disk.used / (1024**3):.1f}GB / {disk.total / (1024**3):.1f}GB)"
+        disk_usage_percent_float = disk.percent
+        disk_usage_history.append({
+            "time": current_time_str,
+            "usage": disk_usage_percent_float
+        })
+        disk_usage_str = f"{disk.percent}% ({disk.used / (1024**3):.1f}GB / {disk.total / (1024**3):.1f}GB)"
 
         return jsonify({
             "success": True,
-            "cpu_temp": cpu_temp,
-            "cpu_usage": cpu_usage,
-            "ram_usage": ram_usage,
-            "disk_usage": disk_usage
+            "cpu_temp": cpu_temp_str,
+            "cpu_usage": cpu_usage_str,
+            "ram_usage": ram_usage_str,
+            "disk_usage": disk_usage_str,
+            "cpu_temp_history": list(cpu_temp_history),
+            "cpu_usage_history": list(cpu_usage_history),
+            "ram_usage_history": list(ram_usage_history),
+            "disk_usage_history": list(disk_usage_history) # Ajouter l'historique pour le graphique
         })
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
@@ -1851,11 +2177,15 @@ def get_logs_api():
         return jsonify({"success": False, "message": "Type de log invalide."})
 
     try:
-        with open(log_file_path, 'r') as f:
-            content = f.read()
+        with open(log_file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            # Lire seulement les 500 dernières lignes pour améliorer les performances
+            # sur les fichiers de log volumineux, ce qui rend l'interface plus réactive.
+            lines = f.readlines()
+            content = "".join(lines[-500:])
         return jsonify({"success": True, "content": content})
     except FileNotFoundError:
-        return jsonify({"success": False, "message": f"Fichier de log '{log_file_path}' non trouvé."})
+        # C'est un cas normal si le log n'a pas encore été créé. On retourne un contenu vide.
+        return jsonify({"success": True, "content": ""})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
@@ -1952,6 +2282,57 @@ def update_app():
             yield stream_event({"type": "error", "message": f"La mise à jour a échoué. Le script a retourné le code d'erreur {return_code}."})
 
     return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
+
+@app.route('/api/expand_filesystem', methods=['POST'])
+@login_required
+def expand_filesystem():
+    """
+    Lance le script qui étend le système de fichiers racine.
+    """
+    @stream_with_context
+    def generate():
+        def stream_event(data):
+            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+        script_path = Path(app.root_path) / 'utils' / 'expand_filesystem.sh'
+
+        if not script_path.exists():
+            yield stream_event({"type": "error", "message": "Le script 'utils/expand_filesystem.sh' est introuvable."})
+            return
+
+        try:
+            os.chmod(script_path, 0o755)
+        except OSError as e:
+            yield stream_event({"type": "error", "message": f"Impossible de rendre le script exécutable : {e}"})
+            return
+
+        command = ['/bin/bash', str(script_path)]
+
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            universal_newlines=True,
+            encoding='utf-8'
+        )
+
+        for line in iter(process.stdout.readline, ''):
+            line = line.strip()
+            if not line: continue
+
+            parts = line.split(':', 2)
+            if len(parts) == 3:
+                yield stream_event({"type": parts[0], "stage": parts[1], "message": parts[2]})
+            else:
+                yield stream_event({"type": "raw", "message": line})
+
+        process.stdout.close()
+        process.wait()
+
+    return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
+
 
 @app.route('/api/tide_info')
 @login_required

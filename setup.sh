@@ -118,12 +118,13 @@ mkdir -p cache
 mkdir -p static/photos
 mkdir -p static/prepared
 mkdir -p static/pending_uploads
+mkdir -p config
 echo "✅ Arborescence des dossiers créée."
 
 # Corriger les permissions même si script lancé avec sudo
 REAL_USER=$(logname)
-sudo chown -R "$REAL_USER:$REAL_USER" static logs cache
-chmod -R u+rwX static logs cache
+sudo chown -R "$REAL_USER:$REAL_USER" static logs cache config
+chmod -R u+rwX static logs cache config
 
 echo "=== [8/12] Création du fichier d'identification sécurisé ==="
 CREDENTIALS_FILE="/boot/firmware/credentials.json"

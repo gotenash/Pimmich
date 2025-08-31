@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
     <!-- Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Amélioration pour le défilement des onglets sur mobile */
         .tabs::-webkit-scrollbar {
@@ -84,6 +86,7 @@
   <button class="tablink" onclick="openTab(event, 'tab-sources')">{{ _('Sources') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-telegram')">{{ _('Telegram') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-apercu')">{{ _('Aperçu') }}</button>
+  <button class="tablink" onclick="openTab(event, 'tab-playlists')">{{ _('Playlists') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-favoris')">{{ _('Favoris') }} <span id="favorites-count-badge" class="hidden bg-yellow-400 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
   <button class="tablink" onclick="openTab(event, 'tab-actions')">{{ _('Actions') }}</button>
   <button class="tablink" onclick="openTab(event, 'tab-validation')">{{ _('Validation') }} <span id="pending-count-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
@@ -104,6 +107,18 @@
 
         <label for="active_end">{{ _("Heure de fin d'activité (HH:MM) :") }}</label>
         <input type="time" id="active_end" name="active_end" value="{{ config.active_end }}">
+
+        <div class="mt-4 pt-4 border-t">
+            <label for="resolution-selector" class="block text-sm font-medium text-gray-700">{{ _("Résolution de l'écran") }}</label>
+            <div class="flex items-center gap-2 mt-1">
+                <select id="resolution-selector" class="flex-grow block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option>{{ _("Chargement des résolutions...") }}</option>
+                </select>
+                <button type="button" id="apply-resolution-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm">{{ _("Appliquer") }}</button>
+            </div>
+            <span id="resolution-status" class="text-sm mt-2"></span>
+            <p class="text-xs text-gray-500 mt-1">{{ _("Force une résolution spécifique. Utile si l'écran n'est pas détecté correctement au démarrage.") }}</p>
+        </div>
 
         <label for="screen_height_percent">{{ _("Hauteur utile de l'écran (%% affiché) :") }}</label>
         <input type="number" id="screen_height_percent" name="screen_height_percent" min="10" max="100" value="{{ config.screen_height_percent }}">
@@ -611,6 +626,17 @@
                     {% endif %}
                 </button>
             </form>
+            <div class="flex justify-center items-center gap-4 mt-4">
+                <button type="button" id="slideshow-prev-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center" title="{{ _('Photo précédente') }}">
+                    <i class="fas fa-backward fa-lg"></i>
+                </button>
+                <button type="button" id="slideshow-pause-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-20 h-20 flex items-center justify-center" title="{{ _('Pause/Lecture') }}">
+                    <i id="slideshow-pause-icon" class="fas fa-pause fa-2x"></i>
+                </button>
+                <button type="button" id="slideshow-next-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center" title="{{ _('Photo suivante') }}">
+                    <i class="fas fa-forward fa-lg"></i>
+                </button>
+            </div>
         </div>
 
         <div class="action-group">
@@ -805,9 +831,13 @@
                                         <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                                     </select>
                                     <div class="flex justify-end w-full gap-x-2">
+                                        <button type="button" class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i class="fas fa-list-ul"></i></button>
                                         <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
                                         <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
                                     </div>
+                                </div>
+                                <div class="add-to-playlist-menu hidden absolute bg-white border rounded shadow-lg p-2 z-20" style="bottom: 20px; right: 20px;">
+                                    <!-- Le menu des playlists sera injecté ici -->
                                 </div>
                                 <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
                                     <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
@@ -823,6 +853,32 @@
         {% else %}
             <p class="text-center text-gray-500 italic mt-4">{{ _("Aucune photo préparée n'a été trouvée. Veuillez en importer depuis l'onglet \"Actions\".") }}</p>
         {% endif %}
+    </fieldset>
+</div>
+
+<div id="tab-playlists" class="tabcontent">
+    <fieldset>
+        <legend><h3>{{ _("Gestion des Playlists") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Créez des albums virtuels (playlists) en sélectionnant des photos de n'importe quelle source. Vous pouvez ensuite lancer un diaporama contenant uniquement les photos d'une playlist.") }}</p>
+
+        <!-- Formulaire de création -->
+        <div class="p-4 border rounded-lg bg-gray-50/50 mb-6">
+            <h4 class="font-semibold text-gray-800 mb-2">{{ _("Créer une nouvelle playlist") }}</h4>
+            <div class="flex items-center gap-4">
+                <input type="text" id="new-playlist-name" class="flex-grow rounded-md border-gray-300 shadow-sm" placeholder="{{ _('Nom de la playlist (ex: Vacances 2024)') }}">
+                <button type="button" id="create-playlist-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                    <i class="fas fa-plus mr-2"></i>{{ _("Créer") }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Liste des playlists -->
+        <div>
+            <h4 class="font-semibold text-gray-800 mb-2">{{ _("Vos Playlists") }}</h4>
+            <div id="playlists-list-container" class="space-y-4">
+                <!-- Les playlists seront chargées ici par JavaScript -->
+            </div>
+        </div>
     </fieldset>
 </div>
 
@@ -889,10 +945,14 @@
                                 <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                             </select>
                             <div class="flex justify-end w-full gap-x-2">
+                                        <button type="button" class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i class="fas fa-list-ul"></i></button>
                                 <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
                                 <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
+                                <div class="add-to-playlist-menu hidden absolute bg-white border rounded shadow-lg p-2 z-20" style="bottom: 20px; right: 20px;">
+                                    <!-- Le menu des playlists sera injecté ici -->
+                                </div>
                         <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
                             <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
                             <span class="generic-text-status text-xs text-gray-500 ml-1"></span>
@@ -1035,6 +1095,18 @@
     </fieldset>
 
     <fieldset class="mt-6">
+        <legend><h3>{{ _("Système de Fichiers de la Carte SD") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Si vous avez flashé Pimmich sur une carte SD plus grande que l'image, utilisez cette option pour étendre la partition et utiliser tout l'espace disponible. Un redémarrage du système sera nécessaire pour finaliser l'opération.") }}</p>
+        <div class="p-4 border-l-4 border-blue-400 bg-blue-50 text-blue-700 mb-4">
+            <p><strong>{{ _("Note :") }}</strong> {{ _("Cette opération est sûre et ne supprime aucune donnée. Elle prépare simplement le système à s'étendre au prochain démarrage.") }}</p>
+        </div>
+        <button type="button" id="expand-fs-btn" class="system-button bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-expand-arrows-alt mr-2"></i>{{ _("Étendre le système de fichiers") }}
+        </button>
+        <div id="expand-fs-status" class="status-messages mt-2"></div>
+    </fieldset>
+
+    <fieldset class="mt-6">
         <legend><h3>{{ _("Contrôle du système") }}</h3></legend>
         <form method="POST" action="/restart_app" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir redémarrer UNIQUEMENT l\'application web ? Le système d\'exploitation ne sera pas redémarré.') }}');">
             <button type="submit" class="system-button bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
@@ -1067,6 +1139,24 @@
             </div>
             <div class="p-3 bg-gray-100 rounded-lg border">
                 <strong>{{ _("Stockage:") }}</strong> <span id="disk-usage">{{ _("Chargement...") }}</span>
+            </div>
+        </div>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Température CPU (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="cpuTempChart"></canvas></div>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Utilisation CPU (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="cpuUsageChart"></canvas></div>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Utilisation RAM (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="ramUsageChart"></canvas></div>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Utilisation Disque (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="diskUsageChart"></canvas></div>
             </div>
         </div>
     </fieldset>
@@ -1146,11 +1236,24 @@
   i18n.botUsernameError = "{{ _('Le nom d\'utilisateur du bot n\'a pas pu être récupéré.') }}";
   i18n.copyLink = "{{ _('Copier le lien') }}";
   i18n.copyFailed = "{{ _('La copie a échoué.') }}";
+  // Ajout pour les playlists
+  i18n.photo = "{{ _('photo') }}";
+  i18n.photos = "{{ _('photos') }}";
+  i18n.noPlaylists = "{{ _('Aucune playlist créée pour le moment.') }}";
+  i18n.errorLoadingPlaylists = "{{ _('Erreur lors du chargement des playlists.') }}";
+  i18n.launch = "{{ _('Lancer') }}";
+  i18n.deletePlaylist = "{{ _('Supprimer la playlist') }}";
+  i18n.renamePlaylist = "{{ _('Renommer la playlist') }}";
+  i18n.enterNewName = "{{ _('Entrez le nouveau nom pour la playlist :') }}";
 
   // ----- GESTION DE LA VALIDATION (Fonctions globales) -----
   // On définit ces fonctions ici pour qu'elles soient accessibles partout et éviter les erreurs de chargement.
 
   async function refreshValidationTab() {
+      // ... (code existant, pas de changement ici)
+  }
+
+  async function handlePendingAction(filename, action) {
       const grid = document.getElementById('pending-photos-grid');
       const badge = document.getElementById('pending-count-badge');
       const validationTab = document.getElementById('tab-validation');
@@ -1203,21 +1306,6 @@
       }
   }
 
-  async function handlePendingAction(filename, action) {
-      const tile = document.querySelector(`.photo-tile[data-filename="${filename}"]`);
-      if (tile) tile.style.opacity = '0.5';
-
-      try {
-          const response = await fetch('/api/manage_pending_photo', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ filename, action })
-          });
-          const result = await response.json();
-          if (result.success) refreshValidationTab();
-          else { alert(`Erreur: ${result.message}`); if (tile) tile.style.opacity = '1'; }
-      } catch (error) { alert("Erreur de communication."); if (tile) tile.style.opacity = '1'; }
-  }
 </script>
 <script>
 
@@ -1385,6 +1473,73 @@ async function fetchTelegramBotStatus() {
     }
 }
 
+async function renderPlaylists() {
+    const playlistsContainer = document.getElementById('playlists-list-container');
+    if (!playlistsContainer) return;
+    playlistsContainer.innerHTML = `<p class="text-gray-500 italic">${i18n.loading}</p>`;
+
+    try {
+        const response = await fetch('/api/playlists');
+        const playlists = await response.json();
+        
+        playlistsContainer.innerHTML = '';
+        if (playlists.length === 0) {
+            playlistsContainer.innerHTML = `<p class="text-gray-500 italic">${i18n.noPlaylists}</p>`;
+        }
+
+        playlists.forEach(playlist => {
+            const photoCount = playlist.photos.length;
+            const photoCountText = photoCount !== 1 ? `${photoCount} ${i18n.photos}` : `1 ${i18n.photo}`;
+
+            const playlistEl = document.createElement('div');
+            playlistEl.className = 'playlist-card p-4 bg-white border rounded-lg shadow-sm';
+            playlistEl.dataset.id = playlist.id;
+
+            let photosHtml = `<p class="text-sm italic text-gray-500 col-span-full">${i18n.noPhotosInPlaylist || 'Cette playlist est vide.'}</p>`;
+            if (playlist.photos.length > 0) {
+                photosHtml = playlist.photos.map(photoPath => {
+                    const thumbUrl = `/static/prepared/${photoPath}?v=${new Date().getTime()}`;
+                    return `
+                        <div class="photo-tile relative" data-photo-path="${photoPath}">
+                            <img src="${thumbUrl}" class="w-24 h-24 object-cover rounded shadow bg-gray-200">
+                            <button class="remove-from-playlist-btn absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-800 transition-colors" title="{{ _('Retirer de la playlist') }}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            playlistEl.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="flex-grow cursor-pointer playlist-title-toggle" title="{{ _('Afficher/Cacher les photos') }}">
+                        <h5 class="text-lg font-semibold text-gray-900">${playlist.name}</h5>
+                        <p class="text-sm text-gray-500" id="photo-count-${playlist.id}">${photoCountText}</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button class="rename-playlist-btn text-gray-500 hover:text-blue-600" data-id="${playlist.id}" title="${i18n.renamePlaylist}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="start-playlist-btn bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded inline-flex items-center" data-id="${playlist.id}">
+                            <i class="fas fa-play mr-2"></i>${i18n.launch}
+                        </button>
+                        <button class="delete-playlist-btn text-red-500 hover:text-red-700" data-id="${playlist.id}" title="${i18n.deletePlaylist}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <i class="fas fa-chevron-down text-gray-400 playlist-chevron"></i>
+                    </div>
+                </div>
+                <div id="photos-container-${playlist.id}" class="hidden mt-4 photo-grid border-t pt-4">
+                    ${photosHtml}
+                </div>
+            `;
+            playlistsContainer.appendChild(playlistEl);
+        });
+    } catch (error) {
+        playlistsContainer.innerHTML = `<p class="text-red-500">${i18n.errorLoadingPlaylists}</p>`;
+    }
+}
+
 function openTab(evt, tabId) {
     // Si on clique sur l'onglet Favoris et qu'il n'est pas déjà actif, on recharge la page
     // pour s'assurer que la liste des favoris est à jour.
@@ -1419,7 +1574,7 @@ function openTab(evt, tabId) {
 
     // Gérer la visibilité du bouton "Enregistrer"
     const saveButton = document.getElementById('save-changes-btn');
-    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system', 'tab-validation', 'tab-favoris'];
+    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system', 'tab-validation', 'tab-favoris', 'tab-playlists'];
     if (tabId === 'tab-validation') {
         refreshValidationTab(); // On rafraîchit la grille et le badge
     }
@@ -1431,6 +1586,10 @@ function openTab(evt, tabId) {
     if (tabId === 'tab-telegram') {
         fetchTelegramBotStatus();
         loadInvitations();
+    }
+
+    if (tabId === 'tab-playlists') {
+        renderPlaylists();
     }
 }
 
@@ -1740,6 +1899,171 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll('.generic-text-input').forEach(input => {
         input.addEventListener('input', debounce(handleGenericTextInput, 1000));
+    });
+
+    // --- GESTION DES PLAYLISTS ---
+    const playlistsContainer = document.getElementById('playlists-list-container');
+    const createPlaylistBtn = document.getElementById('create-playlist-btn');
+    const newPlaylistNameInput = document.getElementById('new-playlist-name');
+
+    if (createPlaylistBtn) {
+        createPlaylistBtn.addEventListener('click', async () => {
+            const name = newPlaylistNameInput.value.trim();
+            if (!name) {
+                alert("{{ _('Veuillez entrer un nom pour la playlist.') }}");
+                return;
+            }
+            try {
+                const response = await fetch('/api/playlists', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    newPlaylistNameInput.value = '';
+                    renderPlaylists();
+                } else {
+                    alert(`{{ _("Erreur :") }} ${result.message}`);
+                }
+            } catch (e) { alert("{{ _('Erreur de communication.') }}"); }
+        });
+    }
+
+    if (playlistsContainer) {
+        playlistsContainer.addEventListener('click', async (event) => {
+            const deleteBtn = event.target.closest('.delete-playlist-btn');
+            const renameBtn = event.target.closest('.rename-playlist-btn');
+            const toggleBtn = event.target.closest('.playlist-title-toggle');
+            const removePhotoBtn = event.target.closest('.remove-from-playlist-btn');
+            const startBtn = event.target.closest('.start-playlist-btn');
+
+            if (deleteBtn) {
+                const playlistId = deleteBtn.dataset.id;
+                if (confirm("{{ _('Êtes-vous sûr de vouloir supprimer cette playlist ? Les photos ne seront pas supprimées.') }}")) {
+                    await fetch(`/api/playlists/${playlistId}`, { method: 'DELETE' });
+                    renderPlaylists();
+                }
+            }
+
+            if (renameBtn) {
+                const playlistId = renameBtn.dataset.id;
+                const currentName = renameBtn.closest('.playlist-card').querySelector('h5').textContent;
+                const newName = prompt(i18n.enterNewName, currentName);
+
+                if (newName && newName.trim() && newName.trim() !== currentName) {
+                    try {
+                        const response = await fetch(`/api/playlists/${playlistId}/rename`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: newName.trim() })
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            renderPlaylists(); // Recharger la liste pour voir le changement
+                        } else {
+                            alert(`${i18n.errorPrefix} ${result.message}`);
+                        }
+                    } catch (e) {
+                        alert(i18n.commErrorServer);
+                    }
+                }
+            }
+
+            if (toggleBtn) {
+                const playlistCard = toggleBtn.closest('.playlist-card');
+                const playlistId = playlistCard.dataset.id;
+                const photosContainer = document.getElementById(`photos-container-${playlistId}`);
+                const chevron = playlistCard.querySelector('.playlist-chevron');
+                if (photosContainer) {
+                    photosContainer.classList.toggle('hidden');
+                    chevron.classList.toggle('fa-chevron-up');
+                    chevron.classList.toggle('fa-chevron-down');
+                }
+            }
+
+            if (removePhotoBtn) {
+                const playlistCard = removePhotoBtn.closest('.playlist-card');
+                const playlistId = playlistCard.dataset.id;
+                const photoTile = removePhotoBtn.closest('.photo-tile');
+                const photoPath = photoTile.dataset.photoPath;
+
+                photoTile.style.opacity = '0.5';
+                const response = await fetch(`/api/playlists/${playlistId}/photos/${encodeURIComponent(photoPath)}`, { method: 'DELETE' });
+                if (response.ok) {
+                    photoTile.remove();
+                    const countSpan = document.getElementById(`photo-count-${playlistId}`);
+                    const currentCount = parseInt(countSpan.textContent.match(/\d+/)[0] || '0', 10);
+                    const newCount = Math.max(0, currentCount - 1);
+                    countSpan.textContent = newCount !== 1 ? `${newCount} ${i18n.photos}` : `1 ${i18n.photo}`;
+                } else { alert("{{ _('Erreur lors de la suppression de la photo.') }}"); photoTile.style.opacity = '1'; }
+            }
+
+            if (startBtn) {
+                const playlistId = startBtn.dataset.id;
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>{{ _("Lancement...") }}';
+                try {
+                    const response = await fetch('/api/playlists/play', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: playlistId })
+                    });
+                    const result = await response.json();
+                    alert(result.message); // Affiche le message de succès ou d'erreur
+                } catch (e) {
+                    alert("{{ _('Erreur de communication.') }}");
+                } finally {
+                    // Réactiver le bouton après un court délai
+                    setTimeout(() => {
+                        startBtn.disabled = false;
+                        startBtn.innerHTML = '<i class="fas fa-play mr-2"></i>{{ _("Lancer") }}';
+                    }, 2000);
+                }
+            }
+        });
+    }
+
+    // --- Logique pour ajouter une photo à une playlist ---
+    document.body.addEventListener('click', async (event) => {
+        const addToPlaylistBtn = event.target.closest('.add-to-playlist-btn');
+        if (addToPlaylistBtn) {
+            const photoPath = addToPlaylistBtn.dataset.photo;
+            const menu = addToPlaylistBtn.closest('.photo-tile').querySelector('.add-to-playlist-menu');
+            
+            // Fermer les autres menus ouverts
+            document.querySelectorAll('.add-to-playlist-menu').forEach(m => { if (m !== menu) m.classList.add('hidden'); });
+            
+            // Remplir et afficher le menu
+            const response = await fetch('/api/playlists');
+            const playlists = await response.json();
+            menu.innerHTML = '';
+            if (playlists.length > 0) {
+                playlists.forEach(p => {
+                    const item = document.createElement('a');
+                    item.href = '#';
+                    item.className = 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+                    item.textContent = p.name;
+                    item.dataset.playlistId = p.id;
+                    item.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        await fetch(`/api/playlists/${p.id}/photos`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ photo_path: photoPath })
+                        });
+                        menu.classList.add('hidden');
+                    });
+                    menu.appendChild(item);
+                });
+            } else {
+                menu.innerHTML = `<span class="block px-4 py-2 text-sm text-gray-500 italic">{{ _("Aucune playlist") }}</span>`;
+            }
+            menu.classList.toggle('hidden');
+        } else if (!event.target.closest('.add-to-playlist-menu')) {
+            // Fermer tous les menus si on clique en dehors
+            document.querySelectorAll('.add-to-playlist-menu').forEach(m => m.classList.add('hidden'));
+        }
     });
 
     // ----- NOUVELLE GESTION DES IMPORTS (USB, IMMICH, SAMBA) -----
@@ -2308,6 +2632,127 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // --- Gestion de la résolution ---
+    const resolutionSelector = document.getElementById('resolution-selector');
+    const applyResolutionBtn = document.getElementById('apply-resolution-btn');
+    const resolutionStatus = document.getElementById('resolution-status');
+
+    async function fetchAndPopulateResolutions() {
+        try {
+            const response = await fetch('/api/get_available_resolutions');
+            const data = await response.json();
+
+            if (data.success && data.resolutions.length > 0) {
+                resolutionSelector.innerHTML = ''; // Vider les options
+                const currentConfigRes = `${document.getElementById('display_width').value}x${document.getElementById('display_height').value}`;
+
+                data.resolutions.forEach(res => {
+                    const option = document.createElement('option');
+                    const resValue = `${res.width}x${res.height}`;
+                    option.value = resValue;
+                    option.textContent = res.text;
+                    if (resValue === currentConfigRes) {
+                        option.selected = true;
+                    }
+                    resolutionSelector.appendChild(option);
+                });
+            } else {
+                resolutionSelector.innerHTML = `<option>${data.message || "{{ _('Aucune résolution trouvée.') }}"}</option>`;
+                applyResolutionBtn.disabled = true;
+            }
+        } catch (error) {
+            resolutionSelector.innerHTML = `<option>{{ _("Erreur de chargement.") }}</option>`;
+            applyResolutionBtn.disabled = true;
+        }
+    }
+
+    if (applyResolutionBtn) {
+        applyResolutionBtn.addEventListener('click', async () => {
+            const selectedValue = resolutionSelector.value;
+            if (!selectedValue.includes('x')) return;
+
+            const [width, height] = selectedValue.split('x');
+            
+            resolutionStatus.textContent = "{{ _('Application en cours...') }}";
+            resolutionStatus.className = 'text-sm mt-2 text-blue-600';
+            applyResolutionBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/set_resolution', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ width, height })
+                });
+                const result = await response.json();
+                resolutionStatus.textContent = result.message;
+                resolutionStatus.className = result.success ? 'text-sm mt-2 text-green-600' : 'text-sm mt-2 text-red-600';
+                // Mettre à jour les champs de texte manuels
+                document.getElementById('display_width').value = width;
+                document.getElementById('display_height').value = height;
+            } catch (error) {
+                resolutionStatus.textContent = "{{ _('Erreur de communication.') }}";
+                resolutionStatus.className = 'text-sm mt-2 text-red-600';
+            } finally {
+                applyResolutionBtn.disabled = false;
+            }
+        });
+    }
+
+    // --- Contrôles du diaporama ---
+    const prevBtn = document.getElementById('slideshow-prev-btn');
+    const pauseBtn = document.getElementById('slideshow-pause-btn');
+    const nextBtn = document.getElementById('slideshow-next-btn');
+    const pauseIcon = document.getElementById('slideshow-pause-icon');
+
+    async function sendSlideshowCommand(command) {
+        try {
+            const response = await fetch(`/api/slideshow/${command}`, { method: 'POST' });
+            const result = await response.json();
+            if (!result.success) {
+                alert(`Erreur: ${result.message}`);
+            }
+            // Après avoir envoyé une commande de pause/lecture, on met à jour l'icône immédiatement
+            if (command === 'toggle_pause') {
+                // On inverse l'icône actuelle pour un retour visuel instantané
+                if (pauseIcon.classList.contains('fa-pause')) {
+                    pauseIcon.className = 'fas fa-play fa-2x';
+                } else {
+                    pauseIcon.className = 'fas fa-pause fa-2x';
+                }
+            }
+        } catch (error) {
+            alert('Erreur de communication avec le serveur.');
+        }
+    }
+
+    async function updateSlideshowControlsState() {
+        if (!pauseBtn) return; // Ne rien faire si les boutons ne sont pas sur la page
+        try {
+            const response = await fetch('/api/slideshow/status');
+            const data = await response.json();
+            const isRunning = data.running;
+            const isPaused = data.paused;
+
+            // Activer/désactiver les boutons si le diaporama tourne
+            prevBtn.disabled = !isRunning;
+            pauseBtn.disabled = !isRunning;
+            nextBtn.disabled = !isRunning;
+
+            // Mettre à jour l'icône de pause/lecture
+            if (isPaused) {
+                pauseIcon.className = 'fas fa-play fa-2x';
+            } else {
+                pauseIcon.className = 'fas fa-pause fa-2x';
+            }
+        } catch (error) {
+            console.error("Impossible de récupérer l'état du diaporama:", error);
+        }
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', () => sendSlideshowCommand('previous'));
+    if (pauseBtn) pauseBtn.addEventListener('click', () => sendSlideshowCommand('toggle_pause'));
+    if (nextBtn) nextBtn.addEventListener('click', () => sendSlideshowCommand('next'));
+
     // Mise à jour initiale au chargement de la page
     fetchWorkerStatus("immich", "immich-worker-status-message", "immich-last-update-time", "immich-next-update-time");
     fetchWorkerStatus("samba", "samba-worker-status-message", "samba-last-update-time", "samba-next-update-time");
@@ -2317,6 +2762,9 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchWorkerStatus("immich", "immich-worker-status-message", "immich-last-update-time", "immich-next-update-time");
         fetchWorkerStatus("samba", "samba-worker-status-message", "samba-last-update-time", "samba-next-update-time");
     }, 5000); // 5000 ms = 5 secondes
+    fetchAndPopulateResolutions(); // Charger les résolutions au démarrage
+    setInterval(updateSlideshowControlsState, 5000); // Mettre à jour l'état des boutons
+    updateSlideshowControlsState(); // Appel initial
 
     // --- Détection de la résolution ---
     const detectResBtn = document.getElementById("detect-resolution-btn");
@@ -2362,6 +2810,213 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Aperçu en direct ---
     const livePreviewImage = document.getElementById('live-preview-image');
     const livePreviewStatus = document.getElementById('live-preview-status');
+    let diskUsageChart; // NOUVEAU: pour le graphique d'utilisation Disque
+
+    // Fonction pour créer ou mettre à jour le graphique d'utilisation Disque
+    function updateDiskUsageChart(historyData) {
+        const ctx = document.getElementById('diskUsageChart').getContext('2d');
+        if (!ctx) return;
+
+        const labels = historyData.map(d => d.time);
+        const usages = historyData.map(d => d.usage);
+
+        if (diskUsageChart) {
+            // Mettre à jour un graphique existant
+            diskUsageChart.data.labels = labels;
+            diskUsageChart.data.datasets[0].data = usages;
+            diskUsageChart.update();
+        } else {
+            // Créer un nouveau graphique
+            diskUsageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Utilisation Disque (%)',
+                        data: usages,
+                        borderColor: 'rgba(139, 92, 246, 1)', // violet-500
+                        backgroundColor: 'rgba(196, 181, 253, 0.2)', // violet-300 avec transparence
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    }
+    let ramUsageChart; // NOUVEAU: pour le graphique d'utilisation RAM
+
+    // Fonction pour créer ou mettre à jour le graphique d'utilisation RAM
+    function updateRamUsageChart(historyData) {
+        const ctx = document.getElementById('ramUsageChart').getContext('2d');
+        if (!ctx) return;
+
+        const labels = historyData.map(d => d.time);
+        const usages = historyData.map(d => d.usage);
+
+        if (ramUsageChart) {
+            // Mettre à jour un graphique existant
+            ramUsageChart.data.labels = labels;
+            ramUsageChart.data.datasets[0].data = usages;
+            ramUsageChart.update();
+        } else {
+            // Créer un nouveau graphique
+            ramUsageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Utilisation RAM (%)',
+                        data: usages,
+                        borderColor: 'rgba(34, 197, 94, 1)', // green-500
+                        backgroundColor: 'rgba(134, 239, 172, 0.2)', // green-300 avec transparence
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    }
+    let cpuUsageChart; // NOUVEAU: pour le graphique d'utilisation
+
+    // Fonction pour créer ou mettre à jour le graphique d'utilisation CPU
+    function updateCpuUsageChart(historyData) {
+        const ctx = document.getElementById('cpuUsageChart').getContext('2d');
+        if (!ctx) return;
+
+        const labels = historyData.map(d => d.time);
+        const usages = historyData.map(d => d.usage); // Utiliser 'usage'
+
+        if (cpuUsageChart) {
+            // Mettre à jour un graphique existant
+            cpuUsageChart.data.labels = labels;
+            cpuUsageChart.data.datasets[0].data = usages;
+            cpuUsageChart.update();
+        } else {
+            // Créer un nouveau graphique
+            cpuUsageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Utilisation CPU (%)', // Nouveau label
+                        data: usages,
+                        borderColor: 'rgba(59, 130, 246, 1)', // blue-500
+                        backgroundColor: 'rgba(147, 197, 253, 0.2)', // blue-300 avec transparence
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true, // Forcer l'axe Y à commencer à 0
+                            max: 100, // L'utilisation ne peut pas dépasser 100%
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%'; // Ajouter le symbole %
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    }
+    let cpuChart; // Variable globale pour l'instance du graphique
+
+    // Fonction pour créer ou mettre à jour le graphique de température
+    function updateCpuTempChart(historyData) {
+        const ctx = document.getElementById('cpuTempChart').getContext('2d');
+        if (!ctx) return;
+
+        const labels = historyData.map(d => d.time);
+        const temps = historyData.map(d => d.temp);
+
+        if (cpuChart) {
+            // Mettre à jour un graphique existant
+            cpuChart.data.labels = labels;
+            cpuChart.data.datasets[0].data = temps;
+            cpuChart.update();
+        } else {
+            // Créer un nouveau graphique
+            cpuChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Température CPU (°C)',
+                        data: temps,
+                        borderColor: 'rgba(239, 68, 68, 1)', // red-500
+                        backgroundColor: 'rgba(252, 165, 165, 0.2)', // red-300 avec transparence
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3 // Lignes légèrement incurvées
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false, // Ne pas forcer l'axe Y à commencer à 0
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '°C';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    }
 
     async function updateLivePreview() {
         try {
@@ -2518,6 +3173,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('cpu-usage').textContent = data.cpu_usage;
                 document.getElementById('ram-usage').textContent = data.ram_usage;
                 document.getElementById('disk-usage').textContent = data.disk_usage;
+                if (data.cpu_temp_history) {
+                    updateCpuTempChart(data.cpu_temp_history);
+                }
+                // NOUVEAU: Mettre à jour le graphique d'utilisation CPU
+                if (data.cpu_usage_history) {
+                    updateCpuUsageChart(data.cpu_usage_history);
+                }
+                // NOUVEAU: Mettre à jour le graphique d'utilisation RAM
+                if (data.ram_usage_history) {
+                    updateRamUsageChart(data.ram_usage_history);
+                }
+                // NOUVEAU: Mettre à jour le graphique d'utilisation Disque
+                if (data.disk_usage_history) {
+                    updateDiskUsageChart(data.disk_usage_history);
+                }
             } else {
                 console.error("{{ _('Erreur lors de la récupération des infos système:') }}", data.message);
                 document.getElementById('cpu-temp').textContent = i18n.notAvailable;
@@ -2560,12 +3230,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Mettre à jour les infos système toutes les 5 secondes
-    setInterval(fetchSystemInfo, 5000);
-    setInterval(fetchWifiStatus, 5000);
-    setInterval(() => fetchInterfaceStatus('eth0'), 5000);
-    // Mettre à jour les logs toutes les 10 secondes (ou sur demande)
-    setInterval(fetchLogs, 10000);
+    // Mettre à jour les infos système (intervalles plus longs pour réduire la charge)
+    setInterval(fetchSystemInfo, 10000); // 10 secondes
+    setInterval(fetchWifiStatus, 30000); // 30 secondes
+    setInterval(() => fetchInterfaceStatus('eth0'), 30000); // 30 secondes
+    // Mettre à jour les logs toutes les 15 secondes (ou sur demande)
+    setInterval(fetchLogs, 15000); // 15 secondes
 
     // Écouteurs d'événements pour les logs
     document.getElementById('log-selector').addEventListener('change', fetchLogs);
@@ -2755,6 +3425,61 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     });
 
+    // ----- EXPAND FILESYSTEM -----
+    document.getElementById("expand-fs-btn").addEventListener("click", () => {
+        if (!confirm("{{ _('Cette opération va préparer le système à étendre la partition au prochain redémarrage. Voulez-vous continuer ?') }}")) {
+            return;
+        }
+
+        const btn = document.getElementById("expand-fs-btn");
+        const statusDiv = document.getElementById("expand-fs-status");
+        const allActionButtons = document.querySelectorAll('.import-button, .system-button, #update-app-btn, #samba-test-btn, #testWeatherApiKeyBtn, #testTelegramBtn, #create-invite-btn, #scan-wifi-btn, #toggle-eth0-btn, #clear-logs-btn, #expand-fs-btn');
+
+        statusDiv.innerHTML = ""; // Clear previous messages
+
+        function disableAllButtons() {
+            allActionButtons.forEach(b => { b.disabled = true; b.classList.add("opacity-50", "cursor-not-allowed"); });
+        }
+
+        function enableAllButtons() {
+            allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
+        }
+
+        disableAllButtons();
+
+        fetch('/api/expand_filesystem', { method: 'POST' })
+        .then(response => {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            function processStream() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        enableAllButtons();
+                        return;
+                    }
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n\n');
+
+                    lines.forEach(line => {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                displayMessage(statusDiv, data.message, data.type.toLowerCase());
+                            } catch (e) { console.error("Erreur parsing JSON:", e, "Ligne:", line); }
+                        }
+                    });
+                    processStream();
+                });
+            }
+            processStream();
+        })
+        .catch(error => {
+            displayMessage(statusDiv, `Erreur de communication: ${error}`, 'error');
+            enableAllButtons();
+        });
+    });
 });
 </script>
 

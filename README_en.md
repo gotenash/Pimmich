@@ -2,13 +2,22 @@
 
 Current Version (July 14, 2025): New release now available online
 
-📆 Starting June 2025 — One major version every month
+> 📆 Starting June 2025 — One major version every month
 
-## 🗓️ September 2025 - (Planned)
+## 🗓️ October 2025 - (Planned)
 - 📱 Android APK to control the frame (Pimmich remote)
 - 🗣️ Voice command support to control the frame (next photo, pause, etc.).
 - 🔘 Physical button support to start/stop the slideshow.
 - 🗂️ Album management directly from the Pimmich interface (create, rename, etc.).
+
+## ✅ September 2025 – (Scheduled Release: September 15)
+- 🎵 **Playlist Management:** Create custom virtual albums, view their content, rename them, and launch themed slideshows.
+- 📊 **Advanced Monitoring:** Added history charts for CPU temperature, CPU usage, RAM, and disk in the "System" tab.
+- 🖥️ **Display Management:** Ability to list and force a specific screen resolution directly from the interface, with automatic slideshow restart.
+- 💾 **Storage Expansion:** Added a tool in the interface to easily expand the filesystem and use all available space on the SD card.
+- 🚀 **Optimizations and Stability:**
+    - ✅ Improved responsiveness of the "System" tab with optimized log reading.
+    - ✅ Made the update script more reliable to prevent freezes.
 
 ## 🛠️✅ August 2025 – (Scheduled Release: August 15)
 

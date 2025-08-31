@@ -5,6 +5,7 @@ import pygame
 import traceback
 import requests
 from PIL import Image
+import signal
 import re
 import socket
 import subprocess, sys
@@ -23,7 +24,9 @@ from utils.config_manager import load_config
 # Définition des chemins
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PREPARED_BASE_DIR = Path(BASE_DIR) / 'static' / 'prepared'
+STATUS_FILE = "/tmp/pimmich_slideshow_status.json"
 SOUNDS_DIR = Path(BASE_DIR) / 'static' / 'sounds'
+CUSTOM_PLAYLIST_FILE = "/tmp/pimmich_custom_playlist.json"
 ICONS_DIR = Path(BASE_DIR) / 'static' / 'icons'
 NEW_POSTCARD_FLAG = Path(BASE_DIR) / 'cache' / 'new_postcard.flag'
 CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
@@ -34,6 +37,31 @@ TIDES_CACHE_FILE = Path(BASE_DIR) / 'cache' / 'tides.json'
 _icon_cache = {} # Cache pour les icônes météo chargées
 _envelope_blink_end_time = None # Pour gérer le clignotement de l'icône
 
+# --- Variables globales pour le contrôle du diaporama ---
+paused = False
+next_photo_requested = False
+previous_photo_requested = False
+
+def update_status_file(status_dict):
+    """Met à jour le fichier de statut JSON pour la communication avec l'app web."""
+    try:
+        with open(STATUS_FILE, "w") as f:
+            json.dump(status_dict, f)
+    except IOError as e:
+        print(f"Erreur écriture fichier statut : {e}")
+
+def signal_handler_next(signum, frame):
+    global next_photo_requested
+    next_photo_requested = True
+
+def signal_handler_previous(signum, frame):
+    global previous_photo_requested
+    previous_photo_requested = True
+
+def signal_handler_pause_toggle(signum, frame):
+    global paused
+    paused = not paused
+    update_status_file({"paused": paused})
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
 def reinit_pygame():
@@ -757,6 +785,25 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
 
 # Fonction pour afficher une image et l'heure
 def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, config, main_font):
+    """
+    Affiche une image préparée avec un effet de pan/zoom et gère les contrôles (pause, suivant, précédent).
+    """
+    global paused, next_photo_requested, previous_photo_requested
+
+    # Boucle de pause : si le diaporama est en pause, on attend ici.
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+        # Optionnel : dessiner une icône de pause sur l'écran
+        # ...
+        
+        pygame.display.flip()
+        time.sleep(0.1) # Évite de surcharger le CPU pendant la pause
+        if next_photo_requested or previous_photo_requested: return # Sortir si on demande de changer de photo
+
     """Affiche une image préparée et l'heure sur l'écran."""
     try:
         # Ensure it's in a compatible mode for Pygame (RGB is generally safe)
@@ -775,7 +822,16 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
             # Affichage statique : blit une fois et attendre la durée
             draw_overlay(screen, screen_width, screen_height, config, main_font)
             pygame.display.flip()
-            time.sleep(display_duration)
+            # Boucle d'attente pour rester réactif aux signaux
+            start_sleep = time.time()
+            while time.time() - start_sleep < display_duration:
+                if next_photo_requested or previous_photo_requested: return
+                while paused:
+                    if next_photo_requested or previous_photo_requested: return
+                    time.sleep(0.1)
+                    # Recalculer le temps de début pour que le sommeil reprenne où il s'est arrêté
+                    start_sleep += 0.1
+                time.sleep(0.1)
         else:
             # Logique de l'effet Pan/Zoom
             zoom_factor = float(config.get("pan_zoom_factor", 1.15)) # Récupérer le facteur de zoom de la config
@@ -822,6 +878,20 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
             while time.time() - start_animation_time < display_duration:
                 elapsed_animation_time = time.time() - start_animation_time
+
+                # Vérifier les signaux à chaque image de l'animation
+                if next_photo_requested or previous_photo_requested:
+                    return # Sortir de la fonction pour changer de photo
+                
+                # Gérer la pause pendant l'animation
+                while paused:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT: pygame.quit(); sys.exit()
+                    time.sleep(0.1)
+                    if next_photo_requested or previous_photo_requested: return
+                    # Recalculer le temps de début pour que l'animation reprenne où elle s'est arrêtée
+                    start_animation_time += 0.1
+
                 # Appliquer une fonction d'accélération/décélération (ease-in-out) pour un mouvement plus doux
                 raw_progress = min(1.0, elapsed_animation_time / display_duration)
                 eased_progress = 0.5 * (1 - math.cos(raw_progress * math.pi))
@@ -959,6 +1029,15 @@ def start_slideshow():
         pygame.mouse.set_visible(False)
         print("[Slideshow] Mouse cursor hidden.")
 
+        # --- Enregistrement des gestionnaires de signaux ---
+        signal.signal(signal.SIGUSR1, signal_handler_next)      # Pour "suivant"
+        signal.signal(signal.SIGUSR2, signal_handler_previous)   # Pour "précédent"
+        signal.signal(signal.SIGTSTP, signal_handler_pause_toggle) # Pour "pause/reprendre"
+        print("[Slideshow] Signal handlers registered.")
+
+        # Initialiser le fichier de statut
+        update_status_file({"paused": False})
+
         try:
             import locale
             locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
@@ -967,8 +1046,31 @@ def start_slideshow():
             print("Avertissement: locale fr_FR.UTF-8 non disponible. Les dates seront en anglais.")
 
         print("[Slideshow] Entering main slideshow loop.")
+        
+        # --- Initialisation de la surface précédente pour la transition ---
+        previous_photo_surface = None
+
+        # --- Vérification de l'existence d'une playlist personnalisée ---
+        custom_playlist = None
+        if os.path.exists(CUSTOM_PLAYLIST_FILE):
+            try:
+                with open(CUSTOM_PLAYLIST_FILE, 'r') as f:
+                    custom_playlist_paths = json.load(f)
+                # Convertir les chemins relatifs en chemins absolus
+                custom_playlist = [str(Path(BASE_DIR) / 'static' / 'prepared' / p) for p in custom_playlist_paths]
+                print(f"[Slideshow] Playlist personnalisée chargée avec {len(custom_playlist)} photos.")
+                os.remove(CUSTOM_PLAYLIST_FILE) # Supprimer pour ne pas la réutiliser au prochain démarrage
+            except Exception as e:
+                print(f"[Slideshow] Erreur chargement playlist personnalisée: {e}. Utilisation de la playlist par défaut.")
+
         while True:
             config = load_config() # Recharger la config à chaque itération
+
+            # --- CORRECTION: Charger les paramètres de transition ici pour qu'ils soient toujours définis ---
+            # Auparavant, ils n'étaient définis que si aucune playlist personnalisée n'était utilisée.
+            transition_type = config.get("transition_type", "fade")
+            transition_enabled = config.get("transition_enabled", True)
+            transition_duration = float(config.get("transition_duration", 1.0))
 
             # --- Vérification et affichage immédiat de nouvelle carte postale ---
             if NEW_POSTCARD_FLAG.exists():
@@ -1048,27 +1150,26 @@ def start_slideshow():
                 main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
             # --- Fin du chargement de la police ---
             
-            
-            # Initialize transition_duration here to ensure it's always defined within the loop scope
-            transition_type = config.get("transition_type", "fade") # Get transition type
-            transition_enabled = config.get("transition_enabled", True) # Get transition enabled status
-            transition_duration = float(config.get("transition_duration", 1.0)) 
-            
-            display_sources = config.get("display_sources", ["immich"]) # Nouvelle clé de config
-            
-            all_media = []
-            for source in display_sources:
-                source_dir = PREPARED_BASE_DIR / source
-                if source_dir.is_dir():
-                    # Obtenir les médias de base (non-polaroid, non-vignette, non-postcard)
-                    base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))]
-                    
-                    for photo_path_obj in base_photos:
-                        path_to_display = get_path_to_display(photo_path_obj, source, filter_states)
-                        all_media.append(path_to_display)
-            
-            # --- Logique de création de la playlist avec boost ---
-            playlist = build_playlist(all_media, config, favorites)
+            if custom_playlist is not None:
+                playlist = custom_playlist
+            else:
+                display_sources = config.get("display_sources", ["immich"]) # Nouvelle clé de config
+                
+                all_media = []
+                for source in display_sources:
+                    source_dir = PREPARED_BASE_DIR / source
+                    if source_dir.is_dir():
+                        # Obtenir les médias de base (non-polaroid, non-vignette, non-postcard)
+                        base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))]
+                        
+                        for photo_path_obj in base_photos:
+                            path_to_display = get_path_to_display(photo_path_obj, source, filter_states)
+                            all_media.append(path_to_display)
+                
+                # --- Logique de création de la playlist avec boost ---
+                playlist = build_playlist(all_media, config, favorites)
+                # Le mélange aléatoire ne s'applique qu'à la playlist normale, pas aux playlists personnalisées.
+                random.shuffle(playlist)
 
             if not playlist:
                 print("Aucune photo trouvée dans les sources activées. Vérification dans 60 secondes.")
@@ -1162,11 +1263,19 @@ def start_slideshow():
 
             previous_photo_surface = None # Initialize previous_photo_surface before the loop
 
-            random.shuffle(playlist)
-            for photo_path in playlist:
+            playlist_index = 0
+            while 0 <= playlist_index < len(playlist):
+                photo_path = playlist[playlist_index]
+                
+                # Réinitialiser les requêtes de changement de photo
+                global next_photo_requested, previous_photo_requested
+                next_photo_requested = False
+                previous_photo_requested = False
+
                 # --- CORRECTIF: Vérifier si le fichier existe avant de tenter de l'afficher ---
                 if not os.path.exists(photo_path):
                     print(f"[Slideshow] Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
+                    playlist_index += 1
                     continue
 
                 # La gestion de la veille/réveil est maintenant gérée par le planificateur dans app.py
@@ -1202,12 +1311,12 @@ def start_slideshow():
 
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
-                    
-                    # --- NOUVEAU: Utilisation de la fonction de réinitialisation centralisée ---
-                    # On réinitialise Pygame pour libérer les ressources audio/vidéo.
-                    # Le 'break' force la boucle principale à redémarrer, ce qui recharge la police et la config.
-                    screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
-                    break # Forcer la boucle principale à redémarrer pour recharger la police et la config
+                    # --- CORRECTION: Le break et la réinitialisation sont supprimés ---
+                    # Le break empêchait la playlist de continuer après une vidéo.
+                    # La réinitialisation de pygame est gérée de manière plus ciblée
+                    # (ex: pygame.mixer) et n'est pas nécessaire ici.
+                    # screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
+                    # break
                 else: # C'est une image
                     current_pil_image = None # Initialize to None to ensure it's always defined
                     try:
@@ -1242,6 +1351,17 @@ def start_slideshow():
                     else:
                         print(f"[Slideshow] Skipping photo {photo_path} due to loading error.")
 
+                # --- Logique de navigation ---
+                if next_photo_requested:
+                    playlist_index += 1
+                elif previous_photo_requested:
+                    playlist_index -= 1
+                else: # Comportement normal
+                    playlist_index += 1
+
+                # Gérer le bouclage de la playlist
+                if playlist_index >= len(playlist): playlist_index = 0
+                if playlist_index < 0: playlist_index = len(playlist) - 1
     except KeyboardInterrupt:
         print("Arrêt manuel du diaporama.")
     except Exception as e:
@@ -1252,6 +1372,10 @@ def start_slideshow():
         # Nettoyer le fichier d'état à la sortie
         if os.path.exists(CURRENT_PHOTO_FILE):
             os.remove(CURRENT_PHOTO_FILE)
+        if os.path.exists(CUSTOM_PLAYLIST_FILE):
+            os.remove(CUSTOM_PLAYLIST_FILE)
+        if os.path.exists(STATUS_FILE):
+            os.remove(STATUS_FILE)
         pygame.quit()
         if GPIO_AVAILABLE:
             GPIO.cleanup()

@@ -4,11 +4,20 @@
 
 > 📆 À partir de juin 2025 — Une version majeure chaque mois
 
-## 🗓️ Septembre 2025 - (Prévu)
+## 🗓️ Octobre 2025 - (Prévu)
 - 📱 Création d’une APK Android pour contrôler le cadre (Pimmich télécommande)
 - 🗣️ Ajout de la commande vocale pour piloter le cadre (photo suivante, pause, etc.).
 - 🔘 Gestion d'un bouton physique pour démarrer/arrêter le diaporama.
 - 🗂️ Gestion des albums directement depuis l'interface Pimmich (créer, renommer, etc.).
+
+## ✅ Septembre 2025 - (Sortie prévue le 15 septembre)
+- 📊 **Monitoring Avancé :** Ajout de graphiques d'historique pour la température, l'utilisation du CPU, de la RAM et du disque dans l'onglet "Système".
+- 🖥️ **Gestion de l'Affichage :** Possibilité de lister et de forcer une résolution d'écran spécifique directement depuis l'interface, avec redémarrage automatique du diaporama.
+- 💾 **Extension du Stockage :** Ajout d'un outil dans l'interface pour étendre facilement le système de fichiers et utiliser tout l'espace de la carte SD.
+- 🎵 **Gestion de Playlists :** Créez des albums virtuels personnalisés, visualisez leur contenu, renommez-les et lancez des diaporamas thématiques.
+- 🚀 **Optimisations et Stabilité :**
+    - ✅ Amélioration de la réactivité de l'onglet "Système" grâce à une lecture optimisée des logs.
+    - ✅ Fiabilisation du script de mise à jour pour éviter les blocages.
 
 ## 🛠️✅ Août 2025  - (Sortie prévue le 15 aoüt)
 
