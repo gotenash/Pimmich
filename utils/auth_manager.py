@@ -32,7 +32,7 @@ def change_password(new_password: str):
     # Utiliser 'sudo tee' pour écrire le fichier avec les permissions root
     try:
         subprocess.run(
-            ['sudo', 'tee', CREDENTIALS_PATH],
+            ['sudo', '/usr/bin/tee', CREDENTIALS_PATH],
             input=new_content,
             text=True,
             capture_output=True,

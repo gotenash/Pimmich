@@ -258,8 +258,12 @@ button:hover {
 /* --- Responsive --- */
 @media (max-width: 639px) {
   .container {
-    max-width: 95vw;
-    padding: 1rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem; /* Conserver un peu de padding intérieur */
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0; /* Pas de coins arrondis en plein écran */
   }
   
   fieldset {
@@ -272,15 +276,13 @@ button:hover {
   }
   
   .tabs {
-    flex-wrap: wrap;
-    gap: 0.25rem;
+    flex-wrap: nowrap; /* Forcer une seule ligne pour permettre le défilement */
   }
   
   .tablink {
-    flex: 1;
-    min-width: calc(50% - 0.125rem);
+    flex-shrink: 0; /* Empêcher les boutons de rétrécir pour le défilement */
     font-size: 0.875rem;
-    padding: 0.5rem 0.25rem;
+    padding: 0.5rem 1rem; /* Ajuster le padding pour un meilleur espacement */
   }
 
   .photo-preview-section {

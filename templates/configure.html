@@ -21,9 +21,35 @@
             -ms-overflow-style: none;  /* IE et Edge */
             scrollbar-width: none;  /* Firefox */
         }
+        /* Styles pour la nouvelle navigation par groupes */
+        .main-nav-link {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            background-color: #E06666; /* Fond rouge pastel inspiré du logo */
+            color: #FFFFFF; /* Texte blanc pour le contraste */
+            border-radius: 0.375rem; /* rounded-md */
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent; /* Pour éviter un saut de layout au survol/clic */
+        }
+        .main-nav-link:hover {
+            background-color: #E5E7EB; /* gray-200 */
+            color: #1F2937; /* gray-800 */
+        }
+        .main-nav-link.active {
+            background-color: white;
+            color: #005a9e; /* Un bleu plus sobre et foncé */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-sm */
+            border-color: #D1D5DB; /* gray-300 */
+        }
     </style>
 </head>
 <body class="relative min-h-screen">
+
+  <!-- Global Notification Toast -->
+  <div id="global-toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg transition-all duration-300 ease-in-out transform translate-y-10 opacity-0 z-50">
+      <p id="global-toast-message"></p>
+  </div>
 
   <!-- Messages flash -->
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -79,18 +105,44 @@
         </div>
         
 
-<!-- Ajout de flex, overflow-x-auto et pb-2 pour rendre les onglets défilables horizontalement sur mobile -->
-<div class="tabs flex overflow-x-auto pb-2">
-  <button class="tablink active" onclick="openTab(event, 'tab-affichage')">{{ _('Affichage') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-heure')">{{ _('Heure, Météo et Marées') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-sources')">{{ _('Sources') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-telegram')">{{ _('Telegram') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-apercu')">{{ _('Aperçu') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-playlists')">{{ _('Playlists') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-favoris')">{{ _('Favoris') }} <span id="favorites-count-badge" class="hidden bg-yellow-400 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
-  <button class="tablink" onclick="openTab(event, 'tab-actions')">{{ _('Actions') }}</button>
-  <button class="tablink" onclick="openTab(event, 'tab-validation')">{{ _('Validation') }} <span id="pending-count-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
-  <button class="tablink" onclick="openTab(event, 'tab-system')">{{ _('Système') }}</button>
+<!-- Nouvelle navigation par groupes -->
+<div id="main-nav" class="flex justify-center space-x-1 sm:space-x-2 p-1 bg-gray-100 rounded-lg mb-4">
+    <button class="main-nav-link" data-group="group-diaporama">{{ _('Diaporama') }}</button>
+    <button class="main-nav-link" data-group="group-contenu">{{ _('Contenu') }}</button>
+    <button class="main-nav-link" data-group="group-interactions">{{ _('Interactions') }}</button>
+    <button class="main-nav-link" data-group="group-maintenance">{{ _('Maintenance') }}</button>
+</div>
+
+<!-- Conteneurs de sous-navigation pour chaque groupe -->
+<div id="group-diaporama" class="sub-nav-group hidden">
+    <div class="tabs flex overflow-x-auto pb-2">
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-affichage')" title="{{ _('Gérez les paramètres d\'affichage du diaporama, la durée, les transitions...') }}"><i class="fas fa-desktop fa-fw mr-2"></i>{{ _('Affichage') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-heure')" title="{{ _('Configurez l\'affichage de l\'heure, la météo et les marées.') }}"><i class="fas fa-clock fa-fw mr-2"></i>{{ _('Horloge & Infos') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-vocal')" title="{{ _('Configurez le contrôle vocal du diaporama.') }}"><i class="fas fa-microphone-alt fa-fw mr-2"></i>{{ _('Vocal') }}</button>
+    </div>
+</div>
+
+<div id="group-contenu" class="sub-nav-group hidden">
+    <div class="tabs flex overflow-x-auto pb-2">
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-sources')" title="{{ _('Configurez les sources de photos (Immich, Samba, USB...).') }}"><i class="fas fa-folder-open fa-fw mr-2"></i>{{ _('Sources') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-apercu')" title="{{ _('Visualisez et gérez toutes les photos prêtes pour le diaporama.') }}"><i class="fas fa-eye fa-fw mr-2"></i>{{ _('Aperçu') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-playlists')" title="{{ _('Créez et gérez vos albums photo personnalisés.') }}"><i class="fas fa-list-ul fa-fw mr-2"></i>{{ _('Playlists') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-favoris')" title="{{ _('Retrouvez et gérez vos photos favorites.') }}"><i class="fas fa-star fa-fw mr-2"></i>{{ _('Favoris') }} <span id="favorites-count-badge" class="hidden bg-yellow-400 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
+    </div>
+</div>
+
+<div id="group-interactions" class="sub-nav-group hidden">
+    <div class="tabs flex overflow-x-auto pb-2">
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-telegram')" title="{{ _('Configurez la réception de photos via le bot Telegram.') }}"><i class="fab fa-telegram-plane fa-fw mr-2"></i>{{ _('Telegram') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-validation')" title="{{ _('Validez ou rejetez les photos envoyées par les invités.') }}"><i class="fas fa-check-circle fa-fw mr-2"></i>{{ _('Validation') }} <span id="pending-count-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-actions')" title="{{ _('Lancez les imports, contrôlez le diaporama et envoyez des photos.') }}"><i class="fas fa-cogs fa-fw mr-2"></i>{{ _('Actions') }}</button>
+    </div>
+</div>
+
+<div id="group-maintenance" class="sub-nav-group hidden">
+    <div class="tabs flex overflow-x-auto pb-2">
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-system')" title="{{ _('Gérez les paramètres système, le Wi-Fi, les mises à jour et consultez les logs.') }}"><i class="fas fa-server fa-fw mr-2"></i>{{ _('Système') }}</button>
+    </div>
 </div>
 
 <form method="POST" action="/configure">
@@ -598,6 +650,63 @@
     </fieldset>
 </div>
 
+<div id="tab-vocal" class="tabcontent">
+    <fieldset>
+        <legend><h3><i class="fas fa-microphone-alt mr-2"></i>{{ _("Contrôle Vocal") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">
+            {{ _('Contrôlez votre diaporama à la voix avec le mot-clé "Cadre Magique".') }}
+        </p>
+
+        <div class="p-4 border-l-4 border-blue-400 bg-blue-50 text-blue-700 mb-4">
+            <p><strong>{{ _("Étape Manuelle Requise :") }}</strong> {{ _('Pour utiliser le mot-clé personnalisé "Cadre Magique", vous devez créer un modèle sur le site de Picovoice, le télécharger, et le placer dans le dossier `voice_models` sous le nom `cadre-magique_raspberry-pi.ppn`.') }}</p>
+        </div>
+
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="voice_control_enabled" name="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
+            <label class="form-check-label" for="voice_control_enabled">{{ _("Activer le contrôle vocal") }}</label>
+        </div>
+
+        <div class="mt-4">
+            <label for="porcupine_access_key" class="block text-sm font-medium text-gray-700">{{ _("Clé d'accès Picovoice Porcupine") }}</label>
+            <input type="text" id="porcupine_access_key" name="porcupine_access_key" value="{{ config.get('porcupine_access_key', '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="{{ _("Collez votre clé d'accès ici") }}">
+            <p class="text-xs text-gray-500 mt-1">{{ _("Obtenez votre clé via le compte gratuit (Free Tier) sur la") }} <a href="https://console.picovoice.ai/" target="_blank" class="text-blue-600 hover:underline">Picovoice Console</a>.</p>
+        </div>
+
+        <div class="mt-4">
+            <label for="voice_control_device_index" class="block text-sm font-medium text-gray-700">{{ _("Périphérique d'entrée audio (Microphone)") }}</label>
+            <div class="flex items-center gap-2">
+                <select id="voice_control_device_index" name="voice_control_device_index" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="">{{ _("Périphérique par défaut") }}</option>
+                    <!-- Les options seront chargées par JavaScript -->
+                </select>
+                <button type="button" id="refresh-audio-devices-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded text-sm" title="{{ _('Actualiser la liste') }}"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </div>
+
+        <div id="voice-control-status-container" class="mt-6 p-3 bg-gray-100 rounded-lg border">
+            <p><strong>{{ _("État du service vocal :") }}</strong> <span id="voice-control-status-message" class="font-mono">...</span></p>
+        </div>
+
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3><i class="fas fa-stethoscope mr-2"></i>{{ _("Diagnostic Audio") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">
+            {{ _("Si votre microphone n'apparaît pas dans la liste ci-dessus, utilisez cet outil pour vérifier si le système d'exploitation le détecte correctement.") }}
+        </p>
+        <button type="button" id="run-audio-diagnostics-btn" class="system-button bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-play-circle mr-2"></i>{{ _("Lancer le diagnostic") }}
+        </button>
+        <div id="audio-diagnostics-results-container" class="hidden mt-4">
+            <h4 class="font-semibold text-gray-800 mb-2">{{ _("Résultats du diagnostic :") }}</h4>
+            <div class="bg-gray-800 rounded-lg overflow-auto" style="max-height: 300px;">
+                <pre id="audio-diagnostics-results" class="text-white p-4 text-sm" style="white-space: pre-wrap; word-break: break-all;"></pre>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+
 <!-- Le bouton de sauvegarde est placé ici, à l'intérieur du formulaire mais après les onglets de configuration -->
 <button type="submit" id="save-changes-btn" class="save-button">{{ _("Enregistrer les modifications") }}</button>
 
@@ -626,14 +735,14 @@
                     {% endif %}
                 </button>
             </form>
-            <div class="flex justify-center items-center gap-4 mt-4">
-                <button type="button" id="slideshow-prev-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center" title="{{ _('Photo précédente') }}">
+            <div class="flex justify-center items-center gap-4 mt-4" id="slideshow-controls-actions">
+                <button type="button" class="slideshow-control-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center" data-command="previous" title="{{ _('Photo précédente') }}">
                     <i class="fas fa-backward fa-lg"></i>
                 </button>
-                <button type="button" id="slideshow-pause-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-20 h-20 flex items-center justify-center" title="{{ _('Pause/Lecture') }}">
-                    <i id="slideshow-pause-icon" class="fas fa-pause fa-2x"></i>
+                <button type="button" class="slideshow-control-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-20 h-20 flex items-center justify-center" data-command="toggle_pause" title="{{ _('Pause/Lecture') }}">
+                    <i class="slideshow-pause-icon fas fa-pause fa-2x"></i>
                 </button>
-                <button type="button" id="slideshow-next-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center" title="{{ _('Photo suivante') }}">
+                <button type="button" class="slideshow-control-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center" data-command="next" title="{{ _('Photo suivante') }}">
                     <i class="fas fa-forward fa-lg"></i>
                 </button>
             </div>
@@ -861,6 +970,36 @@
         <legend><h3>{{ _("Gestion des Playlists") }}</h3></legend>
         <p class="text-sm text-gray-600 mb-3">{{ _("Créez des albums virtuels (playlists) en sélectionnant des photos de n'importe quelle source. Vous pouvez ensuite lancer un diaporama contenant uniquement les photos d'une playlist.") }}</p>
 
+        <!-- Bloc de contrôle du diaporama pour les playlists -->
+        <div class="flex flex-col md:flex-row gap-6">
+            <div class="md:w-2/3">
+                <div class="p-4 border rounded-lg bg-gray-100 mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-4 text-center">{{ _("Contrôle du Diaporama Actuel") }}</h4>
+                    <div class="flex items-center justify-center gap-4">
+                        <!-- Boutons de contrôle -->
+                        <button type="button" class="slideshow-control-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-14 h-14 flex items-center justify-center" data-command="previous" title="{{ _('Photo précédente') }}"><i class="fas fa-backward"></i></button>
+                        <button type="button" class="slideshow-control-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center" data-command="toggle_pause" title="{{ _('Pause/Lecture') }}"><i class="slideshow-pause-icon fas fa-pause fa-lg"></i></button>
+                        <button type="button" class="slideshow-control-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-14 h-14 flex items-center justify-center" data-command="next" title="{{ _('Photo suivante') }}"><i class="fas fa-forward"></i></button>
+                        
+                        <!-- Séparateur vertical -->
+                        <div class="border-l border-gray-300 h-12 mx-4"></div>
+
+                        <!-- Bouton Stop -->
+                        <button type="button" id="stop-playlist-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded inline-flex items-center" title="{{ _('Arrête la playlist en cours et relance le diaporama avec toutes les sources activées.') }}">
+                            <i class="fas fa-stop-circle mr-2"></i>{{ _("Retour au diaporama standard") }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="md:w-1/3">
+                <h4 class="font-semibold text-gray-800 mb-2">{{ _("Aperçu en direct") }}</h4>
+                <div id="playlist-live-preview-container" class="mt-2 p-3 bg-gray-100 rounded-lg border text-center">
+                    <p id="playlist-live-preview-status" class="text-gray-500 italic">{{ _("Le diaporama est arrêté.") }}</p>
+                    <img id="playlist-live-preview-image" src="" alt="{{ _('Photo en cours') }}" class="hidden mt-2 mx-auto max-w-xs max-h-48 rounded shadow">
+                </div>
+            </div>
+        </div>
+
         <!-- Formulaire de création -->
         <div class="p-4 border rounded-lg bg-gray-50/50 mb-6">
             <h4 class="font-semibold text-gray-800 mb-2">{{ _("Créer une nouvelle playlist") }}</h4>
@@ -1001,7 +1140,14 @@
             </div>
             <div class="mb-4">
                 <label for="wifi_password" class="block text-sm font-medium text-gray-700">{{ _("Mot de passe") }}</label>
-                <input type="password" id="wifi_password" name="wifi_password" value="{{ config.get('wifi_password', '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <div class="relative mt-1">
+                    <input type="password" id="wifi_password" name="wifi_password" value="{{ config.get('wifi_password', '') }}" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-10">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button type="button" class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal" data-target="wifi_password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
                 <p class="mt-2 text-sm text-gray-500">{{ _("Laissez vide si le réseau est ouvert.") }}</p>
             </div>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
@@ -1047,11 +1193,25 @@
             <h4 class="text-lg font-semibold text-gray-800 mb-2">{{ _("Changer le mot de passe de l'interface") }}</h4>
             <div class="mb-4">
                 <label for="new_password" class="block text-sm font-medium text-gray-700">{{ _("Nouveau mot de passe") }}</label>
-                <input type="password" id="new_password" name="new_password" required minlength="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="{{ _('6 caractères minimum') }}">
+               <div class="relative mt-1">
+                    <input type="password" id="new_password" name="new_password" required minlength="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-10" placeholder="{{ _('6 caractères minimum') }}">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button type="button" class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal" data-target="new_password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="mb-4">
                 <label for="confirm_password" class="block text-sm font-medium text-gray-700">{{ _("Confirmer le nouveau mot de passe") }}</label>
-                <input type="password" id="confirm_password" name="confirm_password" required minlength="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                 <div class="relative mt-1">
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-10">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button type="button" class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal" data-target="confirm_password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
                 <p id="password-error" class="mt-2 text-sm text-red-600 hidden">{{ _("Les mots de passe ne correspondent pas.") }}</p>
             </div>
             <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
@@ -1166,9 +1326,7 @@
         <div class="mb-3">
             <label for="log-selector" class="form-label">{{ _("Sélectionner un log :") }}</label>
             <select id="log-selector" class="form-select">
-                <option value="app">{{ _("app.py (Serveur Web)") }}</option>
-                <option value="slideshow_stdout">{{ _("local_slideshow.py (Diaporama - Sortie Standard)") }}</option>
-                <option value="slideshow_stderr">{{ _("local_slideshow.py (Diaporama - Erreurs)") }}</option>
+                <!-- Les options seront chargées dynamiquement par JavaScript -->
             </select>
             <button type="button" id="refresh-logs-btn" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-2">{{ _("Actualiser") }}</button>
             <button type="button" id="clear-logs-btn" class="btn btn-danger bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded ml-2">{{ _("Effacer les logs") }}</button>
@@ -1193,6 +1351,7 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
   const lightbox = GLightbox({
     selector: '.glightbox'
@@ -1245,6 +1404,37 @@
   i18n.deletePlaylist = "{{ _('Supprimer la playlist') }}";
   i18n.renamePlaylist = "{{ _('Renommer la playlist') }}";
   i18n.enterNewName = "{{ _('Entrez le nouveau nom pour la playlist :') }}";
+
+  // NOUVEAU: Traductions pour la sauvegarde automatique
+  i18n.orderSaved = "{{ _('Ordre sauvegardé !') }}";
+
+  // NOUVEAU: Traductions pour le diagnostic audio
+  i18n.runDiagnostics = "{{ _('Lancer le diagnostic') }}";
+  i18n.diagnosticsInProgress = "{{ _('Diagnostic en cours...') }}";
+  i18n.pleaseWait = "{{ _('Veuillez patienter...') }}";
+
+  // --- GESTION DE L'AFFICHAGE DES MOTS DE PASSE ---
+  document.querySelectorAll('.toggle-password-btn').forEach(button => {
+      button.addEventListener('click', () => {
+          const targetInputId = button.dataset.target;
+          const passwordInput = document.getElementById(targetInputId);
+          if (!passwordInput) return;
+
+          const icon = button.querySelector('i');
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+
+          // Toggle the icon
+          if (type === 'password') {
+              icon.classList.remove('fa-eye-slash');
+              icon.classList.add('fa-eye');
+          } else {
+              icon.classList.remove('fa-eye');
+              icon.classList.add('fa-eye-slash');
+          }
+      });
+  });
+
 
   // ----- GESTION DE LA VALIDATION (Fonctions globales) -----
   // On définit ces fonctions ici pour qu'elles soient accessibles partout et éviter les erreurs de chargement.
@@ -1473,6 +1663,70 @@ async function fetchTelegramBotStatus() {
     }
 }
 
+function showToast(message, duration = 3000) {
+    const toast = document.getElementById('global-toast');
+    const toastMessage = document.getElementById('global-toast-message');
+    if (!toast || !toastMessage) return;
+
+    toastMessage.textContent = message;
+    toast.classList.remove('hidden');
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('opacity-0', 'translate-y-10');
+    }, 10);
+
+    // Animate out
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-10');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 300); // Wait for fade-out transition
+    }, duration);
+}
+
+async function savePlaylistOrder(playlistId) {
+    const grid = document.getElementById(`photos-container-${playlistId}`);
+    if (!grid) return;
+    
+    const sortableInstance = Sortable.get(grid);
+    const newOrder = sortableInstance.toArray();
+
+    try {
+        const response = await fetch(`/api/playlists/${playlistId}/reorder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photos: newOrder })
+        });
+        const result = await response.json();
+        if (result.success) {
+            showToast(i18n.orderSaved);
+        } else {
+            alert(`${i18n.errorPrefix} ${result.message}`);
+        }
+    } catch (e) {
+        alert(i18n.commErrorServer);
+    }
+}
+
+function initializeSortableForPlaylists() {
+    document.querySelectorAll('.photo-grid[data-playlist-id]').forEach(grid => {
+        // Éviter la ré-initialisation si déjà fait
+        if (Sortable.get(grid)) {
+            return;
+        }
+        new Sortable(grid, {
+            animation: 150,
+            ghostClass: 'bg-blue-200', // Classe pour le fantôme de l'élément déplacé
+            dataIdAttr: 'data-id', // Spécifie quel attribut utiliser pour l'ordre
+            onEnd: function (evt) {
+                // Quand l'utilisateur a fini de déplacer, on sauvegarde automatiquement
+                const playlistId = evt.to.dataset.playlistId;
+                savePlaylistOrder(playlistId);
+            }
+        });
+    });
+}
+
 async function renderPlaylists() {
     const playlistsContainer = document.getElementById('playlists-list-container');
     if (!playlistsContainer) return;
@@ -1498,11 +1752,28 @@ async function renderPlaylists() {
             let photosHtml = `<p class="text-sm italic text-gray-500 col-span-full">${i18n.noPhotosInPlaylist || 'Cette playlist est vide.'}</p>`;
             if (playlist.photos.length > 0) {
                 photosHtml = playlist.photos.map(photoPath => {
-                    const thumbUrl = `/static/prepared/${photoPath}?v=${new Date().getTime()}`;
+                    const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(photoPath);
+                    const mediaUrl = `/static/prepared/${photoPath}?v=${new Date().getTime()}`;
+                    let thumbUrl = mediaUrl;
+                    let videoIconHtml = '';
+
+                    if (isVideo) {
+                        const basePath = photoPath.substring(0, photoPath.lastIndexOf('.'));
+                        thumbUrl = `/static/prepared/${basePath}_thumbnail.jpg?v=${new Date().getTime()}`;
+                        videoIconHtml = `
+                            <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded">
+                                <i class="fas fa-play text-white text-3xl opacity-75"></i>
+                            </div>
+                        `;
+                    }
+
                     return `
-                        <div class="photo-tile relative" data-photo-path="${photoPath}">
-                            <img src="${thumbUrl}" class="w-24 h-24 object-cover rounded shadow bg-gray-200">
-                            <button class="remove-from-playlist-btn absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-800 transition-colors" title="{{ _('Retirer de la playlist') }}">
+                        <div class="photo-tile relative cursor-move" data-id="${photoPath}">
+                            <a href="${mediaUrl}" class="glightbox" data-gallery="playlist-${playlist.id}" title="${photoPath}">
+                                <img src="${thumbUrl}" class="w-24 h-24 object-cover rounded shadow bg-gray-200 cursor-pointer hover:scale-105 transition-transform">
+                                ${videoIconHtml}
+                            </a>
+                            <button class="remove-from-playlist-btn absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-800 transition-colors z-10" title="{{ _('Retirer de la playlist') }}">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -1529,11 +1800,19 @@ async function renderPlaylists() {
                         <i class="fas fa-chevron-down text-gray-400 playlist-chevron"></i>
                     </div>
                 </div>
-                <div id="photos-container-${playlist.id}" class="hidden mt-4 photo-grid border-t pt-4">
+                <div id="photos-container-${playlist.id}" class="hidden mt-4 photo-grid border-t pt-4" data-playlist-id="${playlist.id}">
                     ${photosHtml}
                 </div>
             `;
             playlistsContainer.appendChild(playlistEl);
+        });
+
+        // Initialiser le glisser-déposer sur les grilles nouvellement créées
+        initializeSortableForPlaylists();
+
+        // NOUVEAU: Ré-initialiser GLightbox pour les nouvelles galeries de playlists
+        GLightbox({
+            selector: '#playlists-list-container .glightbox'
         });
     } catch (error) {
         playlistsContainer.innerHTML = `<p class="text-red-500">${i18n.errorLoadingPlaylists}</p>`;
@@ -1591,19 +1870,76 @@ function openTab(evt, tabId) {
     if (tabId === 'tab-playlists') {
         renderPlaylists();
     }
+
+    if (tabId === 'tab-vocal') {
+        loadAudioDevices();
+        fetchVoiceControlStatus();
+    }
 }
 
 // Restaurer l'onglet actif au chargement de la page
-window.addEventListener('load', function() {
-    let activeTabId = localStorage.getItem('activeTab') || 'tab-affichage';
-    if (!document.getElementById(activeTabId)) {
-        activeTabId = 'tab-affichage';
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Nouvelle gestion de la navigation par groupes ---
+    const mainNavLinks = document.querySelectorAll('.main-nav-link');
+    const subNavGroups = document.querySelectorAll('.sub-nav-group');
+
+    function switchMainGroup(targetGroup) {
+        mainNavLinks.forEach(link => {
+            link.classList.toggle('active', link.dataset.group === targetGroup);
+        });
+        subNavGroups.forEach(group => {
+            group.classList.toggle('hidden', group.id !== targetGroup);
+        });
     }
+
+    mainNavLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            const targetGroup = this.dataset.group;
+            switchMainGroup(targetGroup);
+            localStorage.setItem('activeMainGroup', targetGroup);
+            
+            // Clique sur le premier onglet du nouveau groupe pour s'assurer qu'un onglet est toujours actif
+            const activeGroup = document.getElementById(targetGroup);
+            if (activeGroup) {
+                const firstTabButton = activeGroup.querySelector('.tablink');
+                if (firstTabButton) {
+                    firstTabButton.click(); // Cela appellera openTab et sauvegardera le nouvel onglet actif
+                }
+            }
+        });
+    });
+
+    // --- Logique de restauration de l'état au chargement de la page ---
+    let activeTabId = localStorage.getItem('activeTab') || 'tab-affichage';
+    let activeMainGroup = localStorage.getItem('activeMainGroup');
+
+    // Trouver à quel groupe appartient l'onglet actif
+    const activeTabElement = document.querySelector(`.tablink[onclick*="'${activeTabId}'"]`);
+    if (activeTabElement) {
+        const parentGroup = activeTabElement.closest('.sub-nav-group');
+        if (parentGroup) {
+            activeMainGroup = parentGroup.id;
+        }
+    }
+
+    // Si aucun groupe valide n'est trouvé, revenir au groupe par défaut
+    if (!activeMainGroup || !document.getElementById(activeMainGroup)) {
+        activeMainGroup = 'group-diaporama';
+        activeTabId = 'tab-affichage'; // Réinitialiser aussi l'onglet
+    }
+    
     // On utilise l'événement 'load' (au lieu de DOMContentLoaded) pour s'assurer que tout est prêt.
+
+    
+    // Activer le bon groupe et le bon onglet
+    switchMainGroup(activeMainGroup);
     openTab(null, activeTabId);
 
+    // --- Reste de la logique de chargement de la page ---
+    
     // Mettre à jour le badge au chargement (et la grille si l'onglet est déjà actif)
     refreshValidationTab(); // Appel initial pour mettre à jour le badge
+
     setInterval(refreshValidationTab, 15000); // Et le mettre à jour périodiquement
 
     // Mettre à jour le badge des favoris
@@ -1986,7 +2322,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const playlistCard = removePhotoBtn.closest('.playlist-card');
                 const playlistId = playlistCard.dataset.id;
                 const photoTile = removePhotoBtn.closest('.photo-tile');
-                const photoPath = photoTile.dataset.photoPath;
+                const photoPath = photoTile.dataset.id;
 
                 photoTile.style.opacity = '0.5';
                 const response = await fetch(`/api/playlists/${playlistId}/photos/${encodeURIComponent(photoPath)}`, { method: 'DELETE' });
@@ -2699,11 +3035,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Contrôles du diaporama ---
-    const prevBtn = document.getElementById('slideshow-prev-btn');
-    const pauseBtn = document.getElementById('slideshow-pause-btn');
-    const nextBtn = document.getElementById('slideshow-next-btn');
-    const pauseIcon = document.getElementById('slideshow-pause-icon');
-
     async function sendSlideshowCommand(command) {
         try {
             const response = await fetch(`/api/slideshow/${command}`, { method: 'POST' });
@@ -2711,22 +3042,54 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!result.success) {
                 alert(`Erreur: ${result.message}`);
             }
-            // Après avoir envoyé une commande de pause/lecture, on met à jour l'icône immédiatement
-            if (command === 'toggle_pause') {
-                // On inverse l'icône actuelle pour un retour visuel instantané
-                if (pauseIcon.classList.contains('fa-pause')) {
-                    pauseIcon.className = 'fas fa-play fa-2x';
-                } else {
-                    pauseIcon.className = 'fas fa-pause fa-2x';
-                }
-            }
+            // Après avoir envoyé une commande, on met à jour l'état des contrôles
+            updateSlideshowControlsState();
         } catch (error) {
             alert('Erreur de communication avec le serveur.');
         }
     }
 
+    // NOUVEAU: Gestion des contrôles du diaporama (basée sur les classes)
+    document.querySelectorAll('.slideshow-control-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const command = btn.dataset.command;
+            if (command) {
+                sendSlideshowCommand(command);
+            }
+        });
+    });
+
+    // NOUVEAU: Bouton pour arrêter la playlist et revenir au standard
+    const stopPlaylistBtn = document.getElementById('stop-playlist-btn');
+    if (stopPlaylistBtn) {
+        stopPlaylistBtn.addEventListener('click', async () => {
+            stopPlaylistBtn.disabled = true;
+            stopPlaylistBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>{{ _("Redémarrage...") }}';
+
+            try {
+                const response = await fetch('/api/slideshow/restart_standard', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    showToast("{{ _('Diaporama standard relancé.') }}");
+                    // Recharger la page pour s'assurer que tous les états sont corrects
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    alert("{{ _('Erreur :') }} " + result.message);
+                    stopPlaylistBtn.disabled = false;
+                    stopPlaylistBtn.innerHTML = '<i class="fas fa-stop-circle mr-2"></i>{{ _("Retour au diaporama standard") }}';
+                }
+            } catch (e) {
+                alert("{{ _('Erreur de communication.') }}");
+                stopPlaylistBtn.disabled = false;
+                stopPlaylistBtn.innerHTML = '<i class="fas fa-stop-circle mr-2"></i>{{ _("Retour au diaporama standard") }}';
+            }
+        });
+    }
+
     async function updateSlideshowControlsState() {
-        if (!pauseBtn) return; // Ne rien faire si les boutons ne sont pas sur la page
+        const controlBtns = document.querySelectorAll('.slideshow-control-btn');
+        if (controlBtns.length === 0) return;
+
         try {
             const response = await fetch('/api/slideshow/status');
             const data = await response.json();
@@ -2734,24 +3097,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const isPaused = data.paused;
 
             // Activer/désactiver les boutons si le diaporama tourne
-            prevBtn.disabled = !isRunning;
-            pauseBtn.disabled = !isRunning;
-            nextBtn.disabled = !isRunning;
+            controlBtns.forEach(btn => {
+                btn.disabled = !isRunning;
+            });
 
             // Mettre à jour l'icône de pause/lecture
-            if (isPaused) {
-                pauseIcon.className = 'fas fa-play fa-2x';
-            } else {
-                pauseIcon.className = 'fas fa-pause fa-2x';
-            }
+            document.querySelectorAll('.slideshow-pause-icon').forEach(icon => {
+                icon.className = isRunning && isPaused ? 'slideshow-pause-icon fas fa-play fa-2x' : 'slideshow-pause-icon fas fa-pause fa-2x';
+            });
+
         } catch (error) {
             console.error("Impossible de récupérer l'état du diaporama:", error);
         }
     }
-
-    if (prevBtn) prevBtn.addEventListener('click', () => sendSlideshowCommand('previous'));
-    if (pauseBtn) pauseBtn.addEventListener('click', () => sendSlideshowCommand('toggle_pause'));
-    if (nextBtn) nextBtn.addEventListener('click', () => sendSlideshowCommand('next'));
 
     // Mise à jour initiale au chargement de la page
     fetchWorkerStatus("immich", "immich-worker-status-message", "immich-last-update-time", "immich-next-update-time");
@@ -2767,45 +3125,49 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSlideshowControlsState(); // Appel initial
 
     // --- Détection de la résolution ---
-    const detectResBtn = document.getElementById("detect-resolution-btn");
-    const slideshowIsRunning = {{ slideshow_running|tojson }};
+    const detectResBtn = document.getElementById("detect-resolution-btn"); // This button is in 'tab-affichage'
+    const slideshowIsRunning = {{ slideshow_running|tojson }}; // This variable is passed from Flask
 
-    async function fetchAndSetResolution() {
-        const originalText = detectResBtn.innerHTML;
-        detectResBtn.innerHTML = 'Détection...';
-        detectResBtn.disabled = true;
+    // Only run this logic if the button exists (i.e., we are on the 'tab-affichage' tab or it's loaded)
+    if (detectResBtn) {
+        async function fetchAndSetResolution() {
+            const originalText = detectResBtn.innerHTML;
+            detectResBtn.innerHTML = 'Détection...';
+            detectResBtn.disabled = true;
 
-        try {
-            const response = await fetch('/get_current_resolution');
-            const data = await response.json();
+            try {
+                const response = await fetch('/get_current_resolution');
+                const data = await response.json();
 
-            if (data.success) {
-                document.getElementById('display_width').value = data.width;
-                document.getElementById('display_height').value = data.height;
-                detectResBtn.innerHTML = 'Détecté !';
-            } else {
-                alert(data.message || "Erreur lors de la détection.");
+                if (data.success) {
+                    document.getElementById('display_width').value = data.width;
+                    document.getElementById('display_height').value = data.height;
+                    detectResBtn.innerHTML = 'Détecté !';
+                } else {
+                    alert(data.message || "Erreur lors de la détection.");
+                    detectResBtn.innerHTML = originalText;
+                }
+            } catch (error) {
+                alert("Erreur de communication avec le serveur.");
                 detectResBtn.innerHTML = originalText;
+            } finally {
+                setTimeout(() => {
+                    detectResBtn.innerHTML = originalText;
+                    // Re-enable only if slideshow is running, otherwise keep disabled
+                    detectResBtn.disabled = !slideshowIsRunning;
+                }, 2000);
             }
-        } catch (error) {
-            alert("Erreur de communication avec le serveur.");
-            detectResBtn.innerHTML = originalText;
-        } finally {
-            setTimeout(() => {
-                detectResBtn.innerHTML = originalText;
-                detectResBtn.disabled = !slideshowIsRunning;
-            }, 2000);
         }
-    }
 
-    if (slideshowIsRunning) {
-        detectResBtn.disabled = false;
-        fetchAndSetResolution(); // Appel automatique au chargement de la page
-    } else {
-        detectResBtn.disabled = true;
-    }
+        if (slideshowIsRunning) {
+            detectResBtn.disabled = false;
+            fetchAndSetResolution(); // Appel automatique au chargement de la page
+        } else {
+            detectResBtn.disabled = true;
+        }
 
-    detectResBtn.addEventListener("click", fetchAndSetResolution);
+        detectResBtn.addEventListener("click", fetchAndSetResolution);
+    }
 
     // --- Aperçu en direct ---
     const livePreviewImage = document.getElementById('live-preview-image');
@@ -3019,36 +3381,60 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function updateLivePreview() {
+        // Get elements for the 'Actions' tab
+        const actionsLivePreviewStatus = document.getElementById('live-preview-status');
+        const actionsLivePreviewImage = document.getElementById('live-preview-image');
+
+        // Get elements for the 'Playlists' tab
+        const playlistLivePreviewStatus = document.getElementById('playlist-live-preview-status');
+        const playlistLivePreviewImage = document.getElementById('playlist-live-preview-image');
+
         try {
             const response = await fetch('/current_photo_status');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
+            
+            // Function to update a specific set of live preview elements
+            function updateElements(statusElement, imageElement) {
+                if (!statusElement || !imageElement) return; // Skip if elements don't exist
 
-            if (data.status === 'stopped') {
-                livePreviewStatus.textContent = 'Le diaporama est arrêté.';
-                livePreviewStatus.classList.remove('hidden');
-                livePreviewImage.classList.add('hidden');
-            } else {
-                if (data.current_photo) {
-                    // Mettre à jour la source de l'image uniquement si elle a changé
-                    if (livePreviewImage.src !== data.current_photo) {
-                         livePreviewImage.src = data.current_photo;
-                    }
-                    livePreviewStatus.classList.add('hidden');
-                    livePreviewImage.classList.remove('hidden');
+                if (data.status === 'stopped') {
+                    statusElement.textContent = 'Le diaporama est arrêté.';
+                    statusElement.classList.remove('hidden');
+                    imageElement.classList.add('hidden');
                 } else {
-                    livePreviewStatus.textContent = 'En attente de la prochaine photo...';
-                    livePreviewStatus.classList.remove('hidden');
-                    livePreviewImage.classList.add('hidden');
+                    if (data.current_photo) {
+                        // Mettre à jour la source de l'image uniquement si elle a changé
+                        if (imageElement.src !== data.current_photo) {
+                            imageElement.src = data.current_photo;
+                        }
+                        statusElement.classList.add('hidden');
+                        imageElement.classList.remove('hidden');
+                    } else {
+                        statusElement.textContent = 'En attente de la prochaine photo...';
+                        statusElement.classList.remove('hidden');
+                        imageElement.classList.add('hidden');
+                    }
                 }
             }
+
+            updateElements(actionsLivePreviewStatus, actionsLivePreviewImage);
+            updateElements(playlistLivePreviewStatus, playlistLivePreviewImage);
         } catch (error) {
             console.error('Erreur de mise à jour de l\'aperçu en direct:', error);
-            livePreviewStatus.textContent = 'Erreur de connexion.';
-            livePreviewStatus.classList.remove('hidden');
-            livePreviewImage.classList.add('hidden');
+            // Handle error for both sets of elements
+            if (actionsLivePreviewStatus && actionsLivePreviewImage) {
+                actionsLivePreviewStatus.textContent = 'Erreur de connexion.';
+                actionsLivePreviewStatus.classList.remove('hidden');
+                actionsLivePreviewImage.classList.add('hidden');
+            }
+            if (playlistLivePreviewStatus && playlistLivePreviewImage) {
+                playlistLivePreviewStatus.textContent = 'Erreur de connexion.';
+                playlistLivePreviewStatus.classList.remove('hidden');
+                playlistLivePreviewImage.classList.add('hidden');
+            }
         }
     }
 
@@ -3206,8 +3592,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fonction pour récupérer et afficher les logs
     async function fetchLogs() {
-        const logType = document.getElementById('log-selector').value;
+        const logSelector = document.getElementById('log-selector');
         const logContentElement = document.getElementById('log-content');
+
+        // Gérer le cas où il n'y a pas de logs à afficher
+        if (logSelector.options.length === 0 || !logSelector.value) {
+            logContentElement.textContent = "{{ _('Aucun fichier de log disponible ou sélectionné.') }}";
+            return;
+        }
+        
+        const logType = logSelector.value;
         try {
             const response = await fetch(`/api/logs?type=${logType}`);
             const data = await response.json();
@@ -3215,11 +3609,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.content && data.content.trim() !== '') {
                     logContentElement.textContent = data.content;
                 } else {
-                    // Utiliser un espace insécable pour s'assurer que la balise <pre> conserve ses dimensions
-                    // lorsqu'elle est vide, ce qui évite les problèmes de mise en page.
                     logContentElement.innerHTML = '&nbsp;';
                 }
-                // Le défilement est maintenant sur le conteneur parent de la balise <pre>
                 logContentElement.parentElement.scrollTop = logContentElement.parentElement.scrollHeight;
             } else {
                 logContentElement.textContent = `{{ _('Erreur:') }} ${data.message}`;
@@ -3227,6 +3618,31 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Erreur de communication avec l'API logs:", error);
             logContentElement.textContent = "{{ _('Erreur de connexion à l\'API des logs.') }}";
+        }
+    }
+
+    // NOUVEAU: Fonction pour charger dynamiquement la liste des fichiers de log
+    async function loadLogFiles() {
+        const logSelector = document.getElementById('log-selector');
+        logSelector.innerHTML = `<option>{{ _('Chargement...') }}</option>`;
+        try {
+            const response = await fetch('/api/list_logs');
+            const data = await response.json();
+            logSelector.innerHTML = ''; // Vider
+            if (data.success && data.logs.length > 0) {
+                data.logs.forEach(log => {
+                    const option = document.createElement('option');
+                    option.value = log.key;
+                    option.textContent = log.name;
+                    logSelector.appendChild(option);
+                });
+                fetchLogs(); // Charger le contenu du premier log de la liste
+            } else {
+                logSelector.innerHTML = `<option>{{ _('Aucun log trouvé') }}</option>`;
+                fetchLogs(); // Affichera le message "aucun log"
+            }
+        } catch (error) {
+            logSelector.innerHTML = `<option>{{ _('Erreur de chargement') }}</option>`;
         }
     }
 
@@ -3269,7 +3685,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Appel initial au chargement de la page pour les infos système et les logs
     fetchSystemInfo();
-    fetchLogs();
+    loadLogFiles(); // Remplacer l'appel direct à fetchLogs par celui-ci
     fetchInterfaceStatus('eth0');
     fetchWifiStatus();
 
@@ -3481,6 +3897,128 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+// --- Contrôle Vocal ---
+async function loadAudioDevices() {
+    const select = document.getElementById('voice_control_device_index');
+    if (!select) return;
+
+    const currentValue = "{{ config.get('voice_control_device_index', '') }}";
+    select.innerHTML = `<option value="">{{ _("Chargement des périphériques...") }}</option>`;
+
+    try {
+        const response = await fetch('/api/audio_devices');
+        const data = await response.json();
+
+        select.innerHTML = `<option value="">{{ _("Périphérique par défaut") }}</option>`;
+        if (data.success) {
+            if (data.devices.length === 0) {
+                select.innerHTML = `<option value="">{{ _("Aucun microphone trouvé.") }}</option>`;
+            } else {
+                data.devices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.index;
+                    option.textContent = `[${device.index}] ${device.name} (${device.hostapi})`;
+                    if (String(device.index) === currentValue) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            }
+        } else {
+            // Afficher le message d'erreur spécifique renvoyé par le serveur
+            select.innerHTML = `<option value="">${data.message || "{{ _('Erreur chargement') }}"}</option>`;
+        }
+    } catch (error) {
+        // Ce bloc est pour les erreurs réseau (ex: serveur non joignable)
+        select.innerHTML = `<option value="">{{ _("Erreur de communication") }}</option>`;
+    }
+}
+
+async function fetchVoiceControlStatus() {
+    const statusSpan = document.getElementById('voice-control-status-message');
+    if (!statusSpan) return;
+
+    try {
+        const response = await fetch('/api/voice_control/status');
+        const data = await response.json();
+        statusSpan.textContent = data.message || 'N/A';
+        if (data.status === 'running' || data.status === 'listening') {
+            statusSpan.className = 'font-mono text-green-600';
+        } else if (data.status === 'error') {
+            statusSpan.className = 'font-mono text-red-600';
+        } else {
+            statusSpan.className = 'font-mono text-gray-500';
+        }
+    } catch (error) {
+        statusSpan.textContent = "{{ _('Erreur de connexion') }}";
+        statusSpan.className = 'font-mono text-red-600';
+    }
+}
+
+document.getElementById('refresh-audio-devices-btn')?.addEventListener('click', loadAudioDevices);
+setInterval(fetchVoiceControlStatus, 5000);
+
+// --- NOUVEAU: Gestion du toggle pour le contrôle vocal ---
+const voiceControlToggle = document.getElementById('voice_control_enabled');
+if (voiceControlToggle) {
+    voiceControlToggle.addEventListener('change', async (event) => {
+        const isEnabled = event.target.checked;
+        
+        // Afficher un retour visuel immédiat
+        const statusSpan = document.getElementById('voice-control-status-message');
+        statusSpan.textContent = isEnabled ? "{{ _('Activation en cours...') }}" : "{{ _('Désactivation en cours...') }}";
+        statusSpan.className = 'font-mono text-blue-600';
+
+        try {
+            const response = await fetch('/api/voice_control/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: isEnabled })
+            });
+            const result = await response.json();
+            showToast(result.message); // Affiche la notification globale
+            fetchVoiceControlStatus(); // Met à jour le statut immédiatement
+        } catch (error) {
+            showToast(i18n.commErrorServer, 5000);
+            fetchVoiceControlStatus(); // Met à jour le statut pour refléter l'échec
+        }
+    });
+}
+
+// --- Diagnostic Audio ---
+const runDiagnosticsBtn = document.getElementById('run-audio-diagnostics-btn');
+const diagnosticsContainer = document.getElementById('audio-diagnostics-results-container');
+const diagnosticsPre = document.getElementById('audio-diagnostics-results');
+
+if (runDiagnosticsBtn) {
+    runDiagnosticsBtn.addEventListener('click', async () => {
+        runDiagnosticsBtn.disabled = true;
+        runDiagnosticsBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${i18n.diagnosticsInProgress}`;
+        diagnosticsContainer.classList.remove('hidden');
+        diagnosticsPre.textContent = i18n.pleaseWait;
+
+        try {
+            const response = await fetch('/api/audio_diagnostics');
+            const data = await response.json();
+
+            if (data.success) {
+                let output = "--- lsusb (Périphériques USB) ---\n";
+                output += data.diagnostics.lsusb || 'N/A';
+                output += "\n\n--- arecord -l (Périphériques de capture audio) ---\n";
+                output += data.diagnostics.arecord || 'N/A';
+                diagnosticsPre.textContent = output;
+            } else {
+                diagnosticsPre.textContent = "{{ _('Erreur lors de la récupération des diagnostics.') }}";
+            }
+        } catch (error) {
+            diagnosticsPre.textContent = i18n.commErrorServer;
+        } finally {
+            runDiagnosticsBtn.disabled = false;
+            runDiagnosticsBtn.innerHTML = `<i class="fas fa-play-circle mr-2"></i>${i18n.runDiagnostics}`;
+        }
+    });
+}
 </script>
 
 </body>

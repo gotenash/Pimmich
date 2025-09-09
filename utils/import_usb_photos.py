@@ -21,7 +21,7 @@ def find_and_mount_usb():
     try:
         # Utiliser lsblk pour une détection fiable, en demandant le chemin du périphérique (PATH)
         result = subprocess.run(
-            ['lsblk', '-J', '-o', 'NAME,MOUNTPOINT,TRAN,PATH'],
+            ['/usr/bin/lsblk', '-J', '-o', 'NAME,MOUNTPOINT,TRAN,PATH'],
             capture_output=True, text=True, check=True, timeout=10
         )
         data = json.loads(result.stdout)
@@ -48,7 +48,7 @@ def find_and_mount_usb():
                     temp_mount_dir = tempfile.mkdtemp(prefix="pimmich_usb_")
                     
                     # Monter le périphérique avec les droits sudo
-                    mount_cmd = ['sudo', 'mount', device_path, temp_mount_dir]
+                    mount_cmd = ['sudo', '/usr/bin/mount', device_path, temp_mount_dir]
                     subprocess.run(mount_cmd, check=True, capture_output=True, text=True, timeout=15)
                     
                     print(f"Périphérique {device_path} monté avec succès sur {temp_mount_dir}")
@@ -131,7 +131,7 @@ def import_usb_photos():
             yield {"type": "progress", "stage": "UNMOUNTING", "percent": 99, "message": "Démontage de la clé USB..."}
             time.sleep(1)
             try:
-                umount_cmd = ['sudo', 'umount', str(mount_path)]
+                umount_cmd = ['sudo', '/usr/bin/umount', str(mount_path)]
                 subprocess.run(umount_cmd, check=True, capture_output=True, text=True, timeout=15)
                 print(f"Démontage de {device_path} réussi.")
                 # Supprimer le répertoire de montage temporaire

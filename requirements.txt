@@ -9,3 +9,10 @@ werkzeug
 Flask-Babel
 piexif
 qrcode[pil]
+pvporcupine
+vosk
+sounddevice
+numpy
+resampy
+thefuzz
+python-Levenshtein

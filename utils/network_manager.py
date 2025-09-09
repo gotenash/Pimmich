@@ -9,7 +9,7 @@ def get_interface_status(interface_name: str):
     try:
         # Commande pour obtenir les détails de l'interface
         ip_addr_output = subprocess.check_output(
-            ['ip', 'addr', 'show', interface_name],
+            ['/usr/bin/ip', 'addr', 'show', interface_name],
             text=True,
             stderr=subprocess.DEVNULL
         ).strip()
@@ -38,7 +38,7 @@ def set_interface_state(interface_name: str, state: str):
     try:
         # Utiliser nmcli pour gérer l'état de l'interface
         subprocess.run(
-            ['sudo', 'nmcli', 'device', action, interface_name],
+            ['sudo', '/usr/bin/nmcli', 'device', action, interface_name],
             check=True,
             capture_output=True,
             text=True,

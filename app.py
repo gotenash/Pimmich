@@ -23,17 +23,18 @@ import traceback
 
 from utils.download_album import download_and_extract_album
 from utils.auth import login_required
-from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow, PID_FILE
-from utils.slideshow_manager import HDMI_OUTPUT, get_display_output_name # Pour la détection de résolution
+from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow
 from utils.config_manager import load_config, save_config
 from utils.playlist_manager import load_playlists, save_playlists
 from utils.auth_manager import change_password
 from utils.network_manager import get_interface_status, set_interface_state
 from utils.wifi_manager import set_wifi_config # Import the new utility
+from utils.display_manager import get_display_output_name, set_display_power
 from utils.prepare_all_photos import prepare_all_photos_with_progress
 from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
 from utils.import_samba import import_samba_photos
 from utils.image_filters import apply_filter_to_image, add_text_to_polaroid, add_text_to_image, create_polaroid_effect
+from utils.voice_control_manager import start_voice_control, stop_voice_control, is_voice_control_running
 from utils.telegram_bot import PimmichBot
 import smbclient
 from smbprotocol.exceptions import SMBException
@@ -81,6 +82,8 @@ def inject_locale():
     return dict(get_locale=get_locale)
 
 
+# Chemins de base
+BASE_DIR = Path(__file__).resolve().parent
 # Chemins de config
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 PENDING_UPLOADS_DIR = Path("static/pending_uploads")
@@ -93,7 +96,18 @@ TEXT_STATES_PATH = 'config/text_states.json'
 INVITATIONS_PATH = 'config/invitations.json'
 TELEGRAM_GUEST_USERS_PATH = 'config/telegram_guest_users.json'
 NEW_POSTCARD_FLAG_PATH = 'cache/new_postcard.flag'
+CUSTOM_PLAYLIST_FILE = "/tmp/pimmich_custom_playlist.json"
 CURRENT_PHOTO_FILE = "/tmp/pimmich_current_photo.txt"
+PREPARED_DIR = BASE_DIR / "static" / "prepared"
+
+# Dictionnaire central pour les fichiers de log
+LOG_FILES_MAP = {
+    "app": {"path": "logs/log_app.txt", "name_key": "app.py (Serveur Web & Supervisor)"},
+    "slideshow_stdout": {"path": "logs/slideshow_stdout.log", "name_key": "local_slideshow.py (Diaporama - Sortie Standard)"},
+    "slideshow_stderr": {"path": "logs/slideshow_stderr.log", "name_key": "local_slideshow.py (Diaporama - Erreurs)"},
+    "voice_control_stdout": {"path": "logs/voice_control_stdout.log", "name_key": "voice_control.py (Contrôle Vocal - Sortie Standard)"},
+    "voice_control_stderr": {"path": "logs/voice_control_stderr.log", "name_key": "voice_control.py (Contrôle Vocal - Erreurs)"},
+}
 
 class WorkerStatus:
     def __init__(self):
@@ -764,7 +778,17 @@ def configure():
         config["show_date"] = 'show_date' in request.form
         config["show_weather"] = 'show_weather' in request.form
         config["show_tides"] = 'show_tides' in request.form
+        config["voice_control_enabled"] = 'voice_control_enabled' in request.form
+        if 'porcupine_access_key' in request.form:
+            config['porcupine_access_key'] = request.form['porcupine_access_key']
+        if 'voice_control_device_index' in request.form:
+            config['voice_control_device_index'] = request.form['voice_control_device_index']
+
         save_config(config)
+        if config.get('voice_control_enabled'):
+            start_voice_control()
+        else:
+            stop_voice_control()
         stop_slideshow() # Stop slideshow to apply new config
         start_slideshow() # Start slideshow with new config
         flash(_("Configuration enregistrée et diaporama relancé"), "success")
@@ -1635,42 +1659,66 @@ def restart_app():
 @app.route('/api/playlists/play', methods=['POST'])
 @login_required
 def play_playlist():
-    """Lance le diaporama avec une playlist personnalisée."""
     data = request.get_json()
     playlist_id = data.get('id')
     if not playlist_id:
-        return jsonify({"success": False, "message": "ID de la playlist manquant."}), 400
+        return jsonify({"success": False, "message": "ID de playlist manquant."}), 400
 
-    playlists = load_playlists()
-    target_playlist = next((p for p in playlists if p.get('id') == playlist_id), None)
-
-    if not target_playlist:
-        return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
-
-    photo_paths = target_playlist.get('photos', [])
-    if not photo_paths:
-        return jsonify({"success": False, "message": "La playlist est vide."})
-
-    # Écrire la liste des photos dans le fichier temporaire que le diaporama lira
-    custom_playlist_file = "/tmp/pimmich_custom_playlist.json"
     try:
-        with open(custom_playlist_file, 'w') as f:
-            json.dump(photo_paths, f)
-    except IOError as e:
-        return jsonify({"success": False, "message": f"Impossible d'écrire le fichier de playlist temporaire : {e}"}), 500
+        playlists = load_playlists()
+        target_playlist = next((p for p in playlists if p.get('id') == playlist_id), None)
 
-    # Arrêter et redémarrer le diaporama pour qu'il prenne en compte la playlist
-    if is_slideshow_running():
-        stop_slideshow()
-        time.sleep(1) # Laisser le temps au processus de s'arrêter
-    start_slideshow()
+        if not target_playlist:
+            return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
 
-    return jsonify({"success": True, "message": _("Lancement de la playlist '%(name)s'...", name=target_playlist['name'])})
+        if not target_playlist.get('photos'):
+            return jsonify({"success": False, "message": "La playlist est vide."}), 400
+
+        # CORRECTION : Créer un objet JSON avec le nom ET les photos
+        playlist_data_to_save = {
+            "name": target_playlist.get('name', 'Playlist'), # Utilise le nom, ou 'Playlist' par défaut
+            "photos": target_playlist.get('photos', [])
+        }
+
+        # Écrire les données dans le fichier temporaire que le diaporama lira
+        with open(CUSTOM_PLAYLIST_FILE, 'w') as f:
+            json.dump(playlist_data_to_save, f)
+        
+        # Arrêter le diaporama actuel s'il est en cours
+        if is_slideshow_running():
+            stop_slideshow()
+            time.sleep(1) # Laisser le temps au processus de se terminer
+        
+        # Démarrer le nouveau diaporama
+        start_slideshow()
+        
+        return jsonify({"success": True, "message": f"Lancement du diaporama pour la playlist '{target_playlist.get('name')}'."})
+    except Exception as e:
+        print(f"Erreur lors du lancement de la playlist : {e}")
+        return jsonify({"success": False, "message": "Erreur interne du serveur."}), 500
+
+@app.route('/api/slideshow/restart_standard', methods=['POST'])
+@login_required
+def restart_standard_slideshow():
+    """Arrête tout diaporama en cours et en lance un nouveau en mode standard."""
+    try:
+        # S'assurer que le fichier de playlist personnalisée est supprimé
+        if os.path.exists(CUSTOM_PLAYLIST_FILE):
+            os.remove(CUSTOM_PLAYLIST_FILE)
+        
+        if is_slideshow_running():
+            stop_slideshow()
+            time.sleep(1) # Laisser le temps au processus de se terminer
+        
+        start_slideshow()
+        return jsonify({"success": True, "message": "Diaporama standard relancé."})
+    except Exception as e:
+        print(f"Erreur lors du redémarrage du diaporama standard : {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 # --- API pour la gestion des Playlists ---
 
 @app.route('/api/playlists', methods=['GET'])
-@login_required
 def get_playlists():
     """Retourne la liste de toutes les playlists."""
     playlists = load_playlists()
@@ -1701,7 +1749,6 @@ def create_playlist():
     return jsonify({"success": True, "playlist": new_playlist}), 201
 
 @app.route('/api/playlists/<playlist_id>', methods=['DELETE'])
-@login_required
 def delete_playlist(playlist_id):
     """Supprime une playlist."""
     playlists = load_playlists()
@@ -1710,7 +1757,6 @@ def delete_playlist(playlist_id):
     return jsonify({"success": True})
 
 @app.route('/api/playlists/<playlist_id>/rename', methods=['POST'])
-@login_required
 def rename_playlist(playlist_id):
     """Renomme une playlist."""
     data = request.get_json()
@@ -1734,7 +1780,6 @@ def rename_playlist(playlist_id):
     return jsonify({"success": True, "message": "Playlist renommée."})
 
 @app.route('/api/playlists/<playlist_id>/photos', methods=['POST'])
-@login_required
 def add_photo_to_playlist(playlist_id):
     """Ajoute une photo à une playlist."""
     data = request.get_json()
@@ -1752,7 +1797,6 @@ def add_photo_to_playlist(playlist_id):
     return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
 
 @app.route('/api/playlists/<playlist_id>/photos/<path:photo_path>', methods=['DELETE'])
-@login_required
 def remove_photo_from_playlist(playlist_id, photo_path):
     """Retire une photo d'une playlist."""
     playlists = load_playlists()
@@ -1764,13 +1808,249 @@ def remove_photo_from_playlist(playlist_id, photo_path):
             return jsonify({"success": True})
     return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
 
+@app.route('/api/playlists/<playlist_id>/reorder', methods=['POST'])
+def reorder_playlist(playlist_id):
+    """
+    Réorganise les photos d'une playlist spécifique.
+    Reçoit une liste de chemins de photos dans le nouvel ordre.
+    """
+    data = request.get_json()
+    if not data or 'photos' not in data:
+        return jsonify({"success": False, "message": "Données manquantes."}), 400
+
+    new_photo_order = data['photos']
+
+    try:
+        playlists = load_playlists() 
+        
+        playlist_found = False
+        for playlist in playlists:
+            if playlist.get('id') == playlist_id:
+                # Mesure de sécurité : on vérifie que le nouvel ordre contient
+                # exactement les mêmes photos que l'ordre original, sans ajout ni suppression.
+                original_photos_set = set(playlist['photos'])
+                new_photos_set = set(new_photo_order)
+
+                if original_photos_set != new_photos_set:
+                     return jsonify({"success": False, "message": "Incohérence dans la liste des photos."}), 400
+
+                playlist['photos'] = new_photo_order
+                playlist_found = True
+                break
+        
+        if not playlist_found:
+            return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
+
+        save_playlists(playlists) 
+
+        return jsonify({"success": True, "message": "Ordre de la playlist sauvegardé."})
+
+    except Exception as e:
+        print(f"Erreur lors de la réorganisation de la playlist : {e}")
+        return jsonify({"success": False, "message": "Erreur interne du serveur."}), 500
+
+
+@app.route('/api/audio_devices', methods=['GET'])
+@login_required
+def get_audio_devices():
+    """Retourne la liste des périphériques d'entrée audio."""
+    try:
+        # L'importation peut échouer si les dépendances C (comme portaudio) sont manquantes
+        import sounddevice as sd
+        devices = sd.query_devices()
+        input_devices = [
+            {"index": i, "name": d['name'], "hostapi": sd.query_hostapis(d['hostapi'])['name']}
+            for i, d in enumerate(devices) if d['max_input_channels'] > 0
+        ]
+        return jsonify({"success": True, "devices": input_devices})
+    except Exception as e:
+        # Renvoyer une erreur JSON claire au lieu de planter ou de renvoyer une liste vide.
+        # Cela permet au frontend d'afficher un message d'erreur utile.
+        error_message = f"Erreur API Audio: {type(e).__name__} - {e}"
+        print(f"[ERROR] in get_audio_devices: {error_message}") # Log pour le débogage côté serveur
+        return jsonify({"success": False, "message": error_message, "devices": []})
+
+@app.route('/api/voice_control/status', methods=['GET'])
+@login_required
+def get_voice_control_status():
+    status_file = 'logs/voice_control_status.json'
+    if not is_voice_control_running():
+        return jsonify({"status": "stopped", "message": _("Le service est arrêté.")})
+    
+    if os.path.exists(status_file):
+        try:
+            with open(status_file, 'r') as f:
+                return jsonify(json.load(f))
+        except Exception as e:
+            return jsonify({"status": "unknown", "message": f"Erreur lecture statut: {e}"})
+    else:
+        return jsonify({"status": "starting", "message": _("Démarrage du service...")})
+
+
+@app.route('/api/audio_diagnostics', methods=['GET'])
+@login_required
+def get_audio_diagnostics():
+    """Exécute des commandes de diagnostic audio et retourne le résultat."""
+    diagnostics = {}
+    try:
+        # Commande lsusb pour lister les périphériques USB
+        lsusb_result = subprocess.run(
+            ['lsusb'], capture_output=True, text=True, check=False, timeout=5
+        )
+        diagnostics['lsusb'] = lsusb_result.stdout.strip() if lsusb_result.returncode == 0 else f"Erreur (code {lsusb_result.returncode}):\n{lsusb_result.stderr.strip()}"
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        diagnostics['lsusb'] = f"Erreur lors de l'exécution de 'lsusb': {e}"
+
+    try:
+        # Commande arecord -l pour lister les périphériques de capture audio
+        arecord_result = subprocess.run(
+            ['arecord', '-l'], capture_output=True, text=True, check=False, timeout=5
+        )
+        diagnostics['arecord'] = arecord_result.stdout.strip() if arecord_result.returncode == 0 else f"Erreur (code {arecord_result.returncode}):\n{arecord_result.stderr.strip()}"
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        diagnostics['arecord'] = f"Erreur lors de l'exécution de 'arecord -l': {e}"
+
+    return jsonify({"success": True, "diagnostics": diagnostics})
+
+# --- NOUVELLES ROUTES POUR LE CONTRÔLE VOCAL AVANCÉ ---
+
+@app.route('/api/system/shutdown', methods=['POST'])
+def system_shutdown():
+    """Éteint le système."""
+    # Sécurité : n'accepter que les requêtes venant de la machine elle-même
+    if request.remote_addr != '127.0.0.1':
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+    print("Arrêt du système demandé via API.")
+    subprocess.run(['sudo', 'shutdown', '-h', 'now'])
+    return jsonify({"success": True, "message": "Arrêt en cours."})
+
+@app.route('/api/display/power', methods=['POST'])
+def display_power():
+    """Allume ou éteint l'écran."""
+    if request.remote_addr != '127.0.0.1':
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+    
+    data = request.get_json()
+    state = data.get('state') # 'on' or 'off'
+
+    if state not in ['on', 'off']:
+        return jsonify({"success": False, "message": "État invalide. Utilisez 'on' ou 'off'."}), 400
+
+    from utils.display_manager import set_display_power
+    success, message = set_display_power(on=(state == 'on'))
+    return jsonify({"success": success, "message": message})
+
+@app.route('/api/sources/play/<source_name>', methods=['POST'])
+def play_source_as_playlist(source_name):
+    """Joue toutes les photos d'une source donnée comme une playlist."""
+    if request.remote_addr != '127.0.0.1':
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+
+    source_dir = PREPARED_DIR / source_name
+    if not source_dir.is_dir():
+        return jsonify({"success": False, "message": f"La source '{source_name}' n'existe pas."}), 404
+
+    photos = [
+        f"{source_name}/{f.name}" for f in source_dir.iterdir() 
+        if f.is_file() and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))
+    ]
+
+    if not photos:
+        return jsonify({"success": False, "message": f"La source '{source_name}' est vide."}), 400
+    
+    playlist_data = {"name": f"Source: {source_name.capitalize()}", "photos": photos}
+    
+    try:
+        with open(CUSTOM_PLAYLIST_FILE, 'w', encoding='utf-8') as f:
+            json.dump(playlist_data, f)
+        
+        stop_slideshow()
+        time.sleep(1.5) # Donner un peu plus de temps pour l'arrêt
+        start_slideshow()
+        
+        return jsonify({"success": True, "message": f"Lancement du diaporama pour la source '{source_name}'."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erreur lors du lancement de la playlist source: {e}"}), 500
+
+@app.route('/api/sources/toggle', methods=['POST'])
+def toggle_source():
+    """Active ou désactive une source dans la configuration."""
+    app.logger.info(f"API /api/sources/toggle reçue de {request.remote_addr}")
+    if request.remote_addr != '127.0.0.1':
+        app.logger.warning(f"Accès non autorisé à /api/sources/toggle de {request.remote_addr}")
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+        
+    data = request.get_json()
+    source_name = data.get('source')
+    state = data.get('state') # 'on' or 'off'
+    app.logger.info(f"Action demandée : '{state}' pour la source '{source_name}'")
+
+    if not source_name or state not in ['on', 'off']:
+        app.logger.error(f"Paramètres invalides reçus : source='{source_name}', state='{state}'")
+        return jsonify({"success": False, "message": "Paramètres 'source' ou 'state' invalides."}), 400
+
+    try:
+        config = load_config()
+        original_sources = config.get('display_sources', [])
+        app.logger.info(f"Sources avant modification : {original_sources}")
+        display_sources = set(original_sources)
+
+        if state == 'on':
+            display_sources.add(source_name)
+            action_msg = "activée"
+        else: # off
+            display_sources.discard(source_name)
+            action_msg = "désactivée"
+
+        new_sources_list = sorted(list(display_sources))
+        config['display_sources'] = new_sources_list
+        app.logger.info(f"Sources après modification (avant sauvegarde) : {new_sources_list}")
+        save_config(config)
+        app.logger.info("Configuration sauvegardée avec succès dans config.json.")
+        
+        # Le diaporama détectera le changement automatiquement au prochain cycle.
+        # Il n'est plus nécessaire de le redémarrer de force, ce qui causait le timeout.
+        return jsonify({"success": True, "message": f"Source '{source_name}' {action_msg}. Le changement sera appliqué sur le diaporama."})
+    except Exception as e:
+        app.logger.error(f"Erreur dans la fonction toggle_source : {e}", exc_info=True)
+        return jsonify({"success": False, "message": f"Erreur lors de la modification de la source : {e}"}), 500
+
+@app.route('/api/slideshow/set_duration', methods=['POST'])
+def set_slideshow_duration():
+    """Modifie la durée d'affichage des photos et redémarre le diaporama."""
+    # Sécurité : n'accepter que les requêtes venant de la machine elle-même
+    if request.remote_addr != '127.0.0.1':
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+    
+    data = request.get_json()
+    duration = data.get('duration')
+
+    if not isinstance(duration, int) or duration <= 0:
+        return jsonify({"success": False, "message": "Durée invalide. Un entier positif est requis."}), 400
+
+    try:
+        config = load_config()
+        config['display_duration'] = duration
+        save_config(config)
+        
+        # Redémarrer le diaporama pour appliquer la nouvelle durée
+        if is_slideshow_running():
+            stop_slideshow()
+            time.sleep(1) # Laisser le temps au processus de se terminer
+        
+        start_slideshow()
+        
+        return jsonify({"success": True, "message": f"Durée d'affichage réglée à {duration} secondes."})
+    except Exception as e:
+        app.logger.error(f"Erreur lors du changement de la durée d'affichage : {e}", exc_info=True)
+        return jsonify({"success": False, "message": f"Erreur interne du serveur : {e}"}), 500
 
 def _send_slideshow_signal(sig):
     """Helper function to send a signal to the slideshow process."""
     if not is_slideshow_running():
         return jsonify({"success": False, "message": "Le diaporama n'est pas en cours."}), 404
     try:
-        with open(PID_FILE, "r") as f:
+        with open("/tmp/pimmich_slideshow.pid", "r") as f:
             pid = int(f.read())
         os.kill(pid, sig)
         return jsonify({"success": True})
@@ -1778,22 +2058,18 @@ def _send_slideshow_signal(sig):
         return jsonify({"success": False, "message": f"Impossible de communiquer avec le diaporama : {e}"}), 500
 
 @app.route('/api/slideshow/next', methods=['POST'])
-@login_required
 def slideshow_next():
     return _send_slideshow_signal(signal.SIGUSR1)
 
 @app.route('/api/slideshow/previous', methods=['POST'])
-@login_required
 def slideshow_previous():
     return _send_slideshow_signal(signal.SIGUSR2)
 
 @app.route('/api/slideshow/toggle_pause', methods=['POST'])
-@login_required
 def slideshow_toggle_pause():
     return _send_slideshow_signal(signal.SIGTSTP)
 
 @app.route('/api/slideshow/status')
-@login_required
 def slideshow_status():
     if not is_slideshow_running():
         return jsonify({"running": False, "paused": False})
@@ -2160,21 +2436,31 @@ def get_system_info_api():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
+@app.route('/api/list_logs', methods=['GET'])
+@login_required
+def list_logs():
+    """Retourne la liste des fichiers de log qui existent réellement."""
+    available_logs = []
+    # Itérer dans un ordre défini pour une interface utilisateur cohérente
+    log_order = ["app", "slideshow_stdout", "slideshow_stderr", "voice_control_stdout", "voice_control_stderr"]
+    for key in log_order:
+        info = LOG_FILES_MAP.get(key)
+        if info and os.path.exists(info["path"]):
+            # Traduire la clé du nom pendant la requête
+            available_logs.append({"key": key, "name": _(info["name_key"])})
+    return jsonify({"success": True, "logs": available_logs})
+
 @app.route('/api/logs')
 @login_required
 def get_logs_api():
     """Retourne le contenu d'un fichier de log spécifié."""
     log_type = request.args.get('type', 'app')
-    log_file_path = ""
-
-    if log_type == 'app':
-        log_file_path = "logs/log_app.txt"
-    elif log_type == 'slideshow_stdout':
-        log_file_path = "logs/slideshow_stdout.log"
-    elif log_type == 'slideshow_stderr':
-        log_file_path = "logs/slideshow_stderr.log"
-    else:
+    
+    log_info = LOG_FILES_MAP.get(log_type)
+    if not log_info:
         return jsonify({"success": False, "message": "Type de log invalide."})
+
+    log_file_path = log_info['path']
 
     try:
         with open(log_file_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -2196,15 +2482,10 @@ def clear_logs_api():
     data = request.get_json()
     log_type = data.get('type')
 
-    log_file_path = ""
-    if log_type == 'app':
-        log_file_path = "logs/log_app.txt"
-    elif log_type == 'slideshow_stdout':
-        log_file_path = "logs/slideshow_stdout.log"
-    elif log_type == 'slideshow_stderr':
-        log_file_path = "logs/slideshow_stderr.log"
-    else:
+    log_info = LOG_FILES_MAP.get(log_type)
+    if not log_info:
         return jsonify({"success": False, "message": "Type de log invalide."}), 400
+    log_file_path = log_info['path']
 
     try:
         if os.path.exists(log_file_path):
@@ -2637,5 +2918,11 @@ if __name__ == '__main__':
     # Démarrer le worker de planification du diaporama
     scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
     scheduler_thread.start()
+
+    # --- NOUVEAU: Démarrage du contrôle vocal si activé ---
+    config = load_config()
+    if config.get('voice_control_enabled'):
+        print("Le contrôle vocal est activé, démarrage du service...")
+        start_voice_control()
 
     app.run(host='0.0.0.0', port=5000)

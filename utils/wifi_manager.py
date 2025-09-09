@@ -10,7 +10,7 @@ def get_wifi_status():
     status = {"ssid": "Non connecté", "ip_address": "N/A", "is_connected": False}
     try:
         # Utiliser nmcli pour obtenir un statut fiable
-        cmd = ['nmcli', '-t', '-f', 'GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS', 'dev', 'show', 'wlan0']
+        cmd = ['/usr/bin/nmcli', '-t', '-f', 'GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS', 'dev', 'show', 'wlan0']
         output = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
         
         lines = output.split('\n')
@@ -46,7 +46,7 @@ def set_wifi_config(ssid: str, password: str, country_code: str = "FR"):
     try:
         print(f"Définition du pays Wi-Fi sur : {country_code}")
         subprocess.run(
-            ['sudo', 'raspi-config', 'nonint', 'do_wifi_country', country_code],
+            ['sudo', '/usr/bin/raspi-config', 'nonint', 'do_wifi_country', country_code],
             check=True, capture_output=True, text=True, timeout=15
         )
     except subprocess.CalledProcessError as e:
@@ -65,7 +65,7 @@ def set_wifi_config(ssid: str, password: str, country_code: str = "FR"):
         subprocess.run(f"sudo nmcli connection delete '{ssid}' || true", shell=True, capture_output=True)
         
         # Créer la nouvelle connexion
-        cmd = ['sudo', 'nmcli', 'device', 'wifi', 'connect', ssid]
+        cmd = ['sudo', '/usr/bin/nmcli', 'device', 'wifi', 'connect', ssid]
         if password:
             cmd.extend(['password', password])
         

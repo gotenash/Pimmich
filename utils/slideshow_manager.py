@@ -1,49 +1,10 @@
 import os
-import subprocess
-import sys
 import signal
 import psutil
-import json
-import glob
+import subprocess, sys
+from .display_manager import set_display_power # MODIFIÉ
 
 PID_FILE = "/tmp/pimmich_slideshow.pid"
-
-def get_display_output_name():
-    """
-    Détecte le nom de la sortie d'affichage principale.
-    Retourne le nom (ex: "HDMI-A-1") ou None si non trouvé.
-    On ne se base plus sur 'active' car l'écran peut être en veille.
-    """
-    try:
-        # Assurer que SWAYSOCK est défini pour communiquer avec Sway
-        if "SWAYSOCK" not in os.environ:
-            user_id = os.getuid()
-            sock_path_pattern = f"/run/user/{user_id}/sway-ipc.*"
-            socks = glob.glob(sock_path_pattern)
-            if socks:
-                os.environ["SWAYSOCK"] = socks[0]
-            else:
-                print("AVERTISSEMENT: Variable d'environnement SWAYSOCK non trouvée, impossible de contrôler l'écran.")
-                return None
-
-        result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True, env=os.environ)
-        outputs = json.loads(result.stdout)
-        
-        # On cherche la première sortie qui a un mode configuré.
-        # C'est plus fiable que de se baser sur 'active', car l'écran peut être désactivé.
-        for output in outputs:
-            if output.get('current_mode'):
-                output_name = output.get('name')
-                print(f"Sortie d'affichage principale détectée : {output_name}")
-                return output_name
-        
-        print("AVERTISSEMENT: Aucune sortie d'affichage avec un mode configuré n'a été trouvée.")
-        return None
-    except Exception as e:
-        print(f"Erreur lors de la détection de la sortie d'affichage : {e}.")
-        return None
-
-HDMI_OUTPUT = get_display_output_name()
 _log_files = {} # Dictionnaire pour garder les références aux fichiers de log ouverts
 
 def is_slideshow_running():
@@ -51,10 +12,12 @@ def is_slideshow_running():
         return False
     try:
         with open(PID_FILE, "r") as f:
-            pid = int(f.read())
+            pid = int(f.read().strip())
+        if not psutil.pid_exists(pid):
+            return False
         p = psutil.Process(pid)
-        return p.is_running() and "local_slideshow.py" in p.cmdline()
-    except Exception:
+        return p.is_running() and any("local_slideshow.py" in s for s in p.cmdline())
+    except (psutil.NoSuchProcess, FileNotFoundError, ValueError):
         return False
 
 def start_slideshow():
@@ -73,8 +36,7 @@ def start_slideshow():
         return
 
     # Active la sortie HDMI via swaymsg
-    if HDMI_OUTPUT:
-        subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "enable"])
+    set_display_power(True) # MODIFIÉ
 
     # Préparer l’environnement Wayland/Sway
     env = os.environ.copy()
@@ -93,7 +55,8 @@ def start_slideshow():
     # pour garantir que le diaporama s'exécute dans le même environnement (venv).
     python_executable = sys.executable
     # Lance le diaporama
-    proc = subprocess.Popen(
+    # Ajout de -u pour un output non bufferisé, crucial pour les logs en temps réel
+    proc = subprocess.Popen( 
         [python_executable, "local_slideshow.py"],
         stdout=stdout_log,
         stderr=stderr_log,
@@ -109,34 +72,38 @@ def start_slideshow():
 
 
 def stop_slideshow():
-    # 1. Tuer le processus avec le PID enregistré
+    """Arrête le processus du diaporama de manière robuste, en attendant sa terminaison."""
     if os.path.exists(PID_FILE):
         try:
             with open(PID_FILE, "r") as f:
-                pid = int(f.read())
-            
-            # Fermer les fichiers de log associés à ce PID
-            if pid in _log_files:
-                _log_files[pid][0].close() # stdout
-                _log_files[pid][1].close() # stderr
-                del _log_files[pid]
-            os.kill(pid, signal.SIGTERM)
+                pid = int(f.read().strip())
+            if psutil.pid_exists(pid):
+                print(f"Arrêt du processus de diaporama {pid}...")
+                p = psutil.Process(pid)
+                p.terminate() # Envoyer un signal de terminaison propre
+                try:
+                    # Attendre un peu plus longtemps pour s'assurer que tout est bien fermé
+                    p.wait(timeout=5) 
+                    print(f"Processus {pid} terminé proprement.")
+                except psutil.TimeoutExpired:
+                    print(f"Le processus {pid} n'a pas répondu, forçage de l'arrêt.")
+                    p.kill() # Forcer l'arrêt s'il ne répond pas
+                    p.wait(timeout=2) # Laisser le temps au kill de faire effet
+        except (IOError, ValueError, psutil.NoSuchProcess) as e:
+            print(f"Avertissement lors de l'arrêt du diaporama : {e}")
+        finally:
+            # S'assurer que le fichier PID est supprimé
+            if os.path.exists(PID_FILE):
+                os.remove(PID_FILE)
 
-        except Exception:
-            pass
-        try:
-            os.remove(PID_FILE)
-        except Exception:
-            pass
-
-    # 2. Tuer tous les processus restants avec "local_slideshow.py" dans leur commande
+    # Double sécurité : tuer tous les processus restants qui pourraient être des zombies
     for proc in psutil.process_iter(attrs=["pid", "cmdline"]):
         try:
             if proc.info["cmdline"] and any("local_slideshow.py" in part for part in proc.info["cmdline"]):
+                print(f"Nettoyage d'un processus de diaporama zombie trouvé (PID: {proc.pid}).")
                 proc.kill()
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
 
     # 3. Éteindre l’écran proprement
-    if HDMI_OUTPUT:
-        subprocess.run(["swaymsg", "output", HDMI_OUTPUT, "disable"])
+    set_display_power(False)

@@ -18,7 +18,6 @@ import qrcode
 import psutil
 from pathlib import Path
 from utils.text_drawer import draw_text_with_outline
-from utils.slideshow_manager import HDMI_OUTPUT # Importer la constante centralisée
 from utils.config_manager import load_config
 
 # Définition des chemins
@@ -93,17 +92,38 @@ def load_filter_states():
         return {}
 
 def load_favorites():
-    """Charge la liste des photos favorites depuis un fichier JSON."""
+    """Charge la liste des photos favorites et la retourne comme un ensemble (set) pour des recherches rapides."""
     if not os.path.exists(FAVORITES_PATH):
-        return []
+        return set()
     try:
         with open(FAVORITES_PATH, 'r') as f:
-            return json.load(f)
+            # On s'attend à une liste de chemins dans le JSON
+            favorites_list = json.load(f)
+            if isinstance(favorites_list, list):
+                return set(favorites_list)
+            else:
+                print(f"Avertissement: Le fichier des favoris '{FAVORITES_PATH}' ne contient pas une liste. Il sera ignoré.")
+                return set()
     except (json.JSONDecodeError, IOError):
-        return {}
+        print(f"Avertissement: Impossible de lire le fichier des favoris '{FAVORITES_PATH}'.")
+        return set()
 
 def get_local_ip():
-    """Tente de récupérer l'adresse IP locale de la machine."""
+    """Tente de récupérer l'adresse IP locale de la machine de manière robuste."""
+    # Méthode 1: Utiliser `hostname -I` (plus fiable sur Linux/RPi)
+    try:
+        result = subprocess.run(
+            ['hostname', '-I'],
+            capture_output=True, text=True, check=True, timeout=2
+        )
+        # Prend la première adresse IP de la liste
+        ip = result.stdout.strip().split()[0]
+        if ip:
+            return ip
+    except (FileNotFoundError, subprocess.CalledProcessError, IndexError, subprocess.TimeoutExpired):
+        pass # La commande a échoué, on passe à la méthode suivante
+
+    # Méthode 2: Méthode socket (fallback)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # Cette IP n'a pas besoin d'être joignable
@@ -114,6 +134,89 @@ def get_local_ip():
     finally:
         s.close()
     return ip
+
+# Helper function to parse hex colors (including alpha)
+def parse_color(hex_color):
+    hex_color = str(hex_color).lstrip('#')
+    if len(hex_color) == 6: # RRGGBB
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    elif len(hex_color) == 8: # RRGGBBAA
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4, 6))
+    else:
+        return (255, 255, 255) # Default to white if invalid
+
+# New function to perform a transition between two images
+def perform_transition(screen, old_image_surface, new_image_path, duration, screen_width, screen_height, main_font, config, transition_type):
+    clock = pygame.time.Clock()
+    fps = 60 # FPS for the transition
+    num_frames = int(duration * fps)
+    if num_frames == 0: # Avoid division by zero if duration is too small
+        num_frames = 1
+
+    # Load and prepare new image
+    try:
+        new_pil_image = Image.open(new_image_path)
+    except (FileNotFoundError, Image.UnidentifiedImageError) as e:
+        print(f"[Transition] ERREUR: Impossible de charger l'image '{new_image_path}': {e}")
+        return None # Retourner None pour signaler l'échec
+    if new_pil_image.mode != 'RGB': # type: ignore
+        new_pil_image = new_pil_image.convert('RGB')
+
+    # Scale new image to fit the screen (maintain aspect ratio, center)
+    # This is the base image for the transition, not the pan/zoom scaled one
+    new_pil_image_scaled = new_pil_image.copy()
+    new_pil_image_scaled.thumbnail((screen_width, screen_height), Image.Resampling.LANCZOS)
+    
+    new_surface_scaled = pygame.Surface((screen_width, screen_height))
+    new_surface_scaled.fill((0,0,0)) # Black background for new image
+    
+    img_x = (screen_width - new_pil_image_scaled.width) // 2
+    img_y = (screen_height - new_pil_image_scaled.height) // 2
+    
+    new_surface_scaled.blit(pygame.image.fromstring(new_pil_image_scaled.tobytes(), new_pil_image_scaled.size, new_pil_image_scaled.mode), (img_x, img_y))
+
+    for i in range(num_frames + 1):
+        progress = i / num_frames # 0.0 to 1.0
+
+        if transition_type == "fade":
+            alpha = int(255 * progress)
+            temp_new_surface_with_alpha = new_surface_scaled.copy()
+            temp_new_surface_with_alpha.set_alpha(alpha)
+            screen.blit(old_image_surface, (0, 0))
+            screen.blit(temp_new_surface_with_alpha, (0, 0))
+        elif transition_type.startswith("slide_"):
+            # Determine slide direction
+            direction = transition_type.split("_")[1]
+            
+            # Calculate offset for the new image
+            offset_x, offset_y = 0, 0
+            if direction == "left":
+                offset_x = int(screen_width * (1 - progress)) # New image starts off-screen right, slides left
+            elif direction == "right":
+                offset_x = int(-screen_width * (1 - progress)) # New image starts off-screen left, slides right
+            elif direction == "up":
+                offset_y = int(screen_height * (1 - progress)) # New image starts off-screen bottom, slides up
+            elif direction == "down":
+                offset_y = int(-screen_height * (1 - progress)) # New image starts off-screen top, slides down
+            
+            screen.blit(old_image_surface, (0, 0)) # Draw old image first
+            screen.blit(new_surface_scaled, (offset_x, offset_y)) # Draw new image sliding in
+        else: # Fallback to fade if unknown type
+            screen.blit(old_image_surface, (0, 0))
+            screen.blit(new_surface_scaled, (0, 0)) # Just blit new image directly
+        
+        # Draw overlay during transition
+        draw_overlay(screen, screen_width, screen_height, config, main_font)
+
+        pygame.display.flip()
+        clock.tick(fps)
+
+    # Ensure the new image is fully blitted at the end of the transition
+    screen.blit(new_surface_scaled, (0, 0))
+    draw_overlay(screen, screen_width, screen_height, config, main_font)
+    pygame.display.flip()
+
+    return new_pil_image
 
 # Vérifie si on est dans les heures actives
 def is_within_active_hours(start, end):
@@ -450,25 +553,6 @@ def build_playlist(media_list, config, favorites):
             for _ in range(favorite_boost): playlist.append(media_path)
     return playlist
 
-_hdmi_output = HDMI_OUTPUT
-_hdmi_state = None  # variable pour éviter les appels répétitifs
-
-# Gestion de l'alimentation de l'écran via swaymsg
-def set_display_power(on: bool):
-    global _hdmi_state
-    if _hdmi_state == on:
-        return
-    if not _hdmi_output:
-        # Ne rien faire si aucune sortie n'a été détectée
-        return
-    cmd = ['swaymsg', 'output', _hdmi_output, 'enable' if on else 'disable']
-    try:
-        subprocess.run(cmd, check=True, capture_output=True)
-        _hdmi_state = on
-        print(f"Écran {'activé' if on else 'désactivé'} via swaymsg ({_hdmi_output})")
-    except Exception as e:
-        print(f"Erreur changement état écran via swaymsg : {e}")
-
 try:
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM) # Utiliser la numérotation BCM des pins
@@ -501,85 +585,6 @@ def control_fan(temperature, threshold=55, pin=14):
         # print(f"Ventilateur activé (température : {temperature}°C, seuil : {threshold}°C)") # Commenté pour réduire le bruit dans les logs
     else:
         set_gpio_output(pin, False)
-
-# Helper function to parse hex colors (including alpha)
-def parse_color(hex_color):
-    hex_color = str(hex_color).lstrip('#')
-    if len(hex_color) == 6: # RRGGBB
-        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-    elif len(hex_color) == 8: # RRGGBBAA
-        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4, 6))
-    else:
-        return (255, 255, 255) # Default to white if invalid
-
-# New function to perform a transition between two images
-def perform_transition(screen, old_image_surface, new_image_path, duration, screen_width, screen_height, main_font, config, transition_type):
-    clock = pygame.time.Clock()
-    fps = 60 # FPS for the transition
-    num_frames = int(duration * fps)
-    if num_frames == 0: # Avoid division by zero if duration is too small
-        num_frames = 1
-
-    # Load and prepare new image
-    new_pil_image = Image.open(new_image_path)
-    if new_pil_image.mode != 'RGB':
-        new_pil_image = new_pil_image.convert('RGB')
-
-    # Scale new image to fit the screen (maintain aspect ratio, center)
-    # This is the base image for the transition, not the pan/zoom scaled one
-    new_pil_image_scaled = new_pil_image.copy()
-    new_pil_image_scaled.thumbnail((screen_width, screen_height), Image.Resampling.LANCZOS)
-    
-    new_surface_scaled = pygame.Surface((screen_width, screen_height))
-    new_surface_scaled.fill((0,0,0)) # Black background for new image
-    
-    img_x = (screen_width - new_pil_image_scaled.width) // 2
-    img_y = (screen_height - new_pil_image_scaled.height) // 2
-    
-    new_surface_scaled.blit(pygame.image.fromstring(new_pil_image_scaled.tobytes(), new_pil_image_scaled.size, new_pil_image_scaled.mode), (img_x, img_y))
-
-    for i in range(num_frames + 1):
-        progress = i / num_frames # 0.0 to 1.0
-
-        if transition_type == "fade":
-            alpha = int(255 * progress)
-            temp_new_surface_with_alpha = new_surface_scaled.copy()
-            temp_new_surface_with_alpha.set_alpha(alpha)
-            screen.blit(old_image_surface, (0, 0))
-            screen.blit(temp_new_surface_with_alpha, (0, 0))
-        elif transition_type.startswith("slide_"):
-            # Determine slide direction
-            direction = transition_type.split("_")[1]
-            
-            # Calculate offset for the new image
-            offset_x, offset_y = 0, 0
-            if direction == "left":
-                offset_x = int(screen_width * (1 - progress)) # New image starts off-screen right, slides left
-            elif direction == "right":
-                offset_x = int(-screen_width * (1 - progress)) # New image starts off-screen left, slides right
-            elif direction == "up":
-                offset_y = int(screen_height * (1 - progress)) # New image starts off-screen bottom, slides up
-            elif direction == "down":
-                offset_y = int(-screen_height * (1 - progress)) # New image starts off-screen top, slides down
-            
-            screen.blit(old_image_surface, (0, 0)) # Draw old image first
-            screen.blit(new_surface_scaled, (offset_x, offset_y)) # Draw new image sliding in
-        else: # Fallback to fade if unknown type
-            screen.blit(old_image_surface, (0, 0))
-            screen.blit(new_surface_scaled, (0, 0)) # Just blit new image directly
-        
-        # Draw overlay during transition
-        draw_overlay(screen, screen_width, screen_height, config, main_font)
-
-        pygame.display.flip()
-        clock.tick(fps)
-
-    # Ensure the new image is fully blitted at the end of the transition
-    screen.blit(new_surface_scaled, (0, 0))
-    draw_overlay(screen, screen_width, screen_height, config, main_font)
-    pygame.display.flip()
-
-    return new_pil_image # Return the PIL image for further processing (pan/zoom)
 
 # New function to draw the overlay elements (clock, date, weather)
 def draw_overlay(screen, screen_width, screen_height, config, main_font):
@@ -783,6 +788,35 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
 
                 draw_text_with_outline(screen, tide_text, font_to_use, text_color, outline_color, tide_rect.topleft, anchor="topleft")
 
+def display_title_slide(screen, screen_width, screen_height, title, duration, config):
+    """Affiche un écran titre avec le nom de la playlist."""
+    print(f"[Slideshow] Affichage de l'écran titre : '{title}'")
+    screen.fill((0, 0, 0)) # Fond noir
+
+    text_color = parse_color(config.get("clock_color", "#FFFFFF"))
+    outline_color = parse_color(config.get("clock_outline_color", "#000000"))
+    
+    try:
+        font_path = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+        # Utiliser une police plus grande pour le titre
+        title_font_size = int(config.get("clock_font_size", 72) * 1.5)
+        title_font = pygame.font.Font(font_path, title_font_size)
+    except Exception as e:
+        print(f"Erreur chargement police pour l'écran titre: {e}")
+        title_font = pygame.font.SysFont("Arial", 96, bold=True)
+
+    # Utiliser la fonction existante pour dessiner le texte avec contour
+    draw_text_with_outline(screen, title, title_font, text_color, outline_color, (screen_width // 2, screen_height // 2), anchor="center")
+
+    pygame.display.flip()
+    
+    # Boucle d'attente pour rester réactif aux signaux (ex: QUIT)
+    start_sleep = time.time()
+    while time.time() - start_sleep < duration:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: pygame.quit(); sys.exit()
+        time.sleep(0.1)
+
 # Fonction pour afficher une image et l'heure
 def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, config, main_font):
     """
@@ -952,11 +986,11 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # On réaffiche la souris au cas où l'utilisateur voudrait interagir avec mpv (barre de progression, etc.)
         pygame.mouse.set_visible(True)
         
-        # --- NOUVEAU: Forcer le volume système avec amixer ---
+        # --- Forcer le volume système avec amixer ---
         if audio_enabled:
             print(f"[Audio] Forcing system volume to {audio_volume}% using amixer.")
-            # Liste des contrôles de volume à maximiser.
-            # On ignore les erreurs si un contrôle n'existe pas (check=False).
+            # Liste des contrôles de volume à définir.
+            # On ignore les erreurs si un contrôle n'existe pas.
             for control in ['Master', 'PCM', 'Headphone', 'HDMI']:
                 try:
                     subprocess.run(['amixer', 'sset', control, f'{audio_volume}%', 'unmute'], check=False, capture_output=True, text=True)
@@ -1052,16 +1086,32 @@ def start_slideshow():
 
         # --- Vérification de l'existence d'une playlist personnalisée ---
         custom_playlist = None
+        playlist_name = None # NOUVEAU
         if os.path.exists(CUSTOM_PLAYLIST_FILE):
             try:
                 with open(CUSTOM_PLAYLIST_FILE, 'r') as f:
-                    custom_playlist_paths = json.load(f)
+                    playlist_data = json.load(f)
+                
+                # NOUVEAU: Gère la nouvelle structure {"name": "...", "photos": [...]}
+                if isinstance(playlist_data, dict) and 'name' in playlist_data and 'photos' in playlist_data:
+                    playlist_name = playlist_data['name']
+                    custom_playlist_paths = playlist_data['photos']
+                else:
+                    # Fallback pour l'ancienne structure (juste une liste de chemins)
+                    custom_playlist_paths = playlist_data
+                
                 # Convertir les chemins relatifs en chemins absolus
                 custom_playlist = [str(Path(BASE_DIR) / 'static' / 'prepared' / p) for p in custom_playlist_paths]
-                print(f"[Slideshow] Playlist personnalisée chargée avec {len(custom_playlist)} photos.")
+                print(f"[Slideshow] Playlist personnalisée '{playlist_name or 'Sans nom'}' chargée avec {len(custom_playlist)} photos.")
                 os.remove(CUSTOM_PLAYLIST_FILE) # Supprimer pour ne pas la réutiliser au prochain démarrage
             except Exception as e:
                 print(f"[Slideshow] Erreur chargement playlist personnalisée: {e}. Utilisation de la playlist par défaut.")
+
+        # NOUVEAU: Afficher l'écran titre si un nom de playlist est disponible
+        if playlist_name:
+            # Utiliser une durée spécifique pour les écrans d'info, configurable
+            info_duration = int(config.get("info_display_duration", 5))
+            display_title_slide(screen, SCREEN_WIDTH, SCREEN_HEIGHT, playlist_name, info_duration, config)
 
         while True:
             config = load_config() # Recharger la config à chaque itération
@@ -1311,39 +1361,32 @@ def start_slideshow():
 
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
-                    # --- CORRECTION: Le break et la réinitialisation sont supprimés ---
-                    # Le break empêchait la playlist de continuer après une vidéo.
-                    # La réinitialisation de pygame est gérée de manière plus ciblée
-                    # (ex: pygame.mixer) et n'est pas nécessaire ici.
-                    # screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
-                    # break
                 else: # C'est une image
                     current_pil_image = None # Initialize to None to ensure it's always defined
                     try:
                         # Perform transition if it's not the first photo and transition is enabled
                         if previous_photo_surface is not None and transition_enabled and transition_duration > 0 and transition_type != "none": # Added transition_type check
                             current_pil_image = perform_transition(screen, previous_photo_surface, photo_path, transition_duration, SCREEN_WIDTH, SCREEN_HEIGHT, main_font_loaded, config, transition_type)
+                            # Si la transition a échoué (ex: fichier non trouvé), on passe au suivant
+                            if current_pil_image is None:
+                                previous_photo_surface = None # Réinitialiser pour ne pas tenter de transitionner depuis une surface vide
+                                playlist_index += 1
+                                continue
                         else:
                             # For the first image or no transition, just load and blit it directly
                             current_pil_image = Image.open(photo_path)
                             if current_pil_image.mode != 'RGB': current_pil_image = current_pil_image.convert('RGB')
                             # For the first image, we need to blit it directly before pan/zoom takes over
                             # This blit is only for the initial display, not part of pan/zoom animation
-                            screen.blit(pygame.image.fromstring(current_pil_image.tobytes(), current_pil_image.size, current_pil_image.mode), (0,0))
+                            screen.blit(pygame.image.fromstring(current_pil_image.tobytes(), current_pil_image.size, current_pil_image.mode), (0,0)) # type: ignore
                             draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
                             pygame.display.flip()
-                    except FileNotFoundError:
-                        print(f"[Slideshow] Média non trouvé, il a peut-être été supprimé : {photo_path}. Passage au suivant.")
-                        previous_photo_surface = None 
-                        continue # Passe au média suivant dans la boucle
-                    except Image.UnidentifiedImageError:
-                        print(f"[Slideshow] Média corrompu ou non identifiable : {photo_path}. Passage au suivant.")
-                        previous_photo_surface = None 
-                        continue # Passe au média suivant dans la boucle
                     except Exception as e:
                         print(f"[Slideshow] Error loading or transitioning to photo {photo_path}: {e}")
                         traceback.print_exc()
                         current_pil_image = None # Explicitly set to None on error
+                        playlist_index += 1
+                        continue
 
                     if current_pil_image: # Only proceed if image was successfully loaded
                         display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
@@ -1368,6 +1411,7 @@ def start_slideshow():
         print(f"FATAL ERROR IN SLIDESHOW: {e}")
         traceback.print_exc() # Print full traceback for any unhandled error
     finally:
+        from utils.display_manager import set_display_power
         set_display_power(False)
         # Nettoyer le fichier d'état à la sortie
         if os.path.exists(CURRENT_PHOTO_FILE):

@@ -2,15 +2,16 @@
 
 Current Version (July 14, 2025): New release now available online
 
-> 📆 Starting June 2025 — One major version every month
+sudo reboot> 📆 Starting June 2025 — One major version every month
 
-## 🗓️ October 2025 - (Planned)
+## 🗓️ October 2025 - (In development)
 - 📱 Android APK to control the frame (Pimmich remote)
-- 🗣️ Voice command support to control the frame (next photo, pause, etc.).
-- 🔘 Physical button support to start/stop the slideshow.
+-  Physical button support to start/stop the slideshow.
 - 🗂️ Album management directly from the Pimmich interface (create, rename, etc.).
 
 ## ✅ September 2025 – (Scheduled Release: September 15)
+- 🗣️ **Voice Control:** Added voice command support ("Magic Frame") to control the frame (next photo, pause, etc.).
+- 🎨 **UI Overhaul:** New group-based navigation for a clearer and more intuitive user experience.
 - 🎵 **Playlist Management:** Create custom virtual albums, view their content, rename them, and launch themed slideshows.
 - 📊 **Advanced Monitoring:** Added history charts for CPU temperature, CPU usage, RAM, and disk in the "System" tab.
 - 🖥️ **Display Management:** Ability to list and force a specific screen resolution directly from the interface, with automatic slideshow restart.
@@ -65,55 +66,69 @@ Current Version (July 14, 2025): New release now available online
 - ✅ EXIF-based orientation fix and photo preparation  
 
 
-
-## 💡 Ideas for Future Releases
-
-- Pimmich for Android TV
-- Google Photos Import
-- PhotoPrism Import
-
 ---
-
-# 🖼️ Pimmich – Smart Digital Photo Frame
-
-**Pimmich** is a Python application that turns a Raspberry Pi into a smart digital photo frame. It displays photo albums hosted on an **Immich server** or from a **USB stick**. All suggestions for improvement are welcome!
 
 <img src="static/pimmich_logo.png" alt="Pimmich Logo" width="300">
 
 ---
 
-## ✨ Features
+## 📖 Table of Contents
 
-- 🔒 Secure login interface
-- 🖼️ Photo preview with GLightbox CSS
-- 🖼️ Slideshow with portrait photo support (blurred background)
-- 🌐 Immich API integration (automatic album fetching)
-- 📂 USB stick as an alternative image source
-- 🗑️ Delete photos directly from the preview interface
-- 🕒 Configurable display schedule
-- 💡 Local web interface for configuration (`http://<Pi-IP>:5000`)
-- 🔌 Reboot and shutdown buttons
+- ✨ Main Features
+- 🧰 Technologies Used
+- 🚀 Installation
+- 🔧 Configuration
+- 🗣️ Voice Control
+- ❓ Troubleshooting (FAQ)
+- 💖 Credits
+
+---
+
+## ✨ Main Features
+
+Pimmich is packed with features to provide a complete and customizable experience:
+
+#### 🖼️ **Display & Slideshow**
+- **Multi-source:** Display photos from Immich, a network share (Samba/Windows), a USB drive, a smartphone, or via Telegram.
+- **Advanced Customization:** Set display duration, active hours, transitions (fade, slide), and enable a "Pan & Zoom" motion effect.
+- **Creative Filters:** Apply filters to your photos (Black & White, Sepia, Vintage) and unique effects like **Polaroid** or **Postcard**.
+- **Format Handling:** Smart support for portrait photos (blurred background) and videos (with sound and optional hardware acceleration).
+
+#### ⚙️ **Interface & Control**
+- **Comprehensive Web Interface:** A local configuration page, password-protected and organized into clear tabs (Slideshow, Content, Interactions, Maintenance).
+- **Voice Control:** Control your frame with voice commands like *"Magic Frame, next photo"* or *"Magic Frame, play Vacation playlist"*.
+- **Content Management:**
+    - **Playlists:** Create virtual albums, reorder photos with drag-and-drop, and launch themed slideshows.
+    - **Favorites:** Mark your favorite photos to make them appear more often.
+    - **Captions:** Add custom text to your photos and postcards.
+
+#### 🌐 **Connectivity & Interactions**
+- **Telegram:** Allow friends and family to send photos to the frame via a Telegram bot, with a secure and temporary invitation system.
+- **Wi-Fi & Network:** Configure Wi-Fi, scan for networks, and manage network interfaces directly from the interface.
+- **Smartphone Upload:** Import photos directly from your phone's browser.
+
+#### 🛠️ **Maintenance & Monitoring**
+- **Easy Updates:** Update Pimmich with a single click from the interface.
+- **Backup & Restore:** Back up and restore your entire configuration.
+- **System Monitoring:** Track real-time temperature, CPU, RAM, and disk usage with history graphs.
+- **Detailed Logs:** Access logs for each service (web server, slideshow, voice control) for easy troubleshooting.
 
 ---
 
 ## 🧰 Technologies Used
 
-- Python  
-- Flask  
-- Requests  
-- Pygame  
-- Pillow  
-- Tkinter (for the slideshow interface)  
-- Immich API  
-- GLightbox CSS  
+- **Backend:** Python, Flask
+- **Frontend:** HTML, TailwindCSS, JavaScript
+- **Slideshow:** Pygame
+- **Image Processing:** Pillow
+- **Voice Control:** Picovoice Porcupine (wake word) & Vosk (recognition)
+- **Web Server:** NGINX (as a reverse proxy)
 
 ---
 
-## 📦 Installation
+##  Installation
 
-Eventually, two installation methods will be available:  
-1. A ready-to-use `.img` file (not available yet)  
-2. Manual setup via repository clone (currently functional, USB import is still under refinement)
+The installation is automated to be as simple as possible.
 
 ### ✅ Requirements
 
@@ -121,13 +136,11 @@ Eventually, two installation methods will be available:
 - Internet connection
 - Python installed
 - Keyboard + screen for first setup (or SSH access)
+ 
+### 📝 Installation Steps
 
----
-
-### Install from Repository
-
-#### Clone the repository
-
+1.  **Clone the repository**
+    Open a terminal on your Raspberry Pi and run:
 ```bash
 git clone https://github.com/gotenash/pimmich.git
 cd pimmich
