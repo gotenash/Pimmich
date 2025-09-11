@@ -15,6 +15,9 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en u
 - [🗣️ Contrôle Vocal](#️-contrôle-vocal)
 - [❓ Dépannage (FAQ)](#-dépannage-faq)
 - [🛣️ Feuille de Route](#️-feuille-de-route)
+  - [Juin 2025](#-juin-2025-)
+  - [Juillet 2025](#-juillet-2025---version-actuelle)
+  - [Août 2025](#️-août-2025----sortie-prévue-le-15-aoüt)
 - [💖 Crédits](#-crédits)
 
 ---
@@ -63,15 +66,32 @@ Pimmich est riche en fonctionnalités pour offrir une expérience complète et p
 
 ## 🚀 Installation
 
-L'installation est automatisée pour être la plus simple possible.
+Il existe deux méthodes pour installer Pimmich.
 
-### ✅ Pré-requis
+### Méthode 1 : Image pré-configurée (Recommandée et plus simple)
+
+Cette méthode est idéale pour une première installation rapide.
+
+1.  **Téléchargez l'image du mois en cours**
+    Rendez-vous sur la page des [Releases de Pimmich](https://github.com/gotenash/pimmich/releases) et téléchargez le fichier `.img` de la dernière version.
+
+2.  **Flashez l'image sur une carte SD**
+    Utilisez un logiciel comme Raspberry Pi Imager ou BalenaEtcher pour écrire le fichier image que vous venez de télécharger sur votre carte microSD.
+
+3.  **Démarrez votre Raspberry Pi**
+    Insérez la carte SD dans le Raspberry Pi, branchez l'écran et l'alimentation. Pimmich démarrera automatiquement.
+
+### Méthode 2 : Installation manuelle depuis le dépôt Git
+
+Cette méthode est destinée aux utilisateurs avancés ou à ceux qui souhaitent suivre le développement de près.
+
+#### ✅ Pré-requis
 
 - Un Raspberry Pi (modèle 3B+, 4 ou 5 recommandé) avec Raspberry Pi OS Desktop (64-bit).
 - Une carte SD, une alimentation, un écran.
 - Une connexion Internet.
 
-### 📝 Étapes d'installation
+#### 📝 Étapes d'installation
 
 1.  **Clonez le dépôt**
     Ouvrez un terminal sur votre Raspberry Pi et exécutez :
@@ -123,13 +143,15 @@ Explorez les différents onglets pour personnaliser votre cadre :
 
 ## 🗣️ Contrôle Vocal
 
-Pour utiliser le mot-clé "Cadre Magique", une étape manuelle est requise :
+Pimmich supporte le contrôle vocal en **Français** et en **Anglais**.
+
+Pour utiliser un mot-clé personnalisé ("Cadre Magique", "Magic Frame"...), une étape manuelle est requise :
 1.  Créez un compte gratuit sur la Picovoice Console.
 2.  Allez dans la section "Porcupine" et créez votre mot-clé personnalisé.
 3.  Téléchargez le modèle pour la plateforme **Raspberry Pi**.
-4.  Renommez le fichier `.ppn` téléchargé en `cadre-magique_raspberry-pi.ppn`.
+4.  Renommez le fichier `.ppn` téléchargé en `cadre-magique_raspberry-pi.ppn` (pour le français) ou `magic-frame_raspberry-pi_en.ppn` (pour l'anglais, exemple).
 5.  Placez ce fichier dans le dossier `voice_models` à la racine du projet Pimmich.
-6.  Dans l'interface Pimmich, allez dans l'onglet `Vocal`, entrez votre "Access Key" Picovoice et activez le service.
+6.  Dans l'interface Pimmich, allez dans l'onglet `Vocal`, sélectionnez la langue, entrez votre "Access Key" Picovoice et activez le service.
 
 ### Commandes Disponibles
 
@@ -190,7 +212,7 @@ Voici un aperçu des fonctionnalités à venir :
 
 
 
-> � À partir de juin 2025 — Une version majeure chaque mois
+> 🗓️ À partir de juin 2025 — Une version majeure chaque mois
 
 ## 🗓️ Octobre 2025 - (En cours de développement)
 - 📱 Création d’une APK Android pour contrôler le cadre (Pimmich télécommande)
@@ -207,7 +229,7 @@ Voici un aperçu des fonctionnalités à venir :
     - ✅ Amélioration de la réactivité de l'onglet "Système" grâce à une lecture optimisée des logs.
     - ✅ Fiabilisation du script de mise à jour pour éviter les blocages.
 
-## 🛠️✅ Août 2025  - (Sortie prévue le 15 aoüt)
+## 🛠️✅ Août 2025  - (Sortie prévue le 15 août)
 
 - ✅ Gestion des vidéos
 - ✅ Ajout d'une vignette lors de lecture de la vidéo (onglet Actions)
@@ -216,13 +238,13 @@ Voici un aperçu des fonctionnalités à venir :
 - ✅ Gestion accélération matérielle pour Pi3
 - ✅ Ajout traduction de l'application (Anglais et Espagnol)
 - ✅ Ajout QR Code première connexion
-- ✅ Ajout de l'effet "Carte postale" pour toutes les ources de photos
+- ✅ Ajout de l'effet "Carte postale" pour toutes les sources de photos
 - ✅ Ajout de la fonctionnalité "Ajout de texte"
 - ✅ Ajout d'un bouton "Redémarrer l'appli Web"
 - ✅ Ajout de l'onglet Favoris (augmentation fréquence d'affichage d'une photo)
 - ✅ Modification météo et marées pour afficher 3 jours de prévisions
-- ✅ Corections des bugs
-    - ✅ Heude début d'affichage
+- ✅ Corrections des bugs
+    - ✅ Heure début d'affichage
     - ✅ Effacement des logs dans l'onglet système sans problème de container
 
 
@@ -234,19 +256,19 @@ Voici un aperçu des fonctionnalités à venir :
 - ✅ 📁 Support du protocole SMB pour accéder à des photos partagées en réseau
 - ✅ ⏰🌤️ Affichage de l’heure et de la météo sur l’écran
 - ✅ Ajout NGINX, plus besoin de mettre le numéro du port (50000)
-- ✅ Ajout des filtres (NB, Sépia, POlaroid ...)
+- ✅ Ajout des filtres (NB, Sépia, Polaroid ...)
 - ✅ Ajout des différents boutons supprimer
 - ✅ Ajout d'une option de sauvegarde de la configuration
 - ✅ Ajout d'un menu changement du mot de passe
 - ✅ Ajout de la création du credenrials.json pendant le setup
 - ✅ Ajout effet de transition
-- ✅ Ajout détection automatoique de la résolution
+- ✅ Ajout détection automatique de la résolution
 - ✅ Ajout de l'import à partir d'un smartphone (en admin et mode invité)
 - ✅ Interface de validation des photos proposées en mode invité
 - ✅ Ajout des logs dans l'onglet Système
 - ✅ Ajout des stats du Raspberry (température, stockage Ram, charge processeur)
 
-## ✅ Juin 2025 – 
+## ✅ Juin 2025 –
 
 - ✅ Aperçus des photos avec suppression possible  
 - ✅ Véritable mise en veille de l’écran (gestion via `wlr-randr`)  
@@ -265,73 +287,6 @@ Voici un aperçu des fonctionnalités à venir :
 - Import PhotoPrism    
 
 
-
-
-# 🖼️ Pimmich – Cadre photo connecté intelligent
-
-Pimmich est une application Python conçue pour transformer un Raspberry Pi en cadre photo numérique intelligent, capable d'afficher des albums hébergés sur un serveur Immich ou sur une clé USB. Toutes suggestions  d'évolution du système seront prises en compte.
-
-<img src="static/pimmich_logo.png" alt="Pimmich Logo" width="300">
-
----
-
-## ✨ Fonctionnalités
-
-- 🔒 Interface sécurisée avec login
-- 🖼️ affichage de l'aperçu des photos avec GLightbox CSS
-- 🖼️ Slideshow avec gestion des photos portraits (fond flou)
-- 🌐 Intégration avec l’API Immich (récupération automatique d’albums)
-- 📂 Support de la clé USB comme source alternative d’images
-- 📂 Suppression des photos à partir des aperçus
-- 🕒 Horaires configurables pour l’affichage automatique
-- 💡 Interface web locale pour la configuration (http://IP-du-Pi:5000)
-- 🔌 Boutons de redémarrage et extinction du système
-
----
-
-## 🧰 Technologies utilisées
-
-- Python 
-- Flask
-- Requests
-- Pygame
-- Pillow
-- Tkinter (interface du slideshow)
-- Immich API
-- GLightbox CSS
-
----
-
-## 📦 Installation
-
-A terme il y aura deux possibilités d'installer Pimmich une img prêt à l'emploi (pas encore disponible) et le clonage du dépôt qui est fonctionnel hormis la gestion de la clef USB.
-
-### ✅ Pré-requis
-
-- Raspberry Pi avec Raspberry Pi OS Desktop (64-bit)
-- Connexion Internet
-- Python 
-- Clavier + écran pour la première configuration, ou SSH
-
-
-### Installation à partir du dépôt
-
-
-#### Clonage du dépôt
-
-```bash
-git clone https://github.com/gotenash/pimmich.git
-cd pimmich
-````
-
-#### Lancement du Setup.sh
-
-Ces commandes permettre de rendre le fgichier setup.sh exécutable et lance le setup
-```bash
-chmod +x setup.sh
-sudo ./setup.sh
-```
-Ce script installe les dépendances système et Python, configure l’environnement, et prépare le démarrage automatique du diaporama.
 
 ### Récupérer la Clef API (Token Immich)
 

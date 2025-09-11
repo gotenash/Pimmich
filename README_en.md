@@ -1,72 +1,6 @@
-📣 Announcement – New Version Scheduled for Release on August 15, 2025
+# 🖼️ Pimmich – Smart Connected Photo Frame
 
-Current Version (July 14, 2025): New release now available online
-
-sudo reboot> 📆 Starting June 2025 — One major version every month
-
-## 🗓️ October 2025 - (In development)
-- 📱 Android APK to control the frame (Pimmich remote)
--  Physical button support to start/stop the slideshow.
-- 🗂️ Album management directly from the Pimmich interface (create, rename, etc.).
-
-## ✅ September 2025 – (Scheduled Release: September 15)
-- 🗣️ **Voice Control:** Added voice command support ("Magic Frame") to control the frame (next photo, pause, etc.).
-- 🎨 **UI Overhaul:** New group-based navigation for a clearer and more intuitive user experience.
-- 🎵 **Playlist Management:** Create custom virtual albums, view their content, rename them, and launch themed slideshows.
-- 📊 **Advanced Monitoring:** Added history charts for CPU temperature, CPU usage, RAM, and disk in the "System" tab.
-- 🖥️ **Display Management:** Ability to list and force a specific screen resolution directly from the interface, with automatic slideshow restart.
-- 💾 **Storage Expansion:** Added a tool in the interface to easily expand the filesystem and use all available space on the SD card.
-- 🚀 **Optimizations and Stability:**
-    - ✅ Improved responsiveness of the "System" tab with optimized log reading.
-    - ✅ Made the update script more reliable to prevent freezes.
-
-## 🛠️✅ August 2025 – (Scheduled Release: August 15)
-
-✅ Video support
-✅ Added video thumbnail in the Actions tab
-✅ Introduction of the "Postcard" feature via Telegram
-  - ✅ Secured via invitation link
-✅ Hardware acceleration support for Pi3
-✅ App translation added (English and Spanish)
-✅ QR Code for first-time setup
-✅ "Postcard effect" added to all photo sources
-✅ Text overlay feature
-✅ Added "Restart Web App" button
-✅ Favorites tab added (to increase photo display frequency)
-✅ Weather and tides updated to show 3-day forecasts
-✅ Bug fixes
-  - ✅ Photo display start time
-  - ✅ Log deletion in the system tab without container issues
-
-## ✅ July 2025 – Current Version
-
-- ✅ 🧭 Added Wi-Fi configuration from the web interface  
-- ✅ 🗂️ Reorganized the settings page into tabs  
-- ✅ 🔁 Automatic periodic update of the Immich album  
-- ✅ 📁 SMB protocol support to access network-shared photos  
-- ✅ ⏰🌤️ Display of time and weather on screen  
-- ✅ Added NGINX – no more need to specify port 50000  
-- ✅ Added photo filters (B&W, Sepia, Polaroid, etc.)  
-- ✅ Added various delete buttons  
-- ✅ Added configuration backup option  
-- ✅ Added password change menu  
-- ✅ Added creation of `credentials.json` during setup  
-- ✅ Added transition effects  
-- ✅ Automatic resolution detection added  
-- ✅ Import from smartphone (admin and guest modes)  
-- ✅ Photo approval interface for guest mode  
-- ✅ Added logs to the System tab  
-- ✅ Added Raspberry Pi stats (temperature, RAM usage, CPU load)
-
-## ✅ June 2025 – Current Release
-
-- ✅ Photo previews with delete option  
-- ✅ Real screen sleep mode (using `wlr-randr`)  
-- ✅ Screen height percentage setting (usable screen area)  
-- ✅ EXIF-based orientation fix and photo preparation  
-
-
----
+Pimmich is a Python application designed to turn a Raspberry Pi into a smart and customizable digital photo frame. It can display photos from multiple sources, be controlled by voice, and much more.
 
 <img src="static/pimmich_logo.png" alt="Pimmich Logo" width="300">
 
@@ -80,6 +14,10 @@ sudo reboot> 📆 Starting June 2025 — One major version every month
 - 🔧 Configuration
 - 🗣️ Voice Control
 - ❓ Troubleshooting (FAQ)
+- 🛣️ Roadmap
+  - June 2025
+  - July 2025
+  - August 2025
 - 💖 Credits
 
 ---
@@ -126,30 +64,44 @@ Pimmich is packed with features to provide a complete and customizable experienc
 
 ---
 
-##  Installation
+## 🚀 Installation
 
-The installation is automated to be as simple as possible.
+There are two methods to install Pimmich.
 
-### ✅ Requirements
+### Method 1: Pre-configured Image (Recommended and easier)
 
-- Raspberry Pi with Raspberry Pi OS Desktop (64-bit)
-- Internet connection
-- Python installed
-- Keyboard + screen for first setup (or SSH access)
- 
-### 📝 Installation Steps
+This method is ideal for a quick first-time installation.
+
+1.  **Download the current month's image**
+    Go to the Pimmich Releases page and download the `.img` file of the latest version.
+
+2.  **Flash the image to an SD card**
+    Use software like Raspberry Pi Imager or BalenaEtcher to write the image file you just downloaded to your microSD card.
+
+3.  **Start your Raspberry Pi**
+    Insert the SD card into the Raspberry Pi, connect the screen and power supply. Pimmich will start automatically.
+
+### Method 2: Manual Installation from Git Repository
+
+This method is for advanced users or those who want to follow development closely.
+
+#### ✅ Prerequisites
+
+- A Raspberry Pi (model 3B+, 4, or 5 recommended) with Raspberry Pi OS Desktop (64-bit).
+- An SD card, a power supply, a screen.
+- An Internet connection.
+
+#### 📝 Installation Steps
 
 1.  **Clone the repository**
     Open a terminal on your Raspberry Pi and run:
-```bash
-git clone https://github.com/gotenash/pimmich.git
-cd pimmich
-```
+    ```bash
+    git clone https://github.com/gotenash/pimmich.git
+    cd pimmich
+    ```
 
-#### Run `setup.sh`
-
-Make the script executable and launch it:
-
+2.  **Run the installation script**
+    This script installs all dependencies, configures the environment, and prepares for automatic startup.
 ```bash
 chmod +x setup.sh
 sudo ./setup.sh
