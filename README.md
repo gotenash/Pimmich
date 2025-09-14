@@ -176,6 +176,7 @@ Une fois le contrôle vocal activé, commencez toutes vos commandes par le mot-c
 - *"passer en mode veille"* (éteint l'écran)
 - *"réveiller le cadre"* (rallume l'écran)
 - *"éteindre le cadre"* (éteint complètement le Raspberry Pi)
+- *"revenir au diaporama principal"* (quitte une playlist et relance le diaporama normal)
 
 ---
 
@@ -221,15 +222,22 @@ Voici un aperçu des fonctionnalités à venir :
 - 🗂️ Gestion des albums directement depuis l'interface Pimmich (créer, renommer, etc.).
 
 ## ✅ Septembre 2025 - (Sortie prévue le 15 septembre)
-- 📊 **Monitoring Avancé :** Ajout de graphiques d'historique pour la température, l'utilisation du CPU, de la RAM et du disque dans l'onglet "Système".
-- 🖥️ **Gestion de l'Affichage :** Possibilité de lister et de forcer une résolution d'écran spécifique directement depuis l'interface, avec redémarrage automatique du diaporama.
-- 💾 **Extension du Stockage :** Ajout d'un outil dans l'interface pour étendre facilement le système de fichiers et utiliser tout l'espace de la carte SD.
-- 🎵 **Gestion de Playlists :** Créez des albums virtuels personnalisés, visualisez leur contenu, renommez-les et lancez des diaporamas thématiques.
+- 🎨 **Refonte de l'Interface :** Nouvelle navigation par groupes et onglets pour une expérience plus claire et intuitive.
+- 🎵 **Gestion de Playlists Améliorée :**
+    - ✅ Nouvel écran de lancement dynamique avec un pêle-mêle de photos sur un fond en liège.
+    - ✅ Créez des albums virtuels, visualisez leur contenu, renommez-les et lancez des diaporamas thématiques.
+- 🗣️ **Amélioration du Contrôle Vocal :**
+    - ✅ Ajout de la commande "Revenir au diaporama principal".
+    - ✅ Fiabilisation du lancement des playlists par la voix.
+- 📊 **Monitoring Avancé :** Ajout de graphiques d'historique pour la température, l'utilisation du CPU, de la RAM et du disque.
+- 🖥️ **Gestion de l'Affichage :** Possibilité de lister et de forcer une résolution d'écran spécifique directement depuis l'interface.
+- 💾 **Extension du Stockage :** Ajout d'un outil dans l'interface pour étendre facilement le système de fichiers.
 - 🚀 **Optimisations et Stabilité :**
     - ✅ Amélioration de la réactivité de l'onglet "Système" grâce à une lecture optimisée des logs.
     - ✅ Fiabilisation du script de mise à jour pour éviter les blocages.
+    - ✅ Nombreuses corrections de bugs pour une meilleure stabilité générale.
 
-## 🛠️✅ Août 2025  - (Sortie prévue le 15 août)
+## 🛠️✅ Août 2025  - (Version précédente)
 
 - ✅ Gestion des vidéos
 - ✅ Ajout d'une vignette lors de lecture de la vidéo (onglet Actions)

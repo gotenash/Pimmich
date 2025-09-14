@@ -1,6 +1,6 @@
 # Procédure de Mise à Jour des Traductions pour Pimmich
 
-Ce document décrit la procédure complète pour mettre à jour les fichiers de traduction de l'application Pimmich, en utilisant l'outil d'automatisation `po-translator`.
+Ce document décrit la procédure complète pour mettre à jour les fichiers de traduction de l'application Pimmich, en utilisant un script personnalisé et la bibliothèque `deep-translator`.
 
 ---
 
@@ -17,9 +17,9 @@ source venv/bin/activate
 
 ### b. Installer les outils nécessaires
 
-Si ce n'est pas déjà fait, installez Flask-Babel (normalement inclus dans `requirements.txt`) et l'outil de traduction automatique :
+Si ce n'est pas déjà fait, installez les bibliothèques nécessaires (qui devraient être incluses dans `requirements.txt`) :
 ```bash
-pip install Flask-Babel po-translator
+pip install deep-translator polib
 ```
 
 ### c. Fichier de configuration `babel.cfg`
@@ -57,14 +57,14 @@ pybabel update -i translations/messages.pot -d translations
 
 ### Étape 3 : Traduction automatique
 
-C'est ici que l'outil `po-translator` intervient. Lancez la commande suivante pour chaque langue que vous souhaitez traduire automatiquement.
+C'est ici que notre script personnalisé `utils/translate_po.py` intervient. Il utilise une bibliothèque fiable pour traduire les textes manquants. Lancez les commandes suivantes pour chaque langue.
 
 ```bash
 # Traduire le fichier anglais
-po-translator --po_file translations/en/LC_MESSAGES/messages.po
+python utils/translate_po.py translations/en/LC_MESSAGES/messages.po en
 
 # Traduire le fichier espagnol
-po-translator --po_file translations/es/LC_MESSAGES/messages.po
+python utils/translate_po.py translations/es/LC_MESSAGES/messages.po es
 ```
 **Conseil :** Après cette étape, il est recommandé d'ouvrir les fichiers `.po` avec un éditeur comme Poedit pour relire rapidement les traductions automatiques et corriger d'éventuels contresens.
 

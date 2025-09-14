@@ -22,6 +22,50 @@ from utils.voice_control_manager import PID_FILE as VOICE_PID_FILE, update_statu
 # --- NOUVEAU: Gestion des sons ---
 sounds = {}
 
+# --- I18N Command Definitions ---
+COMMANDS = {
+    'fr': {
+        'simple_commands': {
+            "photo suivante": ("command_next", lambda: send_simple_api_command("slideshow/next")),
+            "photo précédente": ("command_previous", lambda: send_simple_api_command("slideshow/previous")),
+            "pause": ("command_pause", lambda: send_simple_api_command("slideshow/toggle_pause")),
+            "lecture": ("command_play", lambda: send_simple_api_command("slideshow/toggle_pause")),
+            "éteindre le cadre": ("command_shutdown", lambda: send_simple_api_command("system/shutdown")),
+            "passer en mode veille": ("command_sleep", lambda: send_simple_api_command("display/power", data={'state': 'off'})),
+            "réveiller le cadre": ("command_wakeup", lambda: send_simple_api_command("display/power", data={'state': 'on'})),
+            "afficher les cartes postales": ("command_show_postcards", lambda: send_simple_api_command("sources/play/telegram")),
+            "revenir au diaporama principal": ("command_back_to_main", lambda: send_simple_api_command("slideshow/restart_standard")),
+        },
+        'duration_regex': r"(?:durée|pendant)\s+(\d+)\s*seconde?s?",
+        'playlist_regex': r"(?:lance|lancer)\s+la\s+playliste?\s+(.+)",
+        'source_regex_trigger': "la source",
+        'source_action_map': {"désactiver": "off", "activer": "on"},
+        'num2words_lang': 'fr',
+        'wake_word_message': "En attente du mot-clé 'Cadre Magique'...",
+        'listening_message': "J'écoute votre commande..."
+    },
+    'en': {
+        'simple_commands': {
+            "next photo": ("command_next", lambda: send_simple_api_command("slideshow/next")),
+            "previous photo": ("command_previous", lambda: send_simple_api_command("slideshow/previous")),
+            "pause": ("command_pause", lambda: send_simple_api_command("slideshow/toggle_pause")),
+            "play": ("command_play", lambda: send_simple_api_command("slideshow/toggle_pause")),
+            "shut down the frame": ("command_shutdown", lambda: send_simple_api_command("system/shutdown")),
+            "sleep mode": ("command_sleep", lambda: send_simple_api_command("display/power", data={'state': 'off'})),
+            "wake up the frame": ("command_wakeup", lambda: send_simple_api_command("display/power", data={'state': 'on'})),
+            "show postcards": ("command_show_postcards", lambda: send_simple_api_command("sources/play/telegram")),
+            "return to main slideshow": ("command_back_to_main", lambda: send_simple_api_command("slideshow/restart_standard")),
+        },
+        'duration_regex': r"(?:duration|for)\s+(\d+)\s*seconds?",
+        'playlist_regex': r"play(?:list)?\s+(.+)",
+        'source_regex_trigger': "source",
+        'source_action_map': {"disable": "off", "enable": "on", "activate": "on", "deactivate": "off"},
+        'num2words_lang': 'en',
+        'wake_word_message': "Waiting for wake word...",
+        'listening_message': "Listening for your command..."
+    }
+}
+
 def play_sound(sound_name):
     """Joue un son préchargé depuis le dictionnaire 'sounds'."""
     if sound_name in sounds and sounds[sound_name]:
@@ -37,15 +81,15 @@ BASE_DIR = Path(__file__).resolve().parent
 
 # --- Fonctions d'appel API ---
 
-def send_simple_api_command(endpoint, method='POST', data=None):
+def send_simple_api_command(endpoint, method='POST', data=None, timeout=5):
     """Fonction générique pour envoyer des commandes simples à l'API."""
     api_url = f"http://127.0.0.1:5000/api/{endpoint}"
     try:
-        print(f"[Voice] Envoi de la commande vers : {api_url}")
+        print(f"[Voice] Envoi de la commande vers : {api_url} (timeout: {timeout}s)")
         if method.upper() == 'POST':
-            response = requests.post(api_url, json=data, timeout=5)
+            response = requests.post(api_url, json=data, timeout=timeout)
         else:
-            response = requests.get(api_url, timeout=5)
+            response = requests.get(api_url, timeout=timeout)
 
         # Log de débogage pour voir la réponse BRUTE du serveur
         print(f"[Voice] Réponse reçue. Statut: {response.status_code}. Contenu: {response.text}")
@@ -57,9 +101,6 @@ def send_simple_api_command(endpoint, method='POST', data=None):
         print(f"[Voice] {error_message}")
         update_status_file({"status": "error", "message": error_message})
         return None
-
-def send_slideshow_command(command):
-    send_simple_api_command(f"slideshow/{command}")
 
 def get_playlist_names_for_grammar():
     """Tente de récupérer les noms de playlists, avec quelques tentatives pour gérer les race conditions au démarrage."""
@@ -80,8 +121,11 @@ def get_playlist_names_for_grammar():
     print("[Voice] AVERTISSEMENT: Impossible de récupérer les playlists pour la grammaire vocale après plusieurs tentatives.")
     return []
 
-def play_playlist_by_name(recognized_text):
-    """Trouve une playlist par son nom et demande sa lecture en utilisant la reconnaissance approximative."""
+def play_playlist_by_name(recognized_text, lang='fr'):
+    """
+    Trouve une playlist par son nom et demande sa lecture.
+    Utilise une reconnaissance approximative sur plusieurs alias (nom original, nom "parlé") pour plus de robustesse.
+    """
     print(f"[Voice] Trying to play playlist by matching: '{recognized_text}'")
     try:
         # 1. Récupérer la liste des playlists
@@ -91,81 +135,84 @@ def play_playlist_by_name(recognized_text):
 
         if not playlists:
             print("[Voice] Aucune playlist trouvée sur le serveur.")
+            play_sound('not_understood')
             return
 
-        # 2. Créer un dictionnaire de "noms parlés" pour le matching
-        spoken_name_map = {}
+        # 2. Créer un dictionnaire de "noms de recherche" (alias) vers les données de la playlist
+        search_map = {}
         for p in playlists:
             original_name = p['name']
+            
+            # Alias 1: nom original en minuscules
+            search_map[original_name.lower()] = {'id': p['id'], 'name': original_name}
+            
+            # Alias 2: nom "parlé" avec les chiffres convertis en mots
             spoken_name_parts = []
             for word in original_name.lower().split():
                 if word.isdigit():
-                    # Convertit "2025" en "deux mille vingt-cinq"
-                    spoken_name_parts.append(num2words(int(word), lang='fr').replace('-', ' '))
+                    try:
+                        spoken_name_parts.append(num2words(int(word), lang=COMMANDS[lang]['num2words_lang']).replace('-', ' '))
+                    except ValueError:
+                        spoken_name_parts.append(word) # Fallback si ce n'est pas un vrai nombre
                 else:
                     spoken_name_parts.append(word)
             spoken_name = ' '.join(spoken_name_parts)
-            spoken_name_map[spoken_name] = {'id': p['id'], 'name': original_name}
+            
+            if spoken_name != original_name.lower():
+                 search_map[spoken_name] = {'id': p['id'], 'name': original_name}
 
-        # 3. Trouver la correspondance la plus proche dans les noms parlés
-        best_match_spoken, score = process.extractOne(recognized_text, spoken_name_map.keys())
+        # 3. Trouver la correspondance la plus proche dans tous les alias
+        best_match, score = process.extractOne(recognized_text, search_map.keys())
 
-        # On peut être un peu plus tolérant sur le score car la conversion n'est pas parfaite
-        if score >= 70:
-            playlist_data = spoken_name_map[best_match_spoken]
+        # On utilise un seuil de 80 pour être assez confiant
+        if score >= 80:
+            playlist_data = search_map[best_match]
             target_playlist_id = playlist_data['id']
             original_playlist_name = playlist_data['name']
             
             play_sound('command_playlist')
-            print(f"Commande '{recognized_text}' correspond à la playlist '{original_playlist_name}' (score: {score}).")
+            print(f"Commande '{recognized_text}' correspond à la playlist '{original_playlist_name}' (alias: '{best_match}', score: {score}).")
             
             # 4. Lancer la lecture avec l'ID
-            play_response = requests.post(
-                "http://127.0.0.1:5000/api/playlists/play",
-                json={'id': target_playlist_id},
-                timeout=5
-            )
-            play_response.raise_for_status()
-            print(f"[Voice] Commande de lecture envoyée pour la playlist '{original_playlist_name}'.")
+            # Utiliser un timeout plus long car le redémarrage du diaporama peut prendre du temps.
+            play_response = send_simple_api_command("playlists/play", data={'id': target_playlist_id}, timeout=30)
+            
+            # Vérifier si la commande a été acceptée par le serveur.
+            if play_response and play_response.get('success'):
+                print(f"[Voice] Commande de lecture pour la playlist '{original_playlist_name}' envoyée avec succès.")
+            else:
+                error_msg = play_response.get('message') if play_response else "Timeout ou erreur de communication."
+                print(f"[Voice] Échec de l'envoi de la commande de lecture : {error_msg}")
+                play_sound('not_understood')
         else:
-            print(f"[Voice] Playlist '{recognized_text}' non trouvée (meilleur résultat '{best_match_spoken}' avec un score de {score} est trop bas).")
+            print(f"[Voice] Playlist '{recognized_text}' non trouvée (meilleur résultat '{best_match}' avec un score de {score} est trop bas).")
             play_sound('not_understood')
-            return
 
     except requests.RequestException as e:
         error_message = f"Erreur API Playlist: {e}"
         print(f"[Voice] {error_message}")
         update_status_file({"status": "error", "message": error_message})
 
-def process_command(command_text):
+def process_command(command_text, lang='fr'):
     """Interprète le texte de la commande et envoie l'action correspondante."""
     if not command_text:
         print("[Voice] Aucune commande audible n'a été comprise.")
         play_sound('not_understood')
         return
 
-    print(f"[Voice] Commande reconnue: '{command_text}'")
+    print(f"[Voice] Commande reconnue ({lang}): '{command_text}'")
+    
+    lang_commands = COMMANDS.get(lang, COMMANDS['fr']) # Fallback sur le français
 
     # Commandes simples
-    simple_commands = {
-        "photo suivante": ("command_next", lambda: send_simple_api_command("slideshow/next")),
-        "photo précédente": ("command_previous", lambda: send_simple_api_command("slideshow/previous")),
-        "pause": ("command_pause", lambda: send_simple_api_command("slideshow/toggle_pause")),
-        "lecture": ("command_play", lambda: send_simple_api_command("slideshow/toggle_pause")),
-        "éteindre le cadre": ("command_shutdown", lambda: send_simple_api_command("system/shutdown")),
-        "passer en mode veille": ("command_sleep", lambda: send_simple_api_command("display/power", data={'state': 'off'})),
-        "réveiller le cadre": ("command_wakeup", lambda: send_simple_api_command("display/power", data={'state': 'on'})),
-        "afficher les cartes postales": ("command_show_postcards", lambda: send_simple_api_command("sources/play/telegram")),
-    }
-
-    for phrase, (sound, action) in simple_commands.items():
+    for phrase, (sound, action) in lang_commands['simple_commands'].items():
         if phrase in command_text:
             play_sound(sound)
             action()
             return
 
     # Commande pour changer la durée
-    duration_match = re.search(r"(?:durée|pendant)\s+(\d+)\s*seconde?s?", command_text)
+    duration_match = re.search(lang_commands['duration_regex'], command_text)
     if duration_match:
         try:
             duration = int(duration_match.group(1))
@@ -174,36 +221,42 @@ def process_command(command_text):
                 send_simple_api_command("slideshow/set_duration", data={'duration': duration})
                 return
             else:
-                print(f"[Voice] Durée demandée ({duration}s) hors des limites (5-120s).")
+                print(f"[Voice] Durée demandée ({duration}s) hors des limites (5-120s).") # Message en FR, ok pour les logs
                 play_sound('not_understood')
                 return
         except (ValueError, IndexError):
             pass # L'extraction a échoué, on continue pour voir si une autre commande correspond
 
     # Commandes complexes (avec arguments)
-    # Match "lance la playlist <nom>" or "lancer la playlist <nom>" (also with "playliste")
-    match = re.search(r"(?:lance|lancer)\s+la\s+playliste?\s+(.+)", command_text)
+    match = re.search(lang_commands['playlist_regex'], command_text)
     if match:
         playlist_name = match.group(1).strip()
         if playlist_name:
-            play_playlist_by_name(playlist_name)
+            play_playlist_by_name(playlist_name, lang)
         else:
             play_sound('playlist_name_missing')
         return
-    if "activer la source" in command_text or "désactiver la source" in command_text:
-        parts = command_text.split("la source")
-        if len(parts) > 1:
-            # CORRECTION: On vérifie "désactiver" en premier pour éviter la confusion
-            # car "activer" est contenu dans "désactiver".
-            action = "off" if "désactiver" in parts[0] else "on"
+
+    # Commande pour activer/désactiver une source
+    if lang_commands['source_regex_trigger'] in command_text:
+        parts = command_text.split(lang_commands['source_regex_trigger'])
+        if len(parts) > 1: # Assure qu'il y a bien du texte avant et après le trigger
+            action_phrase = parts[0].strip()
             source_name = parts[1].strip()
+            
+            # Trouver l'action (on/off)
+            action = None
+            for word, state in lang_commands['source_action_map'].items():
+                if word in action_phrase:
+                    action = state
+                    break
             
             # Mapper les noms de source parlés aux noms techniques
             source_map = {
                 "samba": "samba", "immich": "immich", "usb": "usb", "u s b": "usb",
                 "telegram": "telegram", "smartphone": "smartphone"            }
             
-            if source_name in source_map:
+            if action and source_name in source_map:
                 play_sound('command_source_toggle')
                 send_simple_api_command("sources/toggle", data={'source': source_map[source_name], 'state': action})
             else:
@@ -245,6 +298,8 @@ def main():
         # --- Initialisation ---
         update_status_file({"status": "starting", "message": "Démarrage du service vocal..."})
         config = load_config()
+        lang = config.get('voice_control_language', 'fr')
+        lang_commands = COMMANDS.get(lang, COMMANDS['fr'])
         
         # --- NOUVEAU: Initialisation de Pygame et chargement des sons ---
         pygame.mixer.init()
@@ -258,7 +313,8 @@ def main():
             'command_playlist': 'command_playlist.wav', 'playlist_name_missing': 'playlist_name_missing.wav',
             'command_shutdown': 'command_shutdown.wav', 'command_sleep': 'command_sleep.wav',
             'command_wakeup': 'command_wakeup.wav', 'command_show_postcards': 'command_show_postcards.wav',
-            'command_source_toggle': 'command_source_toggle.wav',
+            'command_source_toggle': 'command_source_toggle.wav', 
+            'command_back_to_main': 'command_back_to_main.wav',
             'command_duration_set': 'command_duration_set.wav' # Son pour confirmer le changement de durée
         }
         sounds_dir = BASE_DIR / 'static' / 'sounds'
@@ -280,33 +336,29 @@ def main():
         if not porcupine_access_key or not porcupine_access_key.strip():
             raise ValueError("La clé d'accès Porcupine est manquante ou vide dans la configuration.")
         
-        keyword_path = str(BASE_DIR / "voice_models" / "cadre-magique_raspberry-pi.ppn")
+        # --- Sélection du modèle Porcupine basé sur la langue ---
+        if lang == 'fr':
+            keyword_filename = 'cadre-magique_raspberry-pi.ppn'
+            porcupine_model_path = os.path.join(os.path.dirname(pvporcupine.__file__), 'lib/common/porcupine_params_fr.pv')
+            if not os.path.exists(porcupine_model_path):
+                raise FileNotFoundError(f"Modèle de langue FR Porcupine non trouvé: {porcupine_model_path}")
+        else: # 'en' et autres langues par défaut
+            keyword_filename = 'magic-frame_raspberry-pi_en.ppn' # Nom de fichier d'exemple
+            porcupine_model_path = None # Utilise le modèle anglais par défaut
+
+        keyword_path = str(BASE_DIR / "voice_models" / keyword_filename)
         if not os.path.exists(keyword_path):
-            raise FileNotFoundError(f"Modèle de mot-clé '{keyword_path}' non trouvé. Veuillez l'entraîner sur la console Picovoice.")
-
-        # Le mot-clé "Cadre Magique" est en français, nous devons donc charger
-        # le modèle de langue français fourni avec la bibliothèque Porcupine.
-        try:
-            porcupine_dir = os.path.dirname(pvporcupine.__file__)
-            model_path_fr = os.path.join(porcupine_dir, 'lib/common/porcupine_params_fr.pv')
-        except Exception as e:
-            raise IOError(f"Impossible de construire le chemin vers le modèle de langue Porcupine : {e}")
-
-        if not os.path.exists(model_path_fr):
-            raise FileNotFoundError(
-                f"Le modèle de langue français de Porcupine est introuvable ici : {model_path_fr}. "
-                "Vérifiez l'installation du paquet 'pvporcupine'. Essayez : pip install --force-reinstall pvporcupine"
-            )
+            raise FileNotFoundError(f"Modèle de mot-clé '{keyword_path}' non trouvé. Veuillez l'entraîner sur la console Picovoice et le nommer correctement.")
 
         try:
             porcupine = pvporcupine.create(
                 access_key=porcupine_access_key,
                 keyword_paths=[keyword_path],
-                model_path=model_path_fr # Spécifier le modèle français
+                model_path=porcupine_model_path
             )
         except pvporcupine.PorcupineInvalidArgumentError as e:
             raise ValueError(
-                "Le fichier de mot-clé (.ppn) est incorrect. "
+                f"Le fichier de mot-clé '{keyword_filename}' est incorrect. "
                 "Assurez-vous de l'avoir généré pour la plateforme 'Raspberry Pi' sur la console Picovoice. "
                 f"Erreur originale: {e}"
             )
@@ -352,32 +404,45 @@ def main():
 
         # --- Vosk (Speech-to-Text) ---
         update_status_file({"status": "starting", "message": "Chargement du modèle de langue (Vosk)..."})
-        print("[Voice] Loading Vosk language model...")
-        vosk_model_path = str(BASE_DIR / "models" / "vosk-model-small-fr-0.22")
+        
+        if lang == 'fr':
+            vosk_model_path = str(BASE_DIR / "models" / "vosk-model-small-fr-0.22")
+        else:
+            vosk_model_path = str(BASE_DIR / "models" / "vosk-model-small-en-us-0.15")
+
         if not os.path.exists(vosk_model_path):
             raise FileNotFoundError(f"Modèle Vosk non trouvé : {vosk_model_path}. Veuillez lancer setup.sh.")
         
+        print(f"[Voice] Chargement du modèle Vosk depuis : {vosk_model_path}")
         vosk_model = Model(vosk_model_path)
         # Initialiser Vosk avec la fréquence cible
         recognizer = KaldiRecognizer(vosk_model, TARGET_SAMPLERATE)
 
         # --- NOUVEAU: Définir une grammaire pour améliorer la précision ---
         playlist_names = get_playlist_names_for_grammar()
+        
+        # Construire le vocabulaire basé sur la langue
+        if lang == 'fr':
+            base_commands = [
+                "photo", "suivante", "précédente", "pause", "lecture", "lance", "lancer", "la", "playlist",
+                "éteindre", "le", "cadre", "passer", "en", "mode", "veille", "réveiller", "revenir", "au", "diaporama", "principal",
+                "afficher", "les", "cartes", "postales", "reçues", "activer", "désactiver", "source", "samba", "immich",
+                "usb", "u", "s", "b", "telegram", "smartphone",
+                "durée", "pendant", "secondes", "cinq", "dix", "quinze", "vingt", "trente", "soixante", "[unk]"
+            ]
+        else: # English
+            base_commands = [
+                "photo", "next", "previous", "pause", "play", "playlist", "shut", "down", "the", "frame", "sleep", "mode", "return", "to", "main", "slideshow",
+                "wake", "up", "show", "postcards", "enable", "disable", "activate", "deactivate", "source", "samba", "immich", 
+                "usb", "telegram", "smartphone", "duration", "for", "seconds", "five", "ten", "fifteen", "twenty", "thirty", "sixty", "[unk]"
+            ]
 
-        # 2. Construire le vocabulaire
-        base_commands = [
-            "photo", "suivante", "précédente", "pause", "lecture", "lance", "lancer", "la", "playlist",
-            "éteindre", "le", "cadre", "passer", "en", "mode", "veille", "réveiller",
-            "afficher", "les", "cartes", "postales", "reçues", "activer", "désactiver", "source", "samba", "immich",
-            "usb", "u", "s", "b", "telegram", "smartphone",
-            "durée", "pendant", "secondes", "cinq", "dix", "quinze", "vingt", "trente", "soixante", "[unk]"
-        ]
         for name in playlist_names:
             for word in name.split():
                 if word.isdigit():
                     # Convertit "2025" en "deux mille vingt-cinq" et ajoute chaque mot
                     try:
-                        num_in_words = num2words(int(word), lang='fr')
+                        num_in_words = num2words(int(word), lang=lang_commands['num2words_lang'])
                         # Sépare les mots comme "vingt-cinq" en "vingt" et "cinq"
                         base_commands.extend(num_in_words.replace('-', ' ').split())
                     except ValueError:
@@ -406,7 +471,7 @@ def main():
             device_index = None
 
         print(f"[Voice] Opening audio stream on device: {'Default' if device_index is None else device_index}")
-        update_status_file({"status": "running", "message": "En attente du mot-clé 'Cadre Magique'..."})
+        update_status_file({"status": "running", "message": lang_commands['wake_word_message']})
 
         with sd.RawInputStream(
             samplerate=native_samplerate, # On utilise la fréquence native
@@ -449,12 +514,12 @@ def main():
                     # Phase 1: Détection du mot-clé
                     result = porcupine.process(frame)
                     if result >= 0:
-                        print("[Voice] Wake word 'Cadre Magique' detected!")
+                        print(f"[Voice] Wake word detected!")
                         play_sound('listening')
                         listening_for_command = True
                         command_timeout = time.time() + 5  # 5 secondes pour donner une commande
                         audio_buffer = [] # Réinitialiser le buffer pour la nouvelle commande
-                        update_status_file({"status": "listening", "message": "J'écoute votre commande..."})
+                        update_status_file({"status": "listening", "message": lang_commands['listening_message']})
                 else:
                     # Phase 2: Reconnaissance de la commande
                     audio_buffer.append(frame)
@@ -477,11 +542,11 @@ def main():
                         save_and_play_debug_audio(audio_buffer, TARGET_SAMPLERATE)
                         
                         # On traite la commande
-                        process_command(command_to_process)
+                        process_command(command_to_process, lang)
                         
                         # Et on sort du mode écoute
                         listening_for_command = False
-                        update_status_file({"status": "running", "message": "En attente du mot-clé 'Cadre Magique'..."})
+                        update_status_file({"status": "running", "message": lang_commands['wake_word_message']})
 
     except Exception as e:
         print(f"[Voice] FATAL ERROR: {e}")

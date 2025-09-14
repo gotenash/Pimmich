@@ -89,28 +89,36 @@
 
   <!-- Contenu principal -->
   <div class="relative z-10 container mx-auto p-4 bg-white/80 backdrop-blur-md rounded-xl shadow-xl mt-8">
-    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="logo mx-auto mb-4">
-    <h2 class="text-center text-2xl font-semibold mb-4">{{ _('Configuration du cadre photo connecté') }}</h2>
-        <div class="flex justify-between items-center mb-4">
-            <div class="language-selector text-sm">
-                <span class="font-semibold">{{ _('Langue') }}:</span>
-                {% set current_lang = get_locale() %}
-                <a href="?lang=fr" class="{% if current_lang == 'fr' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">FR</a> |
-                <a href="?lang=en" class="{% if current_lang == 'en' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">EN</a> |
-                <a href="?lang=es" class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
-            </div>
-            <div class="logout-link">
-                <a href="/logout">{{ _('Se déconnecter') }}</a>
-            </div>
+    <div class="flex justify-between items-center mb-4">
+        <div class="language-selector text-sm">
+            <span class="font-semibold">{{ _('Langue') }}:</span>
+            {% set current_lang = get_locale() %}
+            <a href="?lang=fr" class="{% if current_lang == 'fr' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">FR</a> |
+            <a href="?lang=en" class="{% if current_lang == 'en' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">EN</a> |
+            <a href="?lang=es" class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
         </div>
+        <div class="logout-link">
+            <a href="/logout">{{ _('Se déconnecter') }}</a>
+        </div>
+    </div>
+    <div class="flex justify-between items-center mb-6">
+        <a href="https://github.com/gotenash" target="_blank" rel="noopener noreferrer">
+            <img src="{{ url_for('static', filename='gotenash.jpg') }}" alt="Avatar Gotenash" class="h-20 w-20 rounded-full object-cover shadow-md">
+        </a>
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="h-20">
+        <a href="https://www.gadgetaulab.fr" target="_blank" rel="noopener noreferrer">
+            <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" alt="Logo Gadgetaulab" class="h-20">
+        </a>
+    </div>
+    <h2 class="text-center text-2xl font-semibold mb-4">{{ _('Configuration du cadre photo connecté') }}</h2>
         
 
 <!-- Nouvelle navigation par groupes -->
-<div id="main-nav" class="flex justify-center space-x-1 sm:space-x-2 p-1 bg-gray-100 rounded-lg mb-4">
-    <button class="main-nav-link" data-group="group-diaporama">{{ _('Diaporama') }}</button>
-    <button class="main-nav-link" data-group="group-contenu">{{ _('Contenu') }}</button>
-    <button class="main-nav-link" data-group="group-interactions">{{ _('Interactions') }}</button>
-    <button class="main-nav-link" data-group="group-maintenance">{{ _('Maintenance') }}</button>
+<div id="main-nav" class="flex justify-center space-x-1 sm:space-x-2 p-1 bg-transparent rounded-lg mb-4">
+    <button class="main-nav-link inline-flex items-center" data-group="group-diaporama"><i class="fas fa-desktop fa-fw mr-2"></i>{{ _('Diaporama') }}</button>
+    <button class="main-nav-link inline-flex items-center" data-group="group-contenu"><i class="fas fa-photo-video fa-fw mr-2"></i>{{ _('Contenu') }}</button>
+    <button class="main-nav-link inline-flex items-center" data-group="group-interactions"><i class="fas fa-comments fa-fw mr-2"></i>{{ _('Interactions') }}</button>
+    <button class="main-nav-link inline-flex items-center" data-group="group-maintenance"><i class="fas fa-server fa-fw mr-2"></i>{{ _('Système') }}</button>
 </div>
 
 <!-- Conteneurs de sous-navigation pour chaque groupe -->
@@ -141,7 +149,10 @@
 
 <div id="group-maintenance" class="sub-nav-group hidden">
     <div class="tabs flex overflow-x-auto pb-2">
-        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-system')" title="{{ _('Gérez les paramètres système, le Wi-Fi, les mises à jour et consultez les logs.') }}"><i class="fas fa-server fa-fw mr-2"></i>{{ _('Système') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-network')" title="{{ _('Gérez les paramètres Wi-Fi et réseau.') }}"><i class="fas fa-wifi fa-fw mr-2"></i>{{ _('Réseau') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-maintenance')" title="{{ _('Gérez les mises à jour, sauvegardes et contrôles système.') }}"><i class="fas fa-tools fa-fw mr-2"></i>{{ _('Maintenance') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-stats')" title="{{ _('Consultez les statistiques d\'utilisation du système.') }}"><i class="fas fa-chart-bar fa-fw mr-2"></i>{{ _('Statistiques') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-logs')" title="{{ _('Consultez les journaux système.') }}"><i class="fas fa-file-alt fa-fw mr-2"></i>{{ _('Logs') }}</button>
     </div>
 </div>
 
@@ -662,8 +673,17 @@
         </div>
 
         <div class="form-check form-switch my-3">
-            <input class="form-check-input" type="checkbox" id="voice_control_enabled" name="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
-            <label class="form-check-label" for="voice_control_enabled">{{ _("Activer le contrôle vocal") }}</label>
+            <input class="form-check-input" type="checkbox" id="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
+            <label class="form-check-label" for="voice_control_enabled">{{ _("Activer le contrôle vocal (action immédiate)") }}</label>
+        </div>
+
+        <div class="mt-4">
+            <label for="voice_control_language" class="block text-sm font-medium text-gray-700">{{ _("Langue du contrôle vocal") }}</label>
+            <select id="voice_control_language" name="voice_control_language" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="fr" {% if config.get('voice_control_language', 'fr') == 'fr' %}selected{% endif %}>{{ _('Français') }}</option>
+                <option value="en" {% if config.get('voice_control_language', 'fr') == 'en' %}selected{% endif %}>{{ _('Anglais') }}</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">{{ _("Le changement de langue nécessite un redémarrage du service vocal (désactiver puis réactiver le contrôle vocal).") }}</p>
         </div>
 
         <div class="mt-4">
@@ -807,7 +827,258 @@
         </div>
     </fieldset>
 </div>
+<div id="tab-network" class="tabcontent">
+    <fieldset>
+        <legend><h3>{{ _("État de la connexion Wi-Fi") }}</h3></legend>
+        <div id="wifi-status-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>{{ _("État:") }}</strong> <span id="wifi-connection-state" class="font-semibold">{{ _("Chargement...") }}</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>{{ _("Réseau (SSID):") }}</strong> <span id="wifi-current-ssid">{{ _("Chargement...") }}</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>{{ _("Adresse IP:") }}</strong> <span id="wifi-ip-address">{{ _("Chargement...") }}</span>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Configuration Wi-Fi") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("La sélection du pays est obligatoire pour activer l'interface Wi-Fi et respecter les réglementations locales sur les fréquences radio.") }}</p>
+        <form action="{{ url_for('save_wifi_settings') }}" method="post" id="wifi-config-form">
+            <div class="mb-4">
+                <label for="wifi_country" class="block text-sm font-medium text-gray-700">{{ _("Pays (pour la réglementation Wi-Fi)") }}</label>
+                <select id="wifi_country" name="wifi_country" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    {% set countries = [('FR', _('France')), ('US', _('États-Unis')), ('GB', _('Royaume-Uni')), ('DE', _('Allemagne')), ('ES', _('Espagne')), ('CA', _('Canada')), ('BE', _('Belgique')), ('CH', _('Suisse'))] %}
+                    {% for code, name in countries %}
+                        <option value="{{ code }}" {% if config.get('wifi_country', 'FR') == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="wifi_ssid" class="block text-sm font-medium text-gray-700">{{ _("SSID (Nom du réseau)") }}</label>
+                <input type="text" id="wifi_ssid" name="wifi_ssid" value="{{ config.get('wifi_ssid', '') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+            <div class="mb-4">
+                <label for="wifi_password" class="block text-sm font-medium text-gray-700">{{ _("Mot de passe") }}</label>
+                <div class="relative mt-1">
+                    <input type="password" id="wifi_password" name="wifi_password" value="{{ config.get('wifi_password', '') }}" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-10">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button type="button" class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal" data-target="wifi_password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="mt-2 text-sm text-gray-500">{{ _("Laissez vide si le réseau est ouvert.") }}</p>
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                <i class="fas fa-save mr-2"></i>{{ _("Appliquer les paramètres Wi-Fi") }}
+            </button>
+        </form>
+        <p class="mt-3 text-xs text-gray-500">{{ _("Note : Après avoir appliqué les paramètres, la connexion peut prendre jusqu'à une minute. Si le statut de connexion ci-dessus ne passe pas à \"Connecté\", vérifiez le mot de passe puis essayez de redémarrer le système.") }}</p>
+    </fieldset>
 
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Gestion des Interfaces Réseau") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet est branché, c'est souvent un problème de priorité. Désactivez l'interface Ethernet pour forcer le système à utiliser exclusivement le Wi-Fi. Cette action redémarre le service réseau.") }}</p>
+        
+        <!-- Interface Ethernet (eth0) -->
+        <div id="eth0-status-container" class="p-4 border rounded-lg bg-gray-50/50 flex items-center justify-between">
+            <div>
+                <h4 class="font-semibold text-gray-800">{{ _("Interface Filaire (eth0)") }}</h4>
+                <p class="text-sm"><strong>{{ _("État:") }}</strong> <span id="eth0-state" class="font-mono">{{ _("Chargement...") }}</span></p>
+                <p class="text-sm"><strong>{{ _("Adresse IP:") }}</strong> <span id="eth0-ip" class="font-mono">{{ _("Chargement...") }}</span></p>
+            </div>
+            <div>
+                <button id="toggle-eth0-btn" class="system-button text-white font-bold py-2 px-4 rounded" disabled>{{ _("Chargement...") }}</button>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- Bloc de scan Wi-Fi -->
+    <div class="mt-6 p-4 border rounded-lg bg-gray-50/50">
+        <h4 class="text-xl font-semibold text-gray-800 mb-2">{{ _("Réseaux Wi-Fi à proximité") }}</h4>
+        <p class="text-gray-600 mb-4">{{ _("Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles. Cliquer sur un réseau dans la liste remplira automatiquement le champ SSID ci-dessus.") }}</p>
+        <button id="scan-wifi-btn" type="button" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded mb-3 inline-flex items-center">
+            <i class="fas fa-wifi mr-2"></i>
+            <span id="scan-wifi-btn-text">{{ _("Lancer le scan") }}</span>
+        </button>
+        <div id="wifi-scan-results" class="mt-4">
+            <!-- Les résultats du scan apparaîtront ici -->
+        </div>
+    </div>
+</div>
+
+<div id="tab-maintenance" class="tabcontent">
+    <fieldset>
+        <legend><h3>{{ _("Sécurité") }}</h3></legend>
+        <form action="{{ url_for('change_password_route') }}" method="post" id="password-change-form">
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">{{ _("Changer le mot de passe de l'interface") }}</h4>
+            <div class="mb-4">
+                <label for="new_password" class="block text-sm font-medium text-gray-700">{{ _("Nouveau mot de passe") }}</label>
+               <div class="relative mt-1">
+                    <input type="password" id="new_password" name="new_password" required minlength="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-10" placeholder="{{ _('6 caractères minimum') }}">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button type="button" class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal" data-target="new_password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="confirm_password" class="block text-sm font-medium text-gray-700">{{ _("Confirmer le nouveau mot de passe") }}</label>
+                 <div class="relative mt-1">
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-10">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button type="button" class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal" data-target="confirm_password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <p id="password-error" class="mt-2 text-sm text-red-600 hidden">{{ _("Les mots de passe ne correspondent pas.") }}</p>
+            </div>
+            <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                <i class="fas fa-key mr-2"></i>{{ _("Changer le mot de passe") }}
+            </button>
+        </form>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Sauvegarde et Restauration") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Sauvegardez votre configuration (API, partages, affichage...) dans un fichier. Vous pourrez le restaurer plus tard ou sur une nouvelle installation.") }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Sauvegarde -->
+            <div class="p-4 border rounded-lg bg-gray-50/50">
+                <h4 class="font-semibold text-gray-800 mb-2">{{ _("Sauvegarder la configuration") }}</h4>
+                <a href="{{ url_for('backup_settings_api') }}" class="system-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                    <i class="fas fa-download mr-2"></i>{{ _("Télécharger la sauvegarde") }}
+                </a>
+            </div>
+            <!-- Restauration -->
+            <div class="p-4 border rounded-lg bg-gray-50/50">
+                <h4 class="font-semibold text-gray-800 mb-2">{{ _("Restaurer une configuration") }}</h4>
+                <form action="{{ url_for('restore_settings_api') }}" method="post" enctype="multipart/form-data" onsubmit="return confirm('{{ _('Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du fichier de sauvegarde.') }}')">
+                    <input type="file" name="backup_file" accept=".json" required class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none mb-3">
+                    <button type="submit" class="system-button bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"><i class="fas fa-upload mr-2"></i>{{ _("Restaurer") }}</button>
+                </form>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Mise à jour de l'application") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Cliquez sur le bouton pour rechercher et installer les dernières mises à jour de Pimmich depuis GitHub. L'application redémarrera automatiquement après la mise à jour.") }}</p>
+        <button type="button" id="update-app-btn" class="system-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}
+        </button>
+        <div id="update-progress-container" class="progress-container hidden mt-4">
+            <div id="update-progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="update-status" class="status-messages mt-2"></div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Système de Fichiers de la Carte SD") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">{{ _("Si vous avez flashé Pimmich sur une carte SD plus grande que l'image, utilisez cette option pour étendre la partition et utiliser tout l'espace disponible. Un redémarrage du système sera nécessaire pour finaliser l'opération.") }}</p>
+        <div class="p-4 border-l-4 border-blue-400 bg-blue-50 text-blue-700 mb-4">
+            <p><strong>{{ _("Note :") }}</strong> {{ _("Cette opération est sûre et ne supprime aucune donnée. Elle prépare simplement le système à s'étendre au prochain démarrage.") }}</p>
+        </div>
+        <button type="button" id="expand-fs-btn" class="system-button bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-expand-arrows-alt mr-2"></i>{{ _("Étendre le système de fichiers") }}
+        </button>
+        <div id="expand-fs-status" class="status-messages mt-2"></div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Contrôle du système") }}</h3></legend>
+        <form method="POST" action="/restart_app" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir redémarrer UNIQUEMENT l\'application web ? Le système d\'exploitation ne sera pas redémarré.') }}');">
+            <button type="submit" class="system-button bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-redo"></i> {{ _("Redémarrer l'application web") }}
+            </button>
+        </form>
+        <form method="POST" action="/reboot" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir REDÉMARRER le système ?') }}');">
+            <button type="submit" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded">
+                <i class="fas fa-sync-alt"></i> {{ _("Redémarrer le système") }}
+            </button>
+        </form>
+        <form method="POST" action="/shutdown" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir ÉTEINDRE le système ?') }}');">
+            <button type="submit" class="system-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-power-off"></i> {{ _("Éteindre le système") }}
+            </button>
+        </form>
+    </fieldset>
+</div>
+
+<div id="tab-stats" class="tabcontent">
+    <fieldset>
+        <legend><h3>{{ _("Informations Système") }}</h3></legend>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>{{ _("Température CPU:") }}</strong> <span id="cpu-temp">{{ _("Chargement...") }}</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>{{ _("Utilisation CPU:") }}</strong> <span id="cpu-usage">{{ _("Chargement...") }}</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>{{ _("RAM:") }}</strong> <span id="ram-usage">{{ _("Chargement...") }}</span>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <strong>{{ _("Stockage:") }}</strong> <span id="disk-usage">{{ _("Chargement...") }}</span>
+            </div>
+        </div>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Température CPU (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="cpuTempChart"></canvas></div>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Utilisation CPU (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="cpuUsageChart"></canvas></div>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Utilisation RAM (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="ramUsageChart"></canvas></div>
+            </div>
+            <div class="p-3 bg-gray-100 rounded-lg border">
+                <h4 class="font-semibold text-gray-700 mb-2">{{ _("Historique Utilisation Disque (10 min)") }}</h4>
+                <div class="relative h-40"><canvas id="diskUsageChart"></canvas></div>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+<div id="tab-logs" class="tabcontent">
+    <fieldset>
+        <legend><h3>{{ _("Logs Système") }}</h3></legend>
+        <div class="mb-3">
+            <label for="log-selector" class="form-label">{{ _("Sélectionner un log :") }}</label>
+            <select id="log-selector" class="form-select">
+                <!-- Les options seront chargées dynamiquement par JavaScript -->
+            </select>
+            <button type="button" id="refresh-logs-btn" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-2">{{ _("Actualiser") }}</button>
+            <button type="button" id="clear-logs-btn" class="btn btn-danger bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded ml-2">{{ _("Effacer les logs") }}</button>
+        </div>
+        <div class="bg-gray-800 rounded-lg overflow-auto" style="max-height: 400px;">
+            <pre id="log-content" class="text-white p-4 text-sm" style="min-height: 150px; white-space: pre-wrap; word-break: break-all;"></pre>
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3>{{ _("Crédits") }}</h3></legend>
+        <div class="credits">
+            <img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120" alt="Auteur Gotenash">
+            <p>{{ _("Auteurs : Gotenash et Shenron") }}</p>
+            <a href="https://www.gadgetaulab.fr">
+                <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" width="120" alt="Logo Gadgetaulab">
+            </a>
+            <p>{{ _("Projet réalisé dans le cadre du Gadgetaulab") }}</p>
+        </div>
+    </fieldset>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
 <style>
 .action-group {
     margin-bottom: 20px;
@@ -858,6 +1129,7 @@
 }
 
 </style>
+</script>
             
             
             
@@ -1853,7 +2125,7 @@ function openTab(evt, tabId) {
 
     // Gérer la visibilité du bouton "Enregistrer"
     const saveButton = document.getElementById('save-changes-btn');
-    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-system', 'tab-validation', 'tab-favoris', 'tab-playlists'];
+    const tabsWithoutSaveButton = ['tab-apercu', 'tab-actions', 'tab-validation', 'tab-favoris', 'tab-playlists', 'tab-network', 'tab-maintenance', 'tab-stats', 'tab-logs'];
     if (tabId === 'tab-validation') {
         refreshValidationTab(); // On rafraîchit la grille et le badge
     }

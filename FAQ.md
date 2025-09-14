@@ -69,6 +69,26 @@ Le script s'occupe d'installer toutes les dépendances et de configurer le syst�
 
 **R :** C'est un filtre qui ajoute un cadre blanc et un espace pour une légende (si vous en ajoutez une via l'interface) à vos photos, leur donnant un aspect de carte postale. Les photos envoyées via Telegram utilisent cet effet par défaut pour un rendu plus personnel et chaleureux.
 
+**Q : Quelles sont les commandes vocales disponibles ?**
+
+**R :** Une fois le contrôle vocal activé, commencez toutes vos commandes par le mot-clé **"Cadre Magique"**. Voici les commandes principales :
+
+*   **Contrôle du Diaporama :**
+    *   *"photo suivante"* / *"photo précédente"*
+    *   *"pause"* / *"lecture"* (pour mettre en pause ou reprendre)
+*   **Gestion de l'Affichage :**
+    *   *"règle la durée à 15 secondes"*
+    *   *"affiche pendant 30 secondes"*
+*   **Gestion des Playlists & Sources :**
+    *   *"lance la playlist Vacances"*
+    *   *"afficher les cartes postales"* (lance un diaporama des photos Telegram)
+    *   *"activer la source Samba"* / *"désactiver la source USB"*
+*   **Contrôle du Système :**
+    *   *"passer en mode veille"* (éteint l'écran)
+    *   *"réveiller le cadre"* (rallume l'écran)
+    *   *"éteindre le cadre"* (éteint complètement le Raspberry Pi)
+    *   *"revenir au diaporama principal"* (quitte une playlist en cours et relance le diaporama normal)
+
 ---
 
 ### Dépannage (Troubleshooting)

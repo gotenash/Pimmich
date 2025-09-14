@@ -729,7 +729,7 @@ def configure():
             'smb_update_interval_hours'
             # New fields
             , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token', # 'telegram_token' is now 'telegram_bot_token'
-            'telegram_authorized_users',
+            'telegram_authorized_users', 'voice_control_language',
             'skip_initial_auto_import',
             'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y'
         ]: 
@@ -778,17 +778,14 @@ def configure():
         config["show_date"] = 'show_date' in request.form
         config["show_weather"] = 'show_weather' in request.form
         config["show_tides"] = 'show_tides' in request.form
-        config["voice_control_enabled"] = 'voice_control_enabled' in request.form
+        # La gestion de l'activation/désactivation du contrôle vocal se fait maintenant via une API dédiée
+        # pour éviter les conflits avec le bouton "Enregistrer".
         if 'porcupine_access_key' in request.form:
             config['porcupine_access_key'] = request.form['porcupine_access_key']
         if 'voice_control_device_index' in request.form:
             config['voice_control_device_index'] = request.form['voice_control_device_index']
 
         save_config(config)
-        if config.get('voice_control_enabled'):
-            start_voice_control()
-        else:
-            stop_voice_control()
         stop_slideshow() # Stop slideshow to apply new config
         start_slideshow() # Start slideshow with new config
         flash(_("Configuration enregistrée et diaporama relancé"), "success")
@@ -1657,8 +1654,11 @@ def restart_app():
     return redirect(url_for('configure'))
 
 @app.route('/api/playlists/play', methods=['POST'])
-@login_required
 def play_playlist():
+    # Sécurité : n'accepter que les requêtes venant de la machine elle-même (contrôle vocal) ou d'un utilisateur connecté
+    if not session.get('logged_in') and request.remote_addr != '127.0.0.1':
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+
     data = request.get_json()
     playlist_id = data.get('id')
     if not playlist_id:
@@ -1698,9 +1698,12 @@ def play_playlist():
         return jsonify({"success": False, "message": "Erreur interne du serveur."}), 500
 
 @app.route('/api/slideshow/restart_standard', methods=['POST'])
-@login_required
 def restart_standard_slideshow():
     """Arrête tout diaporama en cours et en lance un nouveau en mode standard."""
+    # Sécurité : n'accepter que les requêtes venant de la machine elle-même (contrôle vocal) ou d'un utilisateur connecté
+    if not session.get('logged_in') and request.remote_addr != '127.0.0.1':
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+
     try:
         # S'assurer que le fichier de playlist personnalisée est supprimé
         if os.path.exists(CUSTOM_PLAYLIST_FILE):
@@ -2905,6 +2908,35 @@ def scan_wifi():
         return jsonify({"success": False, "message": "Le scan Wi-Fi a pris trop de temps (timeout)."}), 500
     except Exception as e:
         return jsonify({"success": False, "message": f"Erreur inattendue : {str(e)}"}), 500
+
+@app.route('/api/voice_control/toggle', methods=['POST'])
+@login_required
+def toggle_voice_control():
+    """Active ou désactive le service de contrôle vocal."""
+    data = request.get_json()
+    enabled = data.get('enabled')
+
+    if enabled is None:
+        return jsonify({"success": False, "message": _("Paramètre 'enabled' manquant.")}), 400
+
+    try:
+        # Mettre à jour la configuration
+        config = load_config()
+        config['voice_control_enabled'] = enabled
+        save_config(config)
+
+        # Démarrer ou arrêter le service
+        if enabled:
+            start_voice_control()
+            message = _("Service de contrôle vocal activé.")
+        else:
+            stop_voice_control()
+            message = _("Service de contrôle vocal désactivé.")
+        
+        return jsonify({"success": True, "message": message})
+    except Exception as e:
+        logging.error(f"Erreur lors du basculement du contrôle vocal : {e}", exc_info=True)
+        return jsonify({"success": False, "message": _("Erreur interne du serveur : %(error)s", error=str(e))}), 500
 
 if __name__ == '__main__':
     # Démarrer les workers de mise à jour dans des threads séparés

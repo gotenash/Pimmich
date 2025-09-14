@@ -4,7 +4,7 @@ import time
 import pygame
 import traceback
 import requests
-from PIL import Image
+from PIL import Image, ImageOps, ImageFilter, ImageDraw
 import signal
 import re
 import socket
@@ -788,28 +788,160 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
 
                 draw_text_with_outline(screen, tide_text, font_to_use, text_color, outline_color, tide_rect.topleft, anchor="topleft")
 
-def display_title_slide(screen, screen_width, screen_height, title, duration, config):
-    """Affiche un écran titre avec le nom de la playlist."""
+def display_title_slide(screen, screen_width, screen_height, title, duration, config, photos_for_slide=None):
+    """Affiche un écran titre avec le nom de la playlist et un pêle-mêle de photos."""
     print(f"[Slideshow] Affichage de l'écran titre : '{title}'")
-    screen.fill((0, 0, 0)) # Fond noir
+ 
+    # --- NOUVEAU: Charger les images des punaises en tant qu'images PIL ---
+    thumbtack_pil_images = []
+    try:
+        icons_dir = Path(BASE_DIR) / 'static' / 'icons'
+        # On cherche des punaises de différentes couleurs
+        thumbtack_paths = list(icons_dir.glob('thumbtack_*.png'))
+        if thumbtack_paths:
+            for tack_path in thumbtack_paths:
+                tack_img = Image.open(str(tack_path)).convert("RGBA")
+                # Redimensionner à une taille raisonnable (ex: 40x40 pixels)
+                tack_img.thumbnail((40, 40), Image.Resampling.LANCZOS)
+                thumbtack_pil_images.append(tack_img)
+        else:
+            print("[Title Slide] Avertissement: Aucune image de punaise (thumbtack_*.png) trouvée dans static/icons/.")
+    except Exception as e:
+        print(f"[Title Slide] Avertissement: Impossible de charger les punaises: {e}")
 
+    # Créer une surface temporaire pour dessiner tous les éléments avant de les afficher
+    # Cela évite les problèmes de rafraîchissement et garantit que tout est dessiné dans le bon ordre.
+    temp_surface = pygame.Surface((screen_width, screen_height))
+
+    try:
+        cork_bg_path = Path(BASE_DIR) / 'static' / 'backgrounds' / 'cork_background.jpg'
+        if cork_bg_path.exists():
+            cork_bg_img = pygame.image.load(str(cork_bg_path)).convert()
+            # --- NOUVEAU: Logique de redimensionnement et de centrage du fond ---
+            screen_height_percent = int(config.get("screen_height_percent", "100"))
+            
+            # Calculer la hauteur utile pour le fond
+            new_bg_height = int(screen_height * (screen_height_percent / 100.0))
+
+            # Redimensionner l'image de fond pour qu'elle remplisse la zone utile sans être déformée.
+            original_bg_width, original_bg_height = cork_bg_img.get_size()
+            bg_aspect_ratio = original_bg_width / original_bg_height
+            
+            # On scale pour que la largeur corresponde à la largeur de l'écran
+            scaled_w = screen_width
+            scaled_h = int(scaled_w / bg_aspect_ratio)
+            
+            # Si l'image est devenue moins haute que la zone utile, on la scale par la hauteur
+            if scaled_h < new_bg_height:
+                scaled_h = new_bg_height
+                scaled_w = int(scaled_h * bg_aspect_ratio)
+
+            scaled_cork_bg = pygame.transform.smoothscale(cork_bg_img, (scaled_w, scaled_h))
+
+            # On va rogner l'image de fond si elle est plus grande que la zone utile
+            crop_area = pygame.Rect(
+                (scaled_w - screen_width) // 2,
+                (scaled_h - new_bg_height) // 2,
+                screen_width,
+                new_bg_height
+            )
+
+            # Position de la zone utile sur l'écran final
+            bg_y = (screen_height - new_bg_height) // 2
+            
+            temp_surface.fill((0, 0, 0)) # Remplir le fond de l'écran en noir (pour les bords)
+            temp_surface.blit(scaled_cork_bg, (0, bg_y), crop_area) # Dessiner la partie rognée et centrée
+        else:
+            # Fallback sur une couleur unie si l'image n'est pas trouvée
+            print(f"[Title Slide] Avertissement: Image de fond non trouvée à {cork_bg_path}. Utilisation d'une couleur unie.")
+            temp_surface.fill((181, 136, 99)) # Une couleur proche du liège
+    except Exception as e:
+        print(f"[Title Slide] Erreur lors du chargement du fond : {e}. Utilisation d'une couleur unie.")
+        temp_surface.fill((181, 136, 99))
+
+    # --- Pêle-mêle de photos ---
+    if photos_for_slide:
+        num_photos = min(len(photos_for_slide), 4)
+        if num_photos > 0:
+            selected_paths = random.sample(photos_for_slide, num_photos)
+
+            photo_surfaces = []
+            for path in selected_paths:
+                try:
+                    # Charger l'image avec PIL
+                    img = Image.open(path)
+                    # Créer une miniature
+                    img.thumbnail((400, 400), Image.Resampling.LANCZOS)
+                    # Ajouter une bordure blanche pour l'effet polaroid
+                    img_with_border = ImageOps.expand(img, border=20, fill='white')
+                    
+                    image_to_rotate = img_with_border.convert("RGBA")
+
+                    # --- NOUVEAU: Ajouter la punaise sur une toile plus grande AVANT la rotation ---
+                    if thumbtack_pil_images:
+                        tack_img = random.choice(thumbtack_pil_images)
+                        
+                        # Créer une nouvelle toile plus grande pour inclure la punaise qui dépasse
+                        new_height = image_to_rotate.height + tack_img.height // 2
+                        composite_canvas = Image.new('RGBA', (image_to_rotate.width, new_height), (0, 0, 0, 0))
+                        
+                        # Coller la photo sur la toile, en laissant de l'espace en haut
+                        composite_canvas.paste(image_to_rotate, (0, tack_img.height // 2))
+                        
+                        # Coller la punaise en haut au centre
+                        tack_x = (composite_canvas.width - tack_img.width) // 2
+                        composite_canvas.paste(tack_img, (tack_x, 0), tack_img)
+                        
+                        image_to_rotate = composite_canvas
+                        
+                    # Inclinaison aléatoire
+                    angle = random.uniform(-15, 15)
+                    rotated_img = image_to_rotate.rotate(angle, expand=True, resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
+                    
+                    py_surface = pygame.image.fromstring(rotated_img.tobytes(), rotated_img.size, rotated_img.mode).convert_alpha()
+                    photo_surfaces.append(py_surface)
+                except Exception as e:
+                    print(f"[Title Slide] Erreur lors de la préparation de l'image {path}: {e}")
+
+            # Ligne de débogage pour vérifier si des photos ont été traitées
+            print(f"[Title Slide] DEBUG: Nombre de surfaces photos préparées : {len(photo_surfaces)}")
+
+            # Positionner les photos de manière aléatoire mais répartie
+            base_positions = [
+                (screen_width * 0.25, screen_height * 0.25),
+                (screen_width * 0.75, screen_height * 0.35),
+                (screen_width * 0.30, screen_height * 0.75),
+                (screen_width * 0.70, screen_height * 0.80)
+            ]
+            random.shuffle(base_positions)
+
+            for i, surface in enumerate(photo_surfaces):
+                pos_x = base_positions[i][0] + random.randint(-50, 50)
+                pos_y = base_positions[i][1] + random.randint(-50, 50)
+                rect = surface.get_rect(center=(pos_x, pos_y))
+                temp_surface.blit(surface, rect)
+
+    # --- Titre de la playlist ---
     text_color = parse_color(config.get("clock_color", "#FFFFFF"))
     outline_color = parse_color(config.get("clock_outline_color", "#000000"))
-    
+
     try:
-        font_path = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
-        # Utiliser une police plus grande pour le titre
-        title_font_size = int(config.get("clock_font_size", 72) * 1.5)
+        # Utiliser une police cursive et plus grande pour le titre
+        font_path = str(Path(BASE_DIR) / "static" / "fonts" / "Caveat-Regular.ttf")
+        # Augmenter la taille de la police pour un meilleur impact visuel
+        title_font_size = int(config.get("clock_font_size", 72) * 2.5)
         title_font = pygame.font.Font(font_path, title_font_size)
     except Exception as e:
         print(f"Erreur chargement police pour l'écran titre: {e}")
-        title_font = pygame.font.SysFont("Arial", 96, bold=True)
+        title_font = pygame.font.SysFont("Arial", 150, bold=True)
 
-    # Utiliser la fonction existante pour dessiner le texte avec contour
-    draw_text_with_outline(screen, title, title_font, text_color, outline_color, (screen_width // 2, screen_height // 2), anchor="center")
+    # Dessiner le titre au centre, par-dessus les photos
+    draw_text_with_outline(temp_surface, title, title_font, text_color, outline_color, (screen_width // 2, screen_height // 2), anchor="center")
 
+    # Afficher la surface finale sur l'écran principal
+    screen.blit(temp_surface, (0, 0))
     pygame.display.flip()
-    
+
     # Boucle d'attente pour rester réactif aux signaux (ex: QUIT)
     start_sleep = time.time()
     while time.time() - start_sleep < duration:
@@ -1084,15 +1216,15 @@ def start_slideshow():
         # --- Initialisation de la surface précédente pour la transition ---
         previous_photo_surface = None
 
-        # --- Vérification de l'existence d'une playlist personnalisée ---
+        # --- Vérification et chargement de la playlist personnalisée (une seule fois) ---
         custom_playlist = None
-        playlist_name = None # NOUVEAU
+        playlist_name = None
+        is_custom_run = False # Drapeau pour indiquer un cycle de playlist unique
         if os.path.exists(CUSTOM_PLAYLIST_FILE):
             try:
                 with open(CUSTOM_PLAYLIST_FILE, 'r') as f:
                     playlist_data = json.load(f)
                 
-                # NOUVEAU: Gère la nouvelle structure {"name": "...", "photos": [...]}
                 if isinstance(playlist_data, dict) and 'name' in playlist_data and 'photos' in playlist_data:
                     playlist_name = playlist_data['name']
                     custom_playlist_paths = playlist_data['photos']
@@ -1103,15 +1235,17 @@ def start_slideshow():
                 # Convertir les chemins relatifs en chemins absolus
                 custom_playlist = [str(Path(BASE_DIR) / 'static' / 'prepared' / p) for p in custom_playlist_paths]
                 print(f"[Slideshow] Playlist personnalisée '{playlist_name or 'Sans nom'}' chargée avec {len(custom_playlist)} photos.")
+                is_custom_run = True # On active le drapeau pour le premier passage
                 os.remove(CUSTOM_PLAYLIST_FILE) # Supprimer pour ne pas la réutiliser au prochain démarrage
             except Exception as e:
                 print(f"[Slideshow] Erreur chargement playlist personnalisée: {e}. Utilisation de la playlist par défaut.")
 
-        # NOUVEAU: Afficher l'écran titre si un nom de playlist est disponible
+        # Afficher l'écran titre si une playlist personnalisée est lancée
         if playlist_name:
             # Utiliser une durée spécifique pour les écrans d'info, configurable
             info_duration = int(config.get("info_display_duration", 5))
-            display_title_slide(screen, SCREEN_WIDTH, SCREEN_HEIGHT, playlist_name, info_duration, config)
+            display_title_slide(screen, SCREEN_WIDTH, SCREEN_HEIGHT, playlist_name, info_duration, config, photos_for_slide=custom_playlist)
+            previous_photo_surface = screen.copy() # Capturer l'écran titre pour la première transition
 
         while True:
             config = load_config() # Recharger la config à chaque itération
@@ -1183,11 +1317,26 @@ def start_slideshow():
                     if NEW_POSTCARD_FLAG.exists():
                         NEW_POSTCARD_FLAG.unlink()
 
-            filter_states = load_filter_states() # Charger les préférences de filtre
-            favorites = load_favorites() # Charger la liste des favoris
-            start_time = config.get("active_start", "06:00")
-            end_time = config.get("active_end", "20:00")
-            duration = config.get("display_duration", 10)
+            # --- Construction de la playlist ---
+            if is_custom_run:
+                playlist = custom_playlist
+            else:
+                # Construction de la playlist par défaut
+                filter_states = load_filter_states()
+                favorites = load_favorites()
+                display_sources = config.get("display_sources", ["immich"])
+                
+                all_media = []
+                for source in display_sources:
+                    source_dir = PREPARED_BASE_DIR / source
+                    if source_dir.is_dir():
+                        base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))]
+                        for photo_path_obj in base_photos:
+                            path_to_display = get_path_to_display(photo_path_obj, source, filter_states)
+                            all_media.append(path_to_display)
+                
+                playlist = build_playlist(all_media, config, favorites)
+                random.shuffle(playlist)
             
             # --- Chargement de la police à chaque itération ---
             # C'est plus robuste, surtout après une réinitialisation de l'affichage.
@@ -1200,31 +1349,10 @@ def start_slideshow():
                 main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
             # --- Fin du chargement de la police ---
             
-            if custom_playlist is not None:
-                playlist = custom_playlist
-            else:
-                display_sources = config.get("display_sources", ["immich"]) # Nouvelle clé de config
-                
-                all_media = []
-                for source in display_sources:
-                    source_dir = PREPARED_BASE_DIR / source
-                    if source_dir.is_dir():
-                        # Obtenir les médias de base (non-polaroid, non-vignette, non-postcard)
-                        base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))]
-                        
-                        for photo_path_obj in base_photos:
-                            path_to_display = get_path_to_display(photo_path_obj, source, filter_states)
-                            all_media.append(path_to_display)
-                
-                # --- Logique de création de la playlist avec boost ---
-                playlist = build_playlist(all_media, config, favorites)
-                # Le mélange aléatoire ne s'applique qu'à la playlist normale, pas aux playlists personnalisées.
-                random.shuffle(playlist)
-
             if not playlist:
                 print("Aucune photo trouvée dans les sources activées. Vérification dans 60 secondes.")
                 
-                screen.fill((0, 0, 0)) # Fond noir
+                screen.fill((0, 0, 0))
                 
                 text_color = parse_color(config.get("clock_color", "#FFFFFF"))
                 outline_color = parse_color(config.get("clock_outline_color", "#000000"))
@@ -1311,8 +1439,6 @@ def start_slideshow():
                 time.sleep(60)
                 continue
 
-            previous_photo_surface = None # Initialize previous_photo_surface before the loop
-
             playlist_index = 0
             while 0 <= playlist_index < len(playlist):
                 photo_path = playlist[playlist_index]
@@ -1321,14 +1447,6 @@ def start_slideshow():
                 global next_photo_requested, previous_photo_requested
                 next_photo_requested = False
                 previous_photo_requested = False
-
-                # --- CORRECTIF: Vérifier si le fichier existe avant de tenter de l'afficher ---
-                if not os.path.exists(photo_path):
-                    print(f"[Slideshow] Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
-                    playlist_index += 1
-                    continue
-
-                # La gestion de la veille/réveil est maintenant gérée par le planificateur dans app.py
 
                 print(f"[Slideshow] Preparing to display: {photo_path}")
                 
@@ -1339,6 +1457,12 @@ def start_slideshow():
                         control_fan(temp)
                     except Exception as e:
                         print(f"Erreur lors de la lecture de la température ou du contrôle du ventilateur : {e}")
+
+                # --- CORRECTIF: Vérifier si le fichier existe avant de tenter de l'afficher ---
+                if not os.path.exists(photo_path):
+                    print(f"[Slideshow] Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
+                    playlist_index += 1
+                    continue
 
                 # Vérifier si le fichier est une vidéo ou une image
                 is_video = any(photo_path.lower().endswith(ext) for ext in VIDEO_EXTENSIONS)
@@ -1405,6 +1529,12 @@ def start_slideshow():
                 # Gérer le bouclage de la playlist
                 if playlist_index >= len(playlist): playlist_index = 0
                 if playlist_index < 0: playlist_index = len(playlist) - 1
+
+            # --- Logique de fin de playlist personnalisée ---
+            if is_custom_run:
+                print("[Slideshow] Playlist personnalisée terminée. Retour au diaporama standard.")
+                is_custom_run = False # Le prochain tour de boucle while True construira la playlist par défaut.
+                playlist = [] # Vider la playlist pour forcer la reconstruction.
     except KeyboardInterrupt:
         print("Arrêt manuel du diaporama.")
     except Exception as e:

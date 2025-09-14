@@ -16,3 +16,5 @@ numpy
 resampy
 thefuzz
 python-Levenshtein
+deep-translator
+polib

@@ -33,10 +33,10 @@ Pimmich is packed with features to provide a complete and customizable experienc
 - **Format Handling:** Smart support for portrait photos (blurred background) and videos (with sound and optional hardware acceleration).
 
 #### ⚙️ **Interface & Control**
-- **Comprehensive Web Interface:** A local configuration page, password-protected and organized into clear tabs (Slideshow, Content, Interactions, Maintenance).
+- **Comprehensive Web Interface:** A local configuration page, password-protected and organized into thematic groups and tabs for an intuitive navigation.
 - **Voice Control:** Control your frame with voice commands like *"Magic Frame, next photo"* or *"Magic Frame, play Vacation playlist"*.
 - **Content Management:**
-    - **Playlists:** Create virtual albums, reorder photos with drag-and-drop, and launch themed slideshows.
+    - **Playlists:** Create virtual albums, reorder photos with drag-and-drop, and launch themed slideshows with a dynamic title screen (photo jumble on a corkboard background).
     - **Favorites:** Mark your favorite photos to make them appear more often.
     - **Captions:** Add custom text to your photos and postcards.
 
