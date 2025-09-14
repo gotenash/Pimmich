@@ -21,6 +21,41 @@
             -ms-overflow-style: none;  /* IE et Edge */
             scrollbar-width: none;  /* Firefox */
         }
+        /* Styles pour les groupes d'actions et les barres de progression */
+        .action-group {
+            margin-bottom: 20px;
+        }
+        .action-group h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .import-button, .system-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            margin-top: 0.75rem;
+            height: 1.5rem;
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d1d5db;
+        }
+        .progress-bar {
+            height: 100%;
+            text-align: center;
+            white-space: nowrap;
+            transition: width 0.3s ease;
+            color: white;
+            font-weight: 500;
+            background-image: linear-gradient(90deg, #a855f7, #6366f1);
+            box-shadow: 0 0 5px rgba(107, 114, 142, 0.5);
+        }
         /* Styles pour la nouvelle navigation par groupes */
         .main-nav-link {
             padding: 0.75rem 1.5rem;
