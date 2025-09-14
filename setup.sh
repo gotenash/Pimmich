@@ -160,6 +160,20 @@ if [ ! -d "$VOSK_MODEL_DIR" ]; then
 else
     echo "✅ Le modèle Vosk français est déjà présent."
 fi
+echo "=== [NOUVEAU] Téléchargement du modèle de reconnaissance vocale Anglais (Vosk) ==="
+VOSK_MODEL_EN_DIR="$MODELS_DIR/vosk-model-small-en-us-0.15"
+VOSK_ZIP_EN_FILE="$MODELS_DIR/vosk-model-en.zip"
+
+if [ ! -d "$VOSK_MODEL_EN_DIR" ]; then
+    echo "Le modèle Vosk Anglais n'est pas trouvé. Téléchargement..."
+    mkdir -p "$MODELS_DIR"
+    wget -q --show-progress -O "$VOSK_ZIP_EN_FILE" "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+    unzip -o "$VOSK_ZIP_EN_FILE" -d "$MODELS_DIR"
+    rm "$VOSK_ZIP_EN_FILE"
+    echo "✅ Modèle Vosk Anglais installé."
+else
+    echo "✅ Le modèle Vosk Anglais est déjà présent."
+fi
 
 echo "=== [7/12] Création de l'arborescence des dossiers nécessaires ==="
 mkdir -p logs

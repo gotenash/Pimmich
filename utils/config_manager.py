@@ -67,6 +67,10 @@ def create_default_config():
         "telegram_bot_enabled": False,
         "telegram_bot_token": "",
         "telegram_authorized_users": "",
+        "voice_control_enabled": False,
+        "voice_control_language": "fr",
+        "porcupine_access_key": "",
+        "voice_control_device_index": "",
     }
 
 def load_config():
