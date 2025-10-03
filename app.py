@@ -23,7 +23,7 @@ import traceback
 
 from utils.download_album import download_and_extract_album
 from utils.auth import login_required
-from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow
+from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow, restart_slideshow_process
 from utils.config_manager import load_config, save_config
 from utils.playlist_manager import load_playlists, save_playlists
 from utils.auth_manager import change_password
@@ -723,7 +723,8 @@ def configure():
             'transition_duration', # Added transition_duration
             'pan_zoom_factor', 'favorite_boost_factor',
             'immich_update_interval_hours', 'date_format', 
-            'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes', # Re-added
+            'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes',
+            'smart_plug_on_url', 'smart_plug_off_url', 'smart_plug_on_delay', 'smart_plug_status_url', 'home_assistant_token',
             'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume', 'telegram_boost_duration_days',
             'telegram_boost_factor',
             'smb_update_interval_hours'
@@ -731,7 +732,8 @@ def configure():
             , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token', # 'telegram_token' is now 'telegram_bot_token'
             'telegram_authorized_users', 'voice_control_language',
             'skip_initial_auto_import',
-            'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y'
+            'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y',
+            'porcupine_access_key', 'voice_control_device_index', 'notification_sound_volume'
         ]: 
             if key in request.form:
                 value = request.form.get(key)
@@ -763,6 +765,7 @@ def configure():
         # request.form.getlist() retourne une liste vide si aucune checkbox avec ce nom n'est cochée.
         config['display_sources'] = request.form.getlist('display_sources')
         config["pan_zoom_enabled"] = 'pan_zoom_enabled' in request.form # New checkbox handling
+        config["smart_plug_enabled"] = 'smart_plug_enabled' in request.form
         config["transition_enabled"] = 'transition_enabled' in request.form # New checkbox handling
         config["clock_background_enabled"] = 'clock_background_enabled' in request.form
         config["video_audio_enabled"] = 'video_audio_enabled' in request.form
@@ -786,8 +789,7 @@ def configure():
             config['voice_control_device_index'] = request.form['voice_control_device_index']
 
         save_config(config)
-        stop_slideshow() # Stop slideshow to apply new config
-        start_slideshow() # Start slideshow with new config
+        restart_slideshow_process() # Redémarre uniquement le processus du diaporama
         flash(_("Configuration enregistrée et diaporama relancé"), "success")
         return redirect(url_for('configure'))
 
@@ -1089,6 +1091,52 @@ def test_stormglass_api():
     except requests.exceptions.RequestException as e:
         return jsonify({"success": False, "message": f"Erreur de connexion : {e}"})
 
+@app.route('/api/test_smart_plug', methods=['POST'])
+@login_required
+def test_smart_plug():
+    """Teste une URL de prise connectée."""
+    data = request.get_json()
+    url = data.get("url")
+
+    if not url:
+        return jsonify({"success": False, "message": "L'URL est requise."})
+
+    try:
+        # Utiliser un timeout court pour ne pas bloquer l'interface
+        response = requests.post(url, timeout=5)
+        if 200 <= response.status_code < 300:
+            return jsonify({"success": True, "message": f"Succès ! La prise a répondu avec le code {response.status_code}."})
+        else:
+            return jsonify({"success": False, "message": f"Échec. La prise a répondu avec une erreur : {response.status_code}."})
+    except requests.exceptions.Timeout:
+        return jsonify({"success": False, "message": "Échec. La requête a expiré (timeout). Vérifiez l'adresse IP de la prise."})
+    except requests.exceptions.RequestException as e:
+        return jsonify({"success": False, "message": f"Échec. Erreur de connexion : {e}"})
+
+@app.route('/api/smart_plug/status', methods=['GET'])
+@login_required
+def get_smart_plug_status():
+    """Interroge l'URL de statut de la prise connectée."""
+    config = load_config()
+    status_url = config.get("smart_plug_status_url")
+
+    if not config.get("smart_plug_enabled") or not status_url:
+        return jsonify({"status": "disabled", "message": "Le contrôle par prise est désactivé ou l'URL de statut n'est pas configurée."})
+
+    try:
+        # Pour Home Assistant, il faut un token d'authentification
+        headers = {'Authorization': f'Bearer {config.get("home_assistant_token", "")}'}
+        response = requests.get(status_url, headers=headers, timeout=5)
+        response.raise_for_status() # Lève une exception pour les codes d'erreur HTTP
+        
+        # La réponse de l'API state de Home Assistant est un JSON. On cherche la valeur de "state".
+        state_data = response.json()
+        plug_state = state_data.get("state", "unknown").lower() # 'on', 'off', 'unavailable', etc.
+        
+        return jsonify({"status": plug_state, "message": f"État retourné par l'API : {plug_state}"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Erreur de communication avec l'URL de statut : {e}"})
+
 @app.route('/test-telegram', methods=['POST'])
 @login_required
 def test_telegram():
@@ -1241,34 +1289,62 @@ def schedule_worker():
     en fonction des heures d'activité configurées.
     """
     logging.info("== Démarrage du worker de planification du diaporama ==")
-    previous_in_schedule = None # Pour suivre les changements d'état du planning
+    initial_check_done = False
+
     while True:
         try:
+            if not initial_check_done:
+                reboot_flag = BASE_DIR / 'cache' / 'pimmich_reboot_flag.tmp'
+                if reboot_flag.exists():
+                    logging.info("[Scheduler] Drapeau de redémarrage détecté. Lancement du diaporama.")
+                    reboot_flag.unlink()  # Supprimer le drapeau pour éviter une autre action
+
+                    # --- NOUVELLE LOGIQUE DE FORÇAGE POST-REDÉMARRAGE ---
+                    # Attendre que le système soit stable avant de manipuler l'affichage
+                    time.sleep(5)
+                    config = load_config()
+                    output_name = get_display_output_name()
+                    if output_name:
+                        width = config.get('display_width', 1920)
+                        height = config.get('display_height', 1080)
+                        logging.info(f"[Scheduler] Forçage de la résolution {width}x{height} sur l'écran '{output_name}' après redémarrage.")
+                        try:
+                            # Forcer le mode vidéo est plus robuste que juste la résolution
+                            subprocess.run(['swaymsg', 'output', output_name, 'mode', f'{width}x{height}'], check=True, timeout=10)
+                            time.sleep(2) # Laisser le temps à l'écran de se stabiliser
+                        except Exception as e:
+                            logging.error(f"[Scheduler] Échec du forçage de la résolution post-redémarrage : {e}")
+                    # --- FIN DE LA NOUVELLE LOGIQUE ---
+
+                    start_slideshow()
+                    initial_check_done = True # Marquer que le démarrage post-reboot est fait
+
             config = load_config()
             start_str = config.get("active_start", "07:00")
             end_str = config.get("active_end", "22:00")
-            manual_override = config.get('manual_override', False)
-            
+
             now_time = datetime.now().time()
             start_time = datetime.strptime(start_str, "%H:%M").time()
             end_time = datetime.strptime(end_str, "%H:%M").time()
 
-            in_schedule = False
             if start_time <= end_time:
-                if start_time <= now_time <= end_time:
-                    in_schedule = True
-            else:  # Le créneau passe minuit
-                if now_time >= start_time or now_time <= end_time:
-                    in_schedule = True
-            
+                in_schedule = start_time <= now_time <= end_time
+            else:
+                in_schedule = now_time >= start_time or now_time <= end_time
+
             slideshow_is_running = is_slideshow_running()
 
-            if in_schedule and not slideshow_is_running:
-                logging.info("[Scheduler] Heure active détectée et diaporama arrêté. Démarrage...")
-                start_slideshow()
-            elif not in_schedule and slideshow_is_running:
+            if not in_schedule and slideshow_is_running:
                 logging.info("[Scheduler] Heure inactive détectée et diaporama en cours. Arrêt...")
-                stop_slideshow()
+                stop_slideshow() # Arrête le diaporama et la prise
+                initial_check_done = False # Réinitialiser pour le prochain cycle d'activité
+            elif in_schedule and not slideshow_is_running:
+                if not initial_check_done:
+                    logging.info("[Scheduler] Heure active et diaporama arrêté. Démarrage de la séquence d'allumage.")
+                    # C'est ici que le redémarrage est déclenché si la prise connectée est activée
+                    set_display_power(True)
+                    initial_check_done = True # Marquer que la séquence de démarrage a été lancée
+
         except Exception as e:
             logging.error(f"[Scheduler] Erreur dans le worker de planification : {e}", exc_info=True)
 
@@ -1626,8 +1702,16 @@ def delete_source_photos(source_name):
 @app.route('/shutdown', methods=['POST'])
 @login_required
 def shutdown():
+    # Éteint d'abord l'écran (et la prise connectée si configurée)
+    # avant d'éteindre le système.
+    set_display_power(on=False)
+    
+    # Petite pause pour s'assurer que la commande à la prise a le temps de partir
+    time.sleep(2)
+    
     os.system('sudo shutdown now')
-    return redirect(url_for('configure'))
+    flash(_("Extinction du système en cours..."), "success")
+    return redirect(url_for('configure')) # Cette ligne ne sera probablement jamais atteinte
 
 @app.route('/reboot', methods=['POST'])
 @login_required
@@ -1684,13 +1768,9 @@ def play_playlist():
         with open(CUSTOM_PLAYLIST_FILE, 'w') as f:
             json.dump(playlist_data_to_save, f)
         
-        # Arrêter le diaporama actuel s'il est en cours
-        if is_slideshow_running():
-            stop_slideshow()
-            time.sleep(1) # Laisser le temps au processus de se terminer
-        
-        # Démarrer le nouveau diaporama
-        start_slideshow()
+        # Redémarrer le processus du diaporama pour qu'il prenne en compte le nouveau fichier de playlist
+        # sans couper l'alimentation de l'écran.
+        restart_slideshow_process()
         
         return jsonify({"success": True, "message": f"Lancement du diaporama pour la playlist '{target_playlist.get('name')}'."})
     except Exception as e:
@@ -1708,12 +1788,9 @@ def restart_standard_slideshow():
         # S'assurer que le fichier de playlist personnalisée est supprimé
         if os.path.exists(CUSTOM_PLAYLIST_FILE):
             os.remove(CUSTOM_PLAYLIST_FILE)
-        
-        if is_slideshow_running():
-            stop_slideshow()
-            time.sleep(1) # Laisser le temps au processus de se terminer
-        
-        start_slideshow()
+
+        # Utiliser la fonction qui redémarre uniquement le processus, sans couper l'alimentation
+        restart_slideshow_process()
         return jsonify({"success": True, "message": "Diaporama standard relancé."})
     except Exception as e:
         print(f"Erreur lors du redémarrage du diaporama standard : {e}")
@@ -1939,8 +2016,16 @@ def display_power():
     if state not in ['on', 'off']:
         return jsonify({"success": False, "message": "État invalide. Utilisez 'on' ou 'off'."}), 400
 
-    from utils.display_manager import set_display_power
-    success, message = set_display_power(on=(state == 'on'))
+    # La logique est maintenant dans le slideshow_manager
+    if state == 'on':
+        if not is_slideshow_running():
+            start_slideshow()
+        success, message = True, "Commande de démarrage envoyée."
+    else: # off
+        if is_slideshow_running():
+            stop_slideshow()
+        success, message = True, "Commande d'arrêt envoyée."
+
     return jsonify({"success": success, "message": message})
 
 @app.route('/api/sources/play/<source_name>', methods=['POST'])

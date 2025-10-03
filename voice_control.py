@@ -68,10 +68,15 @@ COMMANDS = {
 
 def play_sound(sound_name):
     """Joue un son préchargé depuis le dictionnaire 'sounds'."""
+    config = load_config()
+    volume = int(config.get('notification_sound_volume', 80)) / 100.0 # Convertir % en 0.0-1.0
+
     if sound_name in sounds and sounds[sound_name]:
         # Attendre qu'un autre son finisse de jouer pour éviter les superpositions
         while pygame.mixer.get_busy():
             time.sleep(0.1)
+        
+        sounds[sound_name].set_volume(volume)
         sounds[sound_name].play()
     else:
         print(f"[Voice] Avertissement: Son '{sound_name}.wav' non trouvé ou non chargé.")

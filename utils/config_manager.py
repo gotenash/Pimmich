@@ -71,6 +71,7 @@ def create_default_config():
         "voice_control_language": "fr",
         "porcupine_access_key": "",
         "voice_control_device_index": "",
+        "notification_sound_volume": 80, # NOUVEAU: Volume pour les sons de notification
     }
 
 def load_config():

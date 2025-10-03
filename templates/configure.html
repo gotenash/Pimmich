@@ -293,6 +293,67 @@
             <span class="ml-1">%</span>
         </div>
     </fieldset>
+
+    <!-- NOUVEAU BLOC POUR LA PRISE CONNECTÉE -->
+    <fieldset class="mt-6">
+        <legend><h3><i class="fas fa-plug mr-2"></i>{{ _("Gestion de l'alimentation (Prise Connectée)") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">
+            {{ _("Si votre écran ne se met pas complètement en veille, vous pouvez utiliser une prise connectée (Wi-Fi) pour couper son alimentation. Pimmich enverra une simple requête HTTP aux URLs que vous spécifiez.") }}<br>
+            <strong>{{ _("Exemples d'URLs :") }}</strong>
+            <ul class="list-disc list-inside text-xs text-gray-500 mt-1">
+                <li><strong>Tasmota:</strong> `http://IP_PRISE/cm?cmnd=Power%20On`</li>
+                <li><strong>Home Assistant (Webhook):</strong> `http://IP_HA:8123/api/webhook/pimmich_on`</li>
+                <li><strong>Shelly:</strong> `http://IP_PRISE/relay/0?turn=on`</li>
+                <li><strong>Kasa (via passerelle):</strong> `http://IP_PASSERELLE:PORT/on`</li>
+            </ul>
+        </p>
+
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="smart_plug_enabled" name="smart_plug_enabled" {% if config.get('smart_plug_enabled') %}checked{% endif %}>
+            <label class="form-check-label" for="smart_plug_enabled">{{ _("Activer le contrôle par prise connectée") }}</label>
+        </div>
+        
+        <div id="smart-plug-status-indicator" class="hidden items-center gap-2 mb-4 p-2 border rounded-lg bg-gray-50">
+            <div id="smart-plug-status-light" class="w-4 h-4 rounded-full bg-gray-400"></div>
+            <span id="smart-plug-status-text" class="text-sm font-medium text-gray-600">{{ _("État de la prise : Inconnu") }}</span>
+        </div>
+
+        <div id="smart-plug-options" class="space-y-4 {% if not config.get('smart_plug_enabled') %}hidden{% endif %}">
+            <div>
+                <label for="smart_plug_on_url" class="block text-sm font-medium text-gray-700">{{ _("URL pour ALLUMER la prise :") }}</label>
+                <div class="flex items-center gap-2 mt-1">
+                    <input type="url" id="smart_plug_on_url" name="smart_plug_on_url" value="{{ config.get('smart_plug_on_url', '') }}" class="flex-grow block w-full rounded-md border-gray-300 shadow-sm" placeholder="http://...">
+                    <button type="button" class="test-plug-btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm" data-target="smart_plug_on_url">{{ _("Tester") }}</button>
+                </div>
+            </div>
+            <div>
+                <label for="smart_plug_off_url" class="block text-sm font-medium text-gray-700">{{ _("URL pour ÉTEINDRE la prise :") }}</label>
+                <div class="flex items-center gap-2 mt-1">
+                    <input type="url" id="smart_plug_off_url" name="smart_plug_off_url" value="{{ config.get('smart_plug_off_url', '') }}" class="flex-grow block w-full rounded-md border-gray-300 shadow-sm" placeholder="http://...">
+                    <button type="button" class="test-plug-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm" data-target="smart_plug_off_url">{{ _("Tester") }}</button>
+                </div>
+            </div>
+            <div>
+                <label for="smart_plug_on_delay" class="block text-sm font-medium text-gray-700">{{ _("Délai après allumage (secondes) :") }}</label>
+                <input type="number" id="smart_plug_on_delay" name="smart_plug_on_delay" value="{{ config.get('smart_plug_on_delay', 5) }}" min="0" max="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:w-32">
+                <p class="text-xs text-gray-500 mt-1">{{ _("Temps d'attente pour que l'écran s'initialise avant de forcer la résolution. Augmentez si la résolution est toujours incorrecte.") }}</p>
+            </div>
+            <div class="pt-4 border-t">
+                <label for="smart_plug_status_url" class="block text-sm font-medium text-gray-700">{{ _("URL de Statut (Optionnel) :") }}</label>
+                <input type="url" id="smart_plug_status_url" name="smart_plug_status_url" value="{{ config.get('smart_plug_status_url', '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="http://...">
+                <p class="text-xs text-gray-500 mt-1">
+                    {{ _("Pour Home Assistant, utilisez l'URL de l'API des états :") }}<br>
+                    `http://IP_HA:8123/api/states/sensor.pimmich_plug_status`
+                </p>
+            </div>
+            <div>
+                <label for="home_assistant_token" class="block text-sm font-medium text-gray-700">{{ _("Token d'accès Home Assistant (si URL de statut HA) :") }}</label>
+                <input type="password" id="home_assistant_token" name="home_assistant_token" value="{{ config.get('home_assistant_token', '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <p class="text-xs text-gray-500 mt-1">{{ _("Créez un \"Token d'accès longue durée\" dans votre profil Home Assistant.") }}</p>
+            </div>
+            <span id="plug-test-status" class="text-sm font-medium"></span>
+        </div>
+    </fieldset>
 </div>
 
                     
@@ -742,6 +803,19 @@
             <p><strong>{{ _("État du service vocal :") }}</strong> <span id="voice-control-status-message" class="font-mono">...</span></p>
         </div>
 
+    </fieldset>
+
+    <fieldset class="mt-6">
+        <legend><h3><i class="fas fa-volume-up mr-2"></i>{{ _("Volume des Notifications Sonores") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-3">
+            {{ _("Règle le volume pour les sons de notification (confirmation du contrôle vocal, réception de carte postale, etc.).") }}
+        </p>
+        <div id="notification-volume-selector" style="display: flex; align-items: center; margin-top: 8px;">
+            <label for="notification_sound_volume" style="min-width: 200px;">{{ _("Volume des notifications :") }}</label>
+            <input type="range" id="notification_volume_slider" min="0" max="100" value="{{ config.get('notification_sound_volume', 80) }}" class="w-1/2">
+            <input type="number" id="notification_sound_volume" name="notification_sound_volume" min="0" max="100" value="{{ config.get('notification_sound_volume', 80) }}" class="w-16 ml-2 text-center">
+            <span class="ml-1">%</span>
+        </div>
     </fieldset>
 
     <fieldset class="mt-6">
@@ -1742,6 +1816,90 @@
       });
   });
 
+    // --- GESTION DE LA PRISE CONNECTÉE ---
+    const plugCheckbox = document.getElementById('smart_plug_enabled');
+    const plugOptions = document.getElementById('smart-plug-options');
+
+    // Afficher/cacher les options de la prise
+    if (plugCheckbox && plugOptions) {
+        plugCheckbox.addEventListener('change', () => {
+            plugOptions.classList.toggle('hidden', !plugCheckbox.checked);
+        });
+    }
+
+    document.querySelectorAll('.test-plug-btn').forEach(button => {
+        button.addEventListener('click', async () => {
+            const targetId = button.dataset.target;
+            const urlInput = document.getElementById(targetId);
+            const url = urlInput.value;
+            const statusSpan = document.getElementById('plug-test-status');
+
+            if (!url) {
+                statusSpan.textContent = "{{ _('Veuillez entrer une URL.') }}";
+                statusSpan.className = 'text-sm font-medium text-red-600';
+                return;
+            }
+
+            statusSpan.textContent = "{{ _('Test en cours...') }}";
+            statusSpan.className = 'text-sm font-medium text-blue-600';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/api/test_smart_plug', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                const result = await response.json();
+                statusSpan.textContent = result.message;
+                statusSpan.className = result.success ? 'text-sm font-medium text-green-600' : 'text-sm font-medium text-red-600';
+            } catch (error) {
+                statusSpan.textContent = "{{ _('Erreur de communication avec le serveur.') }}";
+                statusSpan.className = 'text-sm font-medium text-red-600';
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+
+    // --- NOUVEAU: GESTION DE L'INDICATEUR DE STATUT DE LA PRISE ---
+    const statusIndicator = document.getElementById('smart-plug-status-indicator');
+    const statusLight = document.getElementById('smart-plug-status-light');
+    const statusText = document.getElementById('smart-plug-status-text');
+
+    async function checkPlugStatus() {
+        if (!plugCheckbox.checked || !statusIndicator) {
+            statusIndicator.classList.add('hidden');
+            return;
+        }
+        statusIndicator.classList.remove('hidden');
+
+        try {
+            const response = await fetch('/api/smart_plug/status');
+            const data = await response.json();
+
+            if (data.status === 'on') {
+                statusLight.className = 'w-4 h-4 rounded-full bg-green-500';
+                statusText.textContent = "{{ _('État de la prise : Allumée') }}";
+            } else if (data.status === 'off') {
+                statusLight.className = 'w-4 h-4 rounded-full bg-red-500';
+                statusText.textContent = "{{ _('État de la prise : Éteinte') }}";
+            } else if (data.status === 'disabled') {
+                statusIndicator.classList.add('hidden'); // Cacher si non configuré
+            } else { // error, unknown, unavailable...
+                statusLight.className = 'w-4 h-4 rounded-full bg-yellow-500';
+                statusText.textContent = `{{ _('État de la prise : Erreur') }} (${data.status})`;
+            }
+        } catch (error) {
+            statusLight.className = 'w-4 h-4 rounded-full bg-gray-400';
+            statusText.textContent = "{{ _('État de la prise : Injoignable') }}";
+        }
+    }
+
+    // Vérifier le statut au chargement et toutes les 10 secondes
+    checkPlugStatus();
+    setInterval(checkPlugStatus, 10000);
+
 
   // ----- GESTION DE LA VALIDATION (Fonctions globales) -----
   // On définit ces fonctions ici pour qu'elles soient accessibles partout et éviter les erreurs de chargement.
@@ -2279,6 +2437,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (volumeSlider && volumeNumber) {
         volumeSlider.addEventListener('input', () => { volumeNumber.value = volumeSlider.value; });
         volumeNumber.addEventListener('input', () => { volumeSlider.value = volumeNumber.value; });
+    }
+
+    // Lier le slider et le champ numérique pour le volume des notifications
+    const notificationVolumeSlider = document.getElementById('notification_volume_slider');
+    const notificationVolumeNumber = document.getElementById('notification_sound_volume');
+    if (notificationVolumeSlider && notificationVolumeNumber) {
+        notificationVolumeSlider.addEventListener('input', () => { notificationVolumeNumber.value = notificationVolumeSlider.value; });
+        notificationVolumeNumber.addEventListener('input', () => { notificationVolumeSlider.value = notificationVolumeSlider.value; });
     }
 
     // --- Password validation ---

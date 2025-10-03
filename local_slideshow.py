@@ -1285,6 +1285,9 @@ def start_slideshow():
                         if notification_sound_path.exists():
                             if not pygame.mixer.get_init(): # S'assurer que le mixer est initialisé
                                 pygame.mixer.init()
+                            # Appliquer le volume configuré
+                            volume = int(config.get('notification_sound_volume', 80)) / 100.0
+                            pygame.mixer.music.set_volume(volume)
                             notification_sound = pygame.mixer.Sound(str(notification_sound_path))
                             notification_sound.play()
                         

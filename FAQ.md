@@ -37,7 +37,13 @@ Le script s'occupe d'installer toutes les dépendances et de configurer le syst�
 
 **Q : J'ai oublié mon mot de passe pour l'interface web. Comment le réinitialiser ?**
 
-**R :** Le mot de passe initial est stocké dans le fichier `/boot/firmware/credentials.json`. Vous pouvez vous connecter en SSH à votre Raspberry Pi pour lire ce fichier. Si vous l'avez changé via l'interface et oublié, vous devrez supprimer ce fichier et redémarrer le Pi pour qu'il en génère un nouveau (attention, cela réinitialisera l'utilisateur).
+**R :** La méthode la plus simple pour regénérer un mot de passe est de relancer une partie du script d'installation.
+1. Connectez-vous en SSH à votre Raspberry Pi.
+2. Supprimez l'ancien fichier d'identifiants avec la commande : `sudo rm /boot/firmware/credentials.json`
+3. Allez dans le dossier du projet : `cd pimmich`
+4. Relancez le script d'installation : `sudo ./setup.sh`
+
+Le script est conçu pour être relancé sans risque. Il détectera l'absence du fichier d'identifiants et en créera un nouveau. Le nouveau mot de passe sera affiché directement dans le terminal à la fin du processus. Pensez à le noter !
 
 **Q : Comment obtenir un Token API Immich ?**
 
@@ -98,6 +104,10 @@ Le script s'occupe d'installer toutes les dépendances et de configurer le syst�
 **R :** L'onglet **Système** est le meilleur endroit pour commencer. Il contient une section **Logs**.
 - `app.py` contient les logs du serveur web (interface de configuration).
 - `local_slideshow_stdout` et `local_slideshow_stderr` contiennent les logs du diaporama lui-même. Les erreurs s'afficheront le plus souvent dans `stderr`.
+
+**Q : Mon écran ne s'éteint pas complètement, il reste rétro-éclairé. Que faire ?**
+
+**R :** Certains écrans ne répondent pas correctement à la commande de mise en veille logicielle (DPMS). La solution la plus fiable est d'utiliser une prise connectée Wi-Fi pour couper physiquement l'alimentation de l'écran. Pimmich intègre une fonctionnalité pour piloter ces prises. Allez dans l'onglet `Affichage`, activez l'option "Prise Connectée" et renseignez les URLs pour allumer et éteindre votre prise. De nombreuses prises (Tasmota, Shelly, Kasa, etc.) peuvent être contrôlées par de simples requêtes HTTP.
 
 **Q : Les vidéos ne sont pas fluides ou ne s'affichent pas. Que faire ?**
 

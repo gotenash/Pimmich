@@ -24,7 +24,7 @@ fi
 # Au redémarrage (reboot), les services peuvent se lancer en parallèle.
 # Une petite pause ici permet de s'assurer que tout est stable (notamment le réseau) avant de lancer l'application.
 echo "[start_pimmich.sh] Pause de 5 secondes pour la stabilisation du système..."
-sleep 5
+sleep 10
 
 # Aller dans le dossier du projet
 cd "$(dirname "$0")" || exit 1
@@ -33,9 +33,8 @@ cd "$(dirname "$0")" || exit 1
 source venv/bin/activate
 
 while true; do
-    echo "[start_pimmich.sh] Démarrage de l'application Flask (app.py)..."
-    # Lancer en avant-plan (sans '&') et rediriger les logs en mode 'append' (>>)
-    # Ainsi, si le script python s'arrête, la boucle continue et le relance.
+    echo "[start_pimmich.sh] Lancement de l'application Pimmich (app.py)..."
+    # Lancer en avant-plan. Si le script python s'arrête, la boucle le relancera.
     python3 app.py >> logs/log_app.txt 2>&1
     echo "[start_pimmich.sh] L'application s'est arrêtée. Redémarrage dans 5 secondes..."
     sleep 5

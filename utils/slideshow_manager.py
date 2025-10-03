@@ -2,7 +2,9 @@ import os
 import signal
 import psutil
 import subprocess, sys
-from .display_manager import set_display_power # MODIFIÉ
+import time
+from .display_manager import set_display_power
+from .config_manager import load_config
 
 PID_FILE = "/tmp/pimmich_slideshow.pid"
 _log_files = {} # Dictionnaire pour garder les références aux fichiers de log ouverts
@@ -35,33 +37,15 @@ def start_slideshow():
     if is_slideshow_running():
         return
 
-    # Active la sortie HDMI via swaymsg
-    set_display_power(True) # MODIFIÉ
-
     # Préparer l’environnement Wayland/Sway
-    env = os.environ.copy()
-    env["XDG_RUNTIME_DIR"] = env.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    env["WAYLAND_DISPLAY"] = env.get("WAYLAND_DISPLAY", "wayland-1")
-
-    # Créer le dossier de logs et rediriger la sortie du diaporama pour le débogage
-    os.makedirs("logs", exist_ok=True)
-    try:
-        stdout_log = open("logs/slideshow_stdout.log", "a")
-        stderr_log = open("logs/slideshow_stderr.log", "a")
-    except IOError as e:
-        print(f"ERREUR: Impossible d'ouvrir les fichiers de log: {e}")
 
     # Utiliser le même exécutable python que celui qui lance l'application web
     # pour garantir que le diaporama s'exécute dans le même environnement (venv).
     python_executable = sys.executable
     # Lance le diaporama
-    # Ajout de -u pour un output non bufferisé, crucial pour les logs en temps réel
-    proc = subprocess.Popen( 
-        [python_executable, "local_slideshow.py"],
-        stdout=stdout_log,
-        stderr=stderr_log,
-        env=env
-    )
+    stdout_log = open("logs/slideshow_stdout.log", "a")
+    stderr_log = open("logs/slideshow_stderr.log", "a")
+    proc = subprocess.Popen([python_executable, "-u", "local_slideshow.py"], stdout=stdout_log, stderr=stderr_log, env=os.environ.copy())
 
     # Sauvegarde le PID du nouveau processus
     with open(PID_FILE, "w") as f:
@@ -70,25 +54,37 @@ def start_slideshow():
     # Garder une référence aux fichiers de log pour qu'ils ne soient pas fermés
     _log_files[proc.pid] = (stdout_log, stderr_log)
 
+def _stop_process_by_pid(pid):
+    """Helper function to stop a process and close its log files."""
+    if psutil.pid_exists(pid):
+        print(f"Arrêt du processus de diaporama {pid}...")
+        p = psutil.Process(pid)
+        p.terminate()
+        try:
+            p.wait(timeout=3)
+        except psutil.TimeoutExpired:
+            print(f"Le processus {pid} n'a pas répondu, forçage de l'arrêt.")
+            p.kill()
+    # Fermer et supprimer les références aux fichiers de log
+    if pid in _log_files:
+        for log_file in _log_files[pid]:
+            if not log_file.closed: log_file.close()
+        del _log_files[pid]
 
 def stop_slideshow():
     """Arrête le processus du diaporama de manière robuste, en attendant sa terminaison."""
+    config = load_config()
+    is_smart_plug_enabled = config.get("smart_plug_enabled", False)
+
+    # Si une prise connectée est utilisée, on arrête d'abord le diaporama
+    # avant de couper l'alimentation de l'écran.
+    # Sinon, on arrête juste le diaporama et on laisse set_display_power gérer le DPMS.
+
     if os.path.exists(PID_FILE):
         try:
             with open(PID_FILE, "r") as f:
                 pid = int(f.read().strip())
-            if psutil.pid_exists(pid):
-                print(f"Arrêt du processus de diaporama {pid}...")
-                p = psutil.Process(pid)
-                p.terminate() # Envoyer un signal de terminaison propre
-                try:
-                    # Attendre un peu plus longtemps pour s'assurer que tout est bien fermé
-                    p.wait(timeout=5) 
-                    print(f"Processus {pid} terminé proprement.")
-                except psutil.TimeoutExpired:
-                    print(f"Le processus {pid} n'a pas répondu, forçage de l'arrêt.")
-                    p.kill() # Forcer l'arrêt s'il ne répond pas
-                    p.wait(timeout=2) # Laisser le temps au kill de faire effet
+            _stop_process_by_pid(pid)
         except (IOError, ValueError, psutil.NoSuchProcess) as e:
             print(f"Avertissement lors de l'arrêt du diaporama : {e}")
         finally:
@@ -105,5 +101,31 @@ def stop_slideshow():
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
 
-    # 3. Éteindre l’écran proprement
+    # Éteindre l’écran proprement (via prise ou DPMS)
     set_display_power(False)
+
+def restart_slideshow_process():
+    """
+    Redémarre uniquement le processus du diaporama, sans affecter l'alimentation de l'écran.
+    Idéal pour appliquer les changements de configuration sans cycle de redémarrage complet.
+    """
+    print("[Slideshow Manager] Redémarrage du processus de diaporama demandé.")
+    
+    # 1. Arrêter le processus existant (sans appeler set_display_power)
+    if os.path.exists(PID_FILE):
+        with open(PID_FILE, "r") as f: pid = int(f.read().strip())
+        _stop_process_by_pid(pid)
+        if os.path.exists(PID_FILE): os.remove(PID_FILE)
+
+    # --- NOUVEAU: Afficher un message de redémarrage ---
+    try:
+        python_executable = sys.executable
+        message = "Redémarrage du diaporama..."
+        # On lance le script d'affichage de message et on ne l'attend pas (il se fermera tout seul)
+        subprocess.Popen([python_executable, "utils/display_message.py", message], env=os.environ.copy())
+        time.sleep(0.5) # Petite pause pour laisser le message s'afficher
+    except Exception as e:
+        print(f"Avertissement: Impossible d'afficher le message de redémarrage : {e}")
+
+    # 2. Démarrer un nouveau processus
+    start_slideshow()
