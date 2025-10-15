@@ -769,7 +769,7 @@
         </div>
 
         <div class="form-check form-switch my-3">
-            <input class="form-check-input" type="checkbox" id="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
+            <input class="form-check-input" type="checkbox" id="voice_control_enabled" name="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
             <label class="form-check-label" for="voice_control_enabled">{{ _("Activer le contrôle vocal (action immédiate)") }}</label>
         </div>
 
@@ -902,6 +902,12 @@
                 <div id="samba-progress-bar" class="progress-bar"></div>
             </div>
             <div id="samba-import-status" class="status-messages"></div>
+
+            <!-- NOUVEAU: Conteneur pour l'aperçu de la préparation -->
+            <div id="preparation-preview-container" class="hidden mt-4 p-3 bg-gray-100 rounded-lg border text-center">
+                <p class="text-sm font-semibold text-gray-600 mb-2">{{ _("Préparation en cours...") }}</p>
+                <img id="preparation-preview-image" src="" alt="{{ _('Photo en cours de préparation') }}" class="mx-auto max-w-xs max-h-48 rounded shadow">
+            </div>
 
             <div class="mt-4 pt-4 border-t border-gray-200">
                 <p class="text-sm text-gray-600">{{ _("L'import depuis Telegram se fait automatiquement à la réception des photos. Activez la source dans l'onglet \"Sources\" pour les voir.") }}</p>
@@ -1888,7 +1894,11 @@
                 statusIndicator.classList.add('hidden'); // Cacher si non configuré
             } else { // error, unknown, unavailable...
                 statusLight.className = 'w-4 h-4 rounded-full bg-yellow-500';
-                statusText.textContent = `{{ _('État de la prise : Erreur') }} (${data.status})`;
+                // NOUVEAU: Afficher le message d'erreur détaillé de l'API
+                let errorMessage = data.message || data.status;
+                // Raccourcir les messages d'erreur longs pour l'affichage
+                if (errorMessage.length > 100) errorMessage = errorMessage.substring(0, 100) + '...';
+                statusText.textContent = `{{ _('État : Erreur') }} (${errorMessage})`;
             }
         } catch (error) {
             statusLight.className = 'w-4 h-4 rounded-full bg-gray-400';
@@ -2599,6 +2609,14 @@ document.addEventListener("DOMContentLoaded", () => {
         // pour choisir la bonne couleur de message.
         const messageElement = createStyledMessage(message, type);
         container.appendChild(messageElement);
+
+        // Limiter le nombre de lignes affichées à 10 pour éviter une liste trop longue.
+        // On supprime les messages les plus anciens si on dépasse la limite.
+        const maxLines = 10;
+        while (container.children.length > maxLines) {
+            container.removeChild(container.firstChild);
+        }
+
         container.scrollTop = container.scrollHeight;
     }
 
@@ -2883,6 +2901,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const statusDiv = document.getElementById(`${source}-import-status`);
         const allImportButtons = document.querySelectorAll('.import-button, #import-smartphone-btn');
 
+        const previewContainer = document.getElementById('preparation-preview-container');
+        const previewImage = document.getElementById('preparation-preview-image');
         const originalBtnHTML = btn.innerHTML;
 
         allImportButtons.forEach(b => {
@@ -2902,6 +2922,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 b.classList.remove("opacity-50", "cursor-not-allowed");
             });
             btn.innerHTML = originalBtnHTML;
+            if (previewContainer) previewContainer.classList.add('hidden');
         }
 
         function startPreparation() {
@@ -2909,6 +2930,7 @@ document.addEventListener("DOMContentLoaded", () => {
             progressBar.style.width = "0%";
             progressBar.textContent = "0%";
 
+            if (previewContainer) previewContainer.classList.remove('hidden');
             const prepareEventSource = new EventSource(`/prepare-photos?source=${source}`);
 
             prepareEventSource.onmessage = (event) => {
@@ -2918,10 +2940,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     progressBar.textContent = `${data.percent || 0}%`;
                     displayMessage(statusDiv, `(2/2) ${data.message}`, data.type);
 
+                    // Mettre à jour l'image d'aperçu si elle est fournie
+                    if (data.current_photo_url && previewImage) {
+                        previewImage.src = data.current_photo_url;
+                    }
+
                     if (data.type === 'done' || data.stage === 'PREPARING_COMPLETE') {
                         prepareEventSource.close();
-                        displayMessage(statusDiv, "Préparation terminée ! Rechargement de la page...", 'success');
-                        setTimeout(() => { location.reload(); }, 2000);
+                        displayMessage(statusDiv, "Préparation terminée ! Redémarrage du diaporama...", 'success');
+                        
+                        // Envoyer la requête pour redémarrer le diaporama
+                        fetch('/api/slideshow/restart_for_update', { method: 'POST' })
+                            .then(response => response.json())
+                            .then(result => {
+                                if(result.success) {
+                                    displayMessage(statusDiv, "Diaporama redémarré. Rechargement de la page...", 'success');
+                                }
+                                setTimeout(() => { location.reload(); }, 2000);
+                            });
                     } else if (data.type === 'error') {
                         prepareEventSource.close();
                         restoreButtons();
@@ -3598,12 +3634,12 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSlideshowControlsState(); // Appel initial
 
     // --- Détection de la résolution ---
-    const detectResBtn = document.getElementById("detect-resolution-btn"); // This button is in 'tab-affichage'
-    const slideshowIsRunning = {{ slideshow_running|tojson }}; // This variable is passed from Flask
+    const detectResBtn = document.getElementById("detect-resolution-btn");
 
     // Only run this logic if the button exists (i.e., we are on the 'tab-affichage' tab or it's loaded)
     if (detectResBtn) {
         async function fetchAndSetResolution() {
+            const originalTooltip = detectResBtn.title;
             const originalText = detectResBtn.innerHTML;
             detectResBtn.innerHTML = 'Détection...';
             detectResBtn.disabled = true;
@@ -3616,27 +3652,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     document.getElementById('display_width').value = data.width;
                     document.getElementById('display_height').value = data.height;
                     detectResBtn.innerHTML = 'Détecté !';
+                    detectResBtn.title = `Détecté : ${data.width}x${data.height}`;
                 } else {
-                    alert(data.message || "Erreur lors de la détection.");
+                    detectResBtn.innerHTML = 'Échec';
+                    detectResBtn.title = data.message || "Erreur lors de la détection.";
                     detectResBtn.innerHTML = originalText;
                 }
             } catch (error) {
-                alert("Erreur de communication avec le serveur.");
+                detectResBtn.title = "Erreur de communication avec le serveur.";
                 detectResBtn.innerHTML = originalText;
             } finally {
                 setTimeout(() => {
                     detectResBtn.innerHTML = originalText;
-                    // Re-enable only if slideshow is running, otherwise keep disabled
-                    detectResBtn.disabled = !slideshowIsRunning;
+                    detectResBtn.disabled = false;
+                    detectResBtn.title = originalTooltip;
                 }, 2000);
             }
-        }
-
-        if (slideshowIsRunning) {
-            detectResBtn.disabled = false;
-            fetchAndSetResolution(); // Appel automatique au chargement de la page
-        } else {
-            detectResBtn.disabled = true;
         }
 
         detectResBtn.addEventListener("click", fetchAndSetResolution);

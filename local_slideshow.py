@@ -991,6 +991,9 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
             # Boucle d'attente pour rester réactif aux signaux
             start_sleep = time.time()
             while time.time() - start_sleep < display_duration:
+                # Vérification en temps réel de l'arrivée d'une nouvelle carte postale
+                if NEW_POSTCARD_FLAG.exists(): return
+
                 if next_photo_requested or previous_photo_requested: return
                 while paused:
                     if next_photo_requested or previous_photo_requested: return
@@ -1044,6 +1047,9 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
             while time.time() - start_animation_time < display_duration:
                 elapsed_animation_time = time.time() - start_animation_time
+
+                # Vérification en temps réel de l'arrivée d'une nouvelle carte postale
+                if NEW_POSTCARD_FLAG.exists(): return
 
                 # Vérifier les signaux à chaque image de l'animation
                 if next_photo_requested or previous_photo_requested:

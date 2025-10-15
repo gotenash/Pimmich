@@ -102,7 +102,26 @@ def stop_slideshow():
             continue
 
     # Éteindre l’écran proprement (via prise ou DPMS)
-    set_display_power(False)
+    set_display_power(on=False)
+
+def restart_slideshow_for_update():
+    """
+    Redémarre le diaporama après une mise à jour de contenu, sans éteindre l'écran.
+    C'est la fonction à utiliser par les workers de mise à jour automatique.
+    """
+    print("[Slideshow Manager] Redémarrage du diaporama pour mise à jour de contenu.")
+    
+    # 1. Arrêter le processus existant (sans appeler set_display_power)
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE, "r") as f: pid = int(f.read().strip())
+            _stop_process_by_pid(pid)
+            if os.path.exists(PID_FILE): os.remove(PID_FILE)
+        except Exception as e:
+            print(f"Avertissement lors de l'arrêt pour mise à jour : {e}")
+
+    # 2. Démarrer un nouveau processus
+    start_slideshow()
 
 def restart_slideshow_process():
     """
@@ -115,15 +134,24 @@ def restart_slideshow_process():
     if os.path.exists(PID_FILE):
         with open(PID_FILE, "r") as f: pid = int(f.read().strip())
         _stop_process_by_pid(pid)
-        if os.path.exists(PID_FILE): os.remove(PID_FILE)
+        if os.path.exists(PID_FILE):
+            try:
+                os.remove(PID_FILE)
+            except OSError as e:
+                print(f"Avertissement: Impossible de supprimer le fichier PID : {e}")
 
-    # --- NOUVEAU: Afficher un message de redémarrage ---
+    # Afficher un message de redémarrage sur l'écran
     try:
         python_executable = sys.executable
         message = "Redémarrage du diaporama..."
-        # On lance le script d'affichage de message et on ne l'attend pas (il se fermera tout seul)
-        subprocess.Popen([python_executable, "utils/display_message.py", message], env=os.environ.copy())
-        time.sleep(0.5) # Petite pause pour laisser le message s'afficher
+        # Utiliser Popen pour ne pas bloquer, et s'assurer que l'environnement est correct
+        env = os.environ.copy()
+        if "SWAYSOCK" not in env:
+            user_id = os.getuid()
+            socks = glob.glob(f"/run/user/{user_id}/sway-ipc.*")
+            if socks: env["SWAYSOCK"] = socks[0]
+        subprocess.Popen([python_executable, "utils/display_message.py", message], env=env)
+        time.sleep(1) # Laisser le temps au message de s'afficher
     except Exception as e:
         print(f"Avertissement: Impossible d'afficher le message de redémarrage : {e}")
 

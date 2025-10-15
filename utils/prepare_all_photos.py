@@ -21,6 +21,7 @@ VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 DESCRIPTION_MAP_CACHE_FILE = Path("cache") / "immich_description_map.json"
 # NOUVEAU: Chemin vers le cache des textes saisis par l'utilisateur
 USER_TEXT_MAP_CACHE_FILE = Path("cache") / "user_texts.json"
+CANCEL_FLAG = Path('/tmp/pimmich_cancel_import.flag')
 
 def prepare_photo(source_path, dest_path, output_width, output_height, source_type=None, caption=None):
     """Prépare une photo pour l'affichage avec redimensionnement, rotation EXIF et fond flou."""
@@ -311,6 +312,11 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
 
     for i, filename in enumerate(files_to_prepare, start=1):
+        # Vérifier si l'annulation a été demandée
+        if CANCEL_FLAG.exists():
+            yield {"type": "warning", "message": "Préparation annulée par l'utilisateur."}
+            return
+
         src_path = os.path.join(SOURCE_DIR_FOR_PREP, filename)
         
         try:

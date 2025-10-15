@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import time
 
+CANCEL_FLAG = Path('/tmp/pimmich_cancel_import.flag')
 TARGET_DIR = Path("static/photos/usb")
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
 
@@ -102,6 +103,11 @@ def import_usb_photos():
         yield {"type": "stats", "stage": "STATS", "percent": 20, "message": f"{total} images trouvées, début de l'import...", "total": total}
 
         for i, file_path in enumerate(image_files):
+            # Vérifier si l'annulation a été demandée
+            if CANCEL_FLAG.exists():
+                yield {"type": "warning", "message": "Importation annulée par l'utilisateur."}
+                return
+
             try:
                 dest_file = TARGET_DIR / file_path.name
                 counter = 1

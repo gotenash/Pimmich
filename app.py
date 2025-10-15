@@ -22,8 +22,8 @@ import signal
 import traceback
 
 from utils.download_album import download_and_extract_album
-from utils.auth import login_required
-from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow, restart_slideshow_process
+from utils.auth import login_required # type: ignore
+from utils.slideshow_manager import is_slideshow_running, start_slideshow, stop_slideshow, restart_slideshow_process, restart_slideshow_for_update
 from utils.config_manager import load_config, save_config
 from utils.playlist_manager import load_playlists, save_playlists
 from utils.auth_manager import change_password
@@ -151,8 +151,10 @@ def get_screen_resolution():
     Détecte la résolution de l'écran principal via swaymsg.
     Retourne (width, height) ou (1920, 1080) en cas d'erreur.
     """
-    default_width = 1920
-    default_height = 1080
+    # Charger la configuration pour avoir une résolution de secours fiable
+    config = load_config()
+    default_width = config.get('display_width', 1920)
+    default_height = config.get('display_height', 1080)
     try:
         # Assurer que SWAYSOCK est défini
         if "SWAYSOCK" not in os.environ:
@@ -163,7 +165,7 @@ def get_screen_resolution():
             if socks:
                 os.environ["SWAYSOCK"] = socks[0]
             else:
-                print("SWAYSOCK non trouvé, utilisation de la résolution par défaut.")
+                print("SWAYSOCK non trouvé, utilisation de la résolution de secours depuis la config.")
                 return default_width, default_height
 
         # Utiliser HDMI_OUTPUT du slideshow_manager pour cibler la bonne sortie
@@ -181,13 +183,13 @@ def get_screen_resolution():
                 print(f"Résolution détectée sur la sortie '{output.get('name')}': {mode['width']}x{mode['height']} (Active: {output.get('active', False)})")
                 return mode['width'], mode['height']
         
-        print("Aucune sortie avec un mode configuré trouvée, utilisation de la résolution par défaut.")
+        print("Aucune sortie avec un mode configuré trouvée (écran en veille ?), utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
     except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError, IndexError) as e:
-        print(f"Erreur lors de la détection de la résolution de l'écran : {e}. Utilisation de la résolution par défaut.")
+        print(f"Erreur lors de la détection de la résolution de l'écran : {e}. Utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
     except Exception as e:
-        print(f"Erreur inattendue lors de la détection de la résolution : {e}. Utilisation de la résolution par défaut.")
+        print(f"Erreur inattendue lors de la détection de la résolution : {e}. Utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
 
 def get_photo_previews():
@@ -719,12 +721,12 @@ def configure():
             'clock_outline_color', 'clock_font_path', 'clock_position',
             'display_width', 'display_height', # Ajout des nouvelles clés
             'transition_enabled', # Added transition_enabled
-            'transition_type', # Added transition_type
+            'transition_type', 'home_assistant_token', # Added transition_type
             'transition_duration', # Added transition_duration
             'pan_zoom_factor', 'favorite_boost_factor',
             'immich_update_interval_hours', 'date_format', 
             'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes',
-            'smart_plug_on_url', 'smart_plug_off_url', 'smart_plug_on_delay', 'smart_plug_status_url', 'home_assistant_token',
+            'smart_plug_on_url', 'smart_plug_off_url', 'smart_plug_on_delay',
             'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume', 'telegram_boost_duration_days',
             'telegram_boost_factor',
             'smb_update_interval_hours'
@@ -732,8 +734,7 @@ def configure():
             , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token', # 'telegram_token' is now 'telegram_bot_token'
             'telegram_authorized_users', 'voice_control_language',
             'skip_initial_auto_import',
-            'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y',
-            'porcupine_access_key', 'voice_control_device_index', 'notification_sound_volume'
+            'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y'
         ]: 
             if key in request.form:
                 value = request.form.get(key)
@@ -782,6 +783,8 @@ def configure():
         config["show_weather"] = 'show_weather' in request.form
         config["show_tides"] = 'show_tides' in request.form
         # La gestion de l'activation/désactivation du contrôle vocal se fait maintenant via une API dédiée
+        # mais il faut aussi sauvegarder son état ici pour la persistance au redémarrage.
+        config['voice_control_enabled'] = 'voice_control_enabled' in request.form
         # pour éviter les conflits avec le bouton "Enregistrer".
         if 'porcupine_access_key' in request.form:
             config['porcupine_access_key'] = request.form['porcupine_access_key']
@@ -790,7 +793,7 @@ def configure():
 
         save_config(config)
         restart_slideshow_process() # Redémarre uniquement le processus du diaporama
-        flash(_("Configuration enregistrée et diaporama relancé"), "success")
+        flash(_("Configuration enregistrée. Le diaporama a été relancé pour appliquer les changements."), "success")
         return redirect(url_for('configure'))
 
     slideshow_running = any(
@@ -831,6 +834,10 @@ def configure():
 @app.route("/import-usb")
 @login_required
 def import_usb():
+    # Nettoyer le drapeau d'annulation avant de commencer
+    cancel_flag = Path('/tmp/pimmich_cancel_import.flag')
+    if cancel_flag.exists(): cancel_flag.unlink()
+
     @stream_with_context
     def generate():
         def stream_event(data):
@@ -847,6 +854,10 @@ def import_usb():
 @app.route("/import-immich")
 @login_required
 def import_immich():
+    # Nettoyer le drapeau d'annulation avant de commencer
+    cancel_flag = Path('/tmp/pimmich_cancel_import.flag')
+    if cancel_flag.exists(): cancel_flag.unlink()
+
     config = load_config()
     @stream_with_context
     def generate():
@@ -864,6 +875,10 @@ def import_immich():
 @app.route("/import-samba")
 @login_required
 def import_samba():
+    # Nettoyer le drapeau d'annulation avant de commencer
+    cancel_flag = Path('/tmp/pimmich_cancel_import.flag')
+    if cancel_flag.exists(): cancel_flag.unlink()
+
     config = load_config()
     @stream_with_context
     def generate():
@@ -880,6 +895,10 @@ def import_samba():
 @app.route("/import-smartphone", methods=['POST'])
 @login_required
 def import_smartphone():
+    # Nettoyer le drapeau d'annulation avant de commencer
+    cancel_flag = Path('/tmp/pimmich_cancel_import.flag')
+    if cancel_flag.exists(): cancel_flag.unlink()
+
     """
     Gère l'upload de photos depuis un smartphone via un formulaire web.
     """
@@ -969,6 +988,10 @@ def test_samba_connection():
 @app.route('/prepare-photos')
 @login_required
 def prepare_photos():
+    # Nettoyer le drapeau d'annulation avant de commencer
+    cancel_flag = Path('/tmp/pimmich_cancel_import.flag')
+    if cancel_flag.exists(): cancel_flag.unlink()
+
     """
     Route pour lancer la préparation des photos pour une source donnée.
     Utilise Server-Sent Events (SSE) pour streamer le progrès.
@@ -1014,6 +1037,10 @@ def prepare_photos():
 
             # Lancer la préparation et streamer les mises à jour.
             for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type=source, description_map=final_caption_map):
+                # Ajouter le chemin de l'image source à l'événement pour l'affichage en direct
+                if update.get("current_photo_path"):
+                    update["current_photo_url"] = url_for('static', filename=f"photos/{source}/{update['current_photo_path']}")
+                
                 yield f"data: {json.dumps(update, ensure_ascii=False)}\n\n"
         except Exception as e:
             error_update = {"type": "error", "message": f"Erreur serveur lors de la préparation : {str(e)}"}
@@ -1112,30 +1139,6 @@ def test_smart_plug():
         return jsonify({"success": False, "message": "Échec. La requête a expiré (timeout). Vérifiez l'adresse IP de la prise."})
     except requests.exceptions.RequestException as e:
         return jsonify({"success": False, "message": f"Échec. Erreur de connexion : {e}"})
-
-@app.route('/api/smart_plug/status', methods=['GET'])
-@login_required
-def get_smart_plug_status():
-    """Interroge l'URL de statut de la prise connectée."""
-    config = load_config()
-    status_url = config.get("smart_plug_status_url")
-
-    if not config.get("smart_plug_enabled") or not status_url:
-        return jsonify({"status": "disabled", "message": "Le contrôle par prise est désactivé ou l'URL de statut n'est pas configurée."})
-
-    try:
-        # Pour Home Assistant, il faut un token d'authentification
-        headers = {'Authorization': f'Bearer {config.get("home_assistant_token", "")}'}
-        response = requests.get(status_url, headers=headers, timeout=5)
-        response.raise_for_status() # Lève une exception pour les codes d'erreur HTTP
-        
-        # La réponse de l'API state de Home Assistant est un JSON. On cherche la valeur de "state".
-        state_data = response.json()
-        plug_state = state_data.get("state", "unknown").lower() # 'on', 'off', 'unavailable', etc.
-        
-        return jsonify({"status": plug_state, "message": f"État retourné par l'API : {plug_state}"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": f"Erreur de communication avec l'URL de statut : {e}"})
 
 @app.route('/test-telegram', methods=['POST'])
 @login_required
@@ -1289,36 +1292,42 @@ def schedule_worker():
     en fonction des heures d'activité configurées.
     """
     logging.info("== Démarrage du worker de planification du diaporama ==")
-    initial_check_done = False
+    
+    # --- Séquence de démarrage unique ---
+    # Cette partie ne s'exécute qu'une seule fois au lancement de l'application.
+    try:
+        logging.info("[Scheduler] Séquence de démarrage initiale.")
+        # Attendre que le système soit stable avant de manipuler l'affichage
+        time.sleep(5)
+        config = load_config()
+        output_name = get_display_output_name()
+        if output_name:
+            width = config.get('display_width', 1920)
+            height = config.get('display_height', 1080)
+            logging.info(f"[Scheduler] Forçage de la résolution {width}x{height} sur l'écran '{output_name}' au démarrage.")
+            try:
+                subprocess.run(['swaymsg', 'output', output_name, 'mode', f'{width}x{height}'], check=True, timeout=10)
+                time.sleep(2) # Laisser le temps à l'écran de se stabiliser
+            except Exception as e:
+                logging.error(f"[Scheduler] Échec du forçage de la résolution au démarrage : {e}")
+        
+        # Démarrer le diaporama si on est dans les heures actives au lancement de l'app
+        start_str = config.get("active_start", "07:00")
+        end_str = config.get("active_end", "22:00")
+        now_time = datetime.now().time()
+        start_time = datetime.strptime(start_str, "%H:%M").time()
+        end_time = datetime.strptime(end_str, "%H:%M").time()
+        in_schedule_at_boot = (start_time <= end_time and start_time <= now_time <= end_time) or \
+                              (start_time > end_time and (now_time >= start_time or now_time <= end_time))
+        
+        if in_schedule_at_boot:
+            logging.info("[Scheduler] Heures actives au démarrage, lancement du diaporama.")
+            start_slideshow()
+    except Exception as e:
+        logging.error(f"[Scheduler] Erreur critique dans la séquence de démarrage : {e}", exc_info=True)
 
     while True:
         try:
-            if not initial_check_done:
-                reboot_flag = BASE_DIR / 'cache' / 'pimmich_reboot_flag.tmp'
-                if reboot_flag.exists():
-                    logging.info("[Scheduler] Drapeau de redémarrage détecté. Lancement du diaporama.")
-                    reboot_flag.unlink()  # Supprimer le drapeau pour éviter une autre action
-
-                    # --- NOUVELLE LOGIQUE DE FORÇAGE POST-REDÉMARRAGE ---
-                    # Attendre que le système soit stable avant de manipuler l'affichage
-                    time.sleep(5)
-                    config = load_config()
-                    output_name = get_display_output_name()
-                    if output_name:
-                        width = config.get('display_width', 1920)
-                        height = config.get('display_height', 1080)
-                        logging.info(f"[Scheduler] Forçage de la résolution {width}x{height} sur l'écran '{output_name}' après redémarrage.")
-                        try:
-                            # Forcer le mode vidéo est plus robuste que juste la résolution
-                            subprocess.run(['swaymsg', 'output', output_name, 'mode', f'{width}x{height}'], check=True, timeout=10)
-                            time.sleep(2) # Laisser le temps à l'écran de se stabiliser
-                        except Exception as e:
-                            logging.error(f"[Scheduler] Échec du forçage de la résolution post-redémarrage : {e}")
-                    # --- FIN DE LA NOUVELLE LOGIQUE ---
-
-                    start_slideshow()
-                    initial_check_done = True # Marquer que le démarrage post-reboot est fait
-
             config = load_config()
             start_str = config.get("active_start", "07:00")
             end_str = config.get("active_end", "22:00")
@@ -1336,14 +1345,11 @@ def schedule_worker():
 
             if not in_schedule and slideshow_is_running:
                 logging.info("[Scheduler] Heure inactive détectée et diaporama en cours. Arrêt...")
-                stop_slideshow() # Arrête le diaporama et la prise
-                initial_check_done = False # Réinitialiser pour le prochain cycle d'activité
+                stop_slideshow()
             elif in_schedule and not slideshow_is_running:
-                if not initial_check_done:
-                    logging.info("[Scheduler] Heure active et diaporama arrêté. Démarrage de la séquence d'allumage.")
-                    # C'est ici que le redémarrage est déclenché si la prise connectée est activée
-                    set_display_power(True)
-                    initial_check_done = True # Marquer que la séquence de démarrage a été lancée
+                logging.info("[Scheduler] Heure active et diaporama arrêté. Démarrage de la séquence d'allumage.")
+                # set_display_power gère l'allumage de la prise et le démarrage du diaporama
+                set_display_power(True)
 
         except Exception as e:
             logging.error(f"[Scheduler] Erreur dans le worker de planification : {e}", exc_info=True)
@@ -1430,8 +1436,7 @@ def immich_update_worker():
                         immich_status_manager.update_status(message="Mise à jour terminée. Redémarrage du diaporama...")
                         print("[Auto-Update] Mise à jour terminée avec succès. Redémarrage du diaporama.")
                         if is_slideshow_running():
-                            stop_slideshow()
-                            start_slideshow()
+                            restart_slideshow_for_update()
                         immich_status_manager.update_status(last_run=datetime.now(), message="Dernière mise à jour réussie.")
                     else:
                         immich_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
@@ -1522,8 +1527,7 @@ def samba_update_worker():
                         samba_status_manager.update_status(message="Mise à jour terminée. Redémarrage du diaporama...")
                         print("[Auto-Update Samba] Mise à jour terminée. Redémarrage du diaporama.")
                         if is_slideshow_running():
-                            stop_slideshow()
-                            start_slideshow()
+                            restart_slideshow_for_update()
                         samba_status_manager.update_status(last_run=datetime.now(), message="Dernière mise à jour réussie.")
                     else:
                         samba_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
@@ -1702,16 +1706,8 @@ def delete_source_photos(source_name):
 @app.route('/shutdown', methods=['POST'])
 @login_required
 def shutdown():
-    # Éteint d'abord l'écran (et la prise connectée si configurée)
-    # avant d'éteindre le système.
-    set_display_power(on=False)
-    
-    # Petite pause pour s'assurer que la commande à la prise a le temps de partir
-    time.sleep(2)
-    
     os.system('sudo shutdown now')
-    flash(_("Extinction du système en cours..."), "success")
-    return redirect(url_for('configure')) # Cette ligne ne sera probablement jamais atteinte
+    return redirect(url_for('configure'))
 
 @app.route('/reboot', methods=['POST'])
 @login_required
@@ -1723,12 +1719,13 @@ def reboot():
 @login_required
 def restart_app():
     """Redémarre uniquement l'application web Flask."""
-    
+    # Code de sortie spécial pour indiquer au script shell de redémarrer l'application
+    RESTART_EXIT_CODE = 42
     def do_restart():
         # Laisser le temps au navigateur de recevoir la réponse avant de tuer le processus
         time.sleep(2)
         print("[Restart] Redémarrage de l'application web demandé par l'utilisateur.")
-        os.kill(os.getpid(), signal.SIGTERM)
+        sys.exit(RESTART_EXIT_CODE)
 
     # Lancer le redémarrage dans un thread pour ne pas bloquer la réponse HTTP
     restart_thread = threading.Thread(target=do_restart)
@@ -1736,6 +1733,27 @@ def restart_app():
     
     flash(_("L'application web redémarre... La page sera inaccessible pendant quelques instants."), "success")
     return redirect(url_for('configure'))
+
+@app.route('/api/slideshow/restart_for_update', methods=['POST'])
+@login_required
+def restart_slideshow_for_update_route():
+    """Redémarre le diaporama pour une mise à jour de contenu, sans éteindre l'écran."""
+    try:
+        if is_slideshow_running():
+            restart_slideshow_for_update()
+        return jsonify({"success": True, "message": "Commande de redémarrage envoyée."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/cancel_import', methods=['POST'])
+@login_required
+def cancel_import():
+    """Crée un fichier drapeau pour signaler l'annulation aux processus d'import/préparation."""
+    try:
+        Path('/tmp/pimmich_cancel_import.flag').touch()
+        return jsonify({"success": True, "message": "Signal d'annulation envoyé."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/playlists/play', methods=['POST'])
 def play_playlist():
@@ -1768,9 +1786,13 @@ def play_playlist():
         with open(CUSTOM_PLAYLIST_FILE, 'w') as f:
             json.dump(playlist_data_to_save, f)
         
-        # Redémarrer le processus du diaporama pour qu'il prenne en compte le nouveau fichier de playlist
-        # sans couper l'alimentation de l'écran.
-        restart_slideshow_process()
+        # Arrêter le diaporama actuel s'il est en cours
+        if is_slideshow_running():
+            stop_slideshow()
+            time.sleep(1) # Laisser le temps au processus de se terminer
+        
+        # Démarrer le nouveau diaporama
+        start_slideshow()
         
         return jsonify({"success": True, "message": f"Lancement du diaporama pour la playlist '{target_playlist.get('name')}'."})
     except Exception as e:
@@ -1788,9 +1810,12 @@ def restart_standard_slideshow():
         # S'assurer que le fichier de playlist personnalisée est supprimé
         if os.path.exists(CUSTOM_PLAYLIST_FILE):
             os.remove(CUSTOM_PLAYLIST_FILE)
-
-        # Utiliser la fonction qui redémarre uniquement le processus, sans couper l'alimentation
-        restart_slideshow_process()
+        
+        if is_slideshow_running():
+            stop_slideshow()
+            time.sleep(1) # Laisser le temps au processus de se terminer
+        
+        start_slideshow()
         return jsonify({"success": True, "message": "Diaporama standard relancé."})
     except Exception as e:
         print(f"Erreur lors du redémarrage du diaporama standard : {e}")
@@ -2240,21 +2265,52 @@ def set_resolution():
     except Exception as e:
         return jsonify({"success": False, "message": f"Erreur lors de l'application de la résolution : {e}"}), 500
 
+@app.route('/api/smart_plug/status', methods=['GET'])
+@login_required
+def get_smart_plug_status():
+    """
+    Interroge l'URL de statut de la prise connectée et retourne son état.
+    """
+    config = load_config()
+    if not config.get("smart_plug_enabled") or not config.get("smart_plug_status_url"):
+        return jsonify({"status": "disabled", "message": "Le statut de la prise n'est pas configuré."})
+
+    status_url = config.get("smart_plug_status_url")
+    token = config.get("home_assistant_token") # Le nom de la clé dans la config est 'home_assistant_token'
+
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    try:
+        response = requests.get(status_url, headers=headers, timeout=5)
+        response.raise_for_status() # Lève une exception pour les codes d'erreur HTTP (4xx ou 5xx)
+        
+        data = response.json()
+        # Pour Home Assistant, l'état est dans la clé 'state'
+        plug_state = data.get('state', 'unknown').lower()
+
+        return jsonify({"status": plug_state, "message": f"État de la prise : {plug_state}"})
+
+    except requests.exceptions.Timeout:
+        return jsonify({"status": "unreachable", "message": "Timeout lors de la connexion à la prise."})
+    except requests.exceptions.RequestException as e:
+        # Renvoyer une erreur plus explicite
+        return jsonify({"status": "error", "message": f"Erreur de connexion: {str(e)}"})
+
 @app.route('/get_current_resolution')
 @login_required
 def get_current_resolution_route():
     """
     Endpoint pour récupérer la résolution de l'écran si le diaporama est actif.
     """
-    if not is_slideshow_running():
-        return jsonify({"success": False, "message": "Le diaporama doit être actif pour détecter la résolution."})
-    
     width, height = get_screen_resolution()
     
     if width and height:
          return jsonify({"success": True, "width": width, "height": height})
     else:
-         return jsonify({"success": False, "message": "Impossible de détecter la résolution."})
+         # Ce cas ne devrait plus arriver car get_screen_resolution a un fallback, mais on le garde par sécurité.
+         return jsonify({"success": False, "message": "Impossible de détecter la résolution. L'écran est-il branché ?"})
 
 @app.route('/current_photo_status')
 @login_required
