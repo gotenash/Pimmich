@@ -1,16 +1,15 @@
 #!/bin/bash
 
-# === [1/12] Mise à jour des paquets ===
-# ⚠️ Étape facultative. Si nécessaire, faire manuellement :
-# sudo apt update && sudo apt upgrade -y
-# echo "Mise à jour sautée pour une installation plus rapide."
+echo "=== [1/12] Mise à jour de la liste des paquets (apt update) ==="
+sudo apt update
 
 
 echo "=== [2/12] Installation des dépendances ==="
-if ! sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext portaudio19-dev unzip; then
+# Remplacement de libatlas-base-dev (obsolète sur Debian 12+) par libopenblas-dev pour la compilation de numpy.
+if ! sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libopenblas-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext portaudio19-dev unzip; then
     echo "L'installation avec portaudio19-dev a échoué. Tentative avec libportaudio-dev..."
     # Fallback pour les futures versions de Debian/Raspberry Pi OS où le paquet pourrait être renommé
-    sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext libportaudio-dev unzip
+    sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libopenblas-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext libportaudio-dev unzip
 fi
 
 
