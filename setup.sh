@@ -7,7 +7,12 @@
 
 
 echo "=== [2/12] Installation des dépendances ==="
-sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext portaudio19-dev unzip
+if ! sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext portaudio19-dev unzip; then
+    echo "L'installation avec portaudio19-dev a échoué. Tentative avec libportaudio-dev..."
+    # Fallback pour les futures versions de Debian/Raspberry Pi OS où le paquet pourrait être renommé
+    sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libatlas-base-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext libportaudio-dev unzip
+fi
+
 
 echo "=== [3/12] Désactivation de l'économie d'énergie Wi-Fi ==="
 # Installation conditionnelle de RPi.GPIO (pour le ventilateur)
