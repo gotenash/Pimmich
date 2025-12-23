@@ -51,6 +51,10 @@ try:
 except Exception:
     app.secret_key = 'supersecretkey_fallback_should_be_changed'
 
+# --- NOUVEAU: Limiter la taille des uploads pour éviter les crashs sur RPi ---
+# Limite à 32 Mo, ce qui est raisonnable pour des photos.
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
+
 # Configuration du logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -86,7 +90,7 @@ def inject_locale():
 BASE_DIR = Path(__file__).resolve().parent
 # Chemins de config
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
-PENDING_UPLOADS_DIR = Path("static/pending_uploads")
+PENDING_UPLOADS_DIR = BASE_DIR / "static" / "pending_uploads"
 CONFIG_PATH = 'config/config.json'
 CREDENTIALS_PATH = '/boot/firmware/credentials.json'
 FILTER_STATES_PATH = 'config/filter_states.json'
@@ -153,8 +157,8 @@ def get_screen_resolution():
     """
     # Charger la configuration pour avoir une résolution de secours fiable
     config = load_config()
-    default_width = config.get('display_width', 1920)
-    default_height = config.get('display_height', 1080)
+    default_width = int(config.get('display_width', 1920))
+    default_height = int(config.get('display_height', 1080))
     try:
         # Assurer que SWAYSOCK est défini
         if "SWAYSOCK" not in os.environ:
@@ -193,7 +197,7 @@ def get_screen_resolution():
         return default_width, default_height
 
 def get_photo_previews():
-    photo_dir = Path("static/photos")
+    photo_dir = BASE_DIR / "static" / "photos"
     return sorted([f.name for f in photo_dir.glob("*") if f.suffix.lower() in [".jpg", ".jpeg", ".png", ".gif"]])
 
 def load_credentials():
@@ -344,7 +348,7 @@ def get_prepared_photos_by_source():
     config = load_config()
     guest_users = config.get('telegram_guest_users', {})
 
-    base_prepared_dir = Path("static/prepared")
+    base_prepared_dir = PREPARED_DIR
     media_by_source = {}
     filter_states = load_filter_states()
     favorites = load_favorites()
@@ -420,8 +424,8 @@ def handle_new_telegram_photo(temp_photo_path_str, caption, user_name=None):
             temp_photo_path = Path(temp_photo_path_str)
             
             # 1. Définir les chemins
-            source_dir = Path("static/photos/telegram")
-            prepared_dir = Path("static/prepared/telegram")
+            source_dir = BASE_DIR / "static" / "photos" / "telegram"
+            prepared_dir = BASE_DIR / "static" / "prepared" / "telegram"
             source_dir.mkdir(parents=True, exist_ok=True)
             prepared_dir.mkdir(parents=True, exist_ok=True)
             
@@ -586,10 +590,12 @@ def handle_upload():
         if file:
             # Sécuriser le nom du fichier
             filename = secure_filename(file.filename)
-            # Gérer les collisions de noms en ajoutant un timestamp
+            # Gérer les collisions de noms en ajoutant un timestamp et une chaîne aléatoire
             base, ext = os.path.splitext(filename)
-            final_path = PENDING_UPLOADS_DIR / f"{base}_{int(time.time())}{ext}"
+            unique_suffix = f"{int(time.time())}_{secrets.token_hex(2)}"
+            final_path = PENDING_UPLOADS_DIR / f"{base}_{unique_suffix}{ext}"
             file.save(final_path)
+            print(f"[Upload] Nouveau fichier reçu de l'invité et en attente : {final_path.name}")
             count += 1
 
     flash(_('%(count)s photo(s) envoyée(s) pour validation avec succès !', count=count), "success")
@@ -599,23 +605,38 @@ def handle_upload():
 @login_required
 def get_pending_photos():
     """Retourne la liste des photos en attente de validation."""
-    pending_files = []
-    if not PENDING_UPLOADS_DIR.exists():
-        # Si le dossier n'existe pas, la liste est simplement vide.
-        pass
-    else:
-        pending_files = sorted(
-            [f.name for f in PENDING_UPLOADS_DIR.iterdir() if f.is_file()],
-            key=lambda p: os.path.getmtime(PENDING_UPLOADS_DIR / p),
-            reverse=True
-        )
-    
-    # Retourner une réponse structurée et ajouter des en-têtes anti-cache.
-    response = jsonify({"success": True, "photos": pending_files})
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
+    try:
+        # S'assurer que le dossier existe pour éviter les erreurs.
+        if not PENDING_UPLOADS_DIR.exists():
+            PENDING_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+        print(f"[DEBUG] Listing pending photos in: {PENDING_UPLOADS_DIR}")
+
+        # Lister les fichiers dans le dossier des uploads en attente.
+        files_with_mtime = []
+        for f in PENDING_UPLOADS_DIR.iterdir():
+            if f.is_file() and not f.name.startswith('.'): # Ignorer les fichiers cachés
+                try:
+                    files_with_mtime.append((f.name, f.stat().st_mtime))
+                except OSError as e:
+                    print(f"[DEBUG] Error reading file {f.name}: {e}")
+
+        # Trier par date de modification (le plus récent en premier)
+        files_with_mtime.sort(key=lambda x: x[1], reverse=True)
+        pending_files = [f[0] for f in files_with_mtime]
+        
+        print(f"[DEBUG] Found {len(pending_files)} pending photos.")
+
+        # Retourner une réponse structurée et ajouter des en-têtes anti-cache.
+        response = jsonify({"success": True, "photos": pending_files})
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+    except Exception as e:
+        print(f"[ERROR] get_pending_photos failed: {e}")
+        traceback.print_exc()
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/manage_pending_photo', methods=['POST'])
 @login_required
@@ -645,12 +666,10 @@ def manage_pending_photo():
         # 1. Copier la photo vers le dossier de transit (au lieu de la déplacer).
         # 2. Lancer la préparation.
         # 3. Si la préparation réussit, supprimer la photo du dossier d'attente.
-        source_dir = Path("static/photos")
+        # Utiliser un dossier spécifique 'invites' pour éviter de mélanger ou supprimer d'autres photos
+        target_source = "invites"
+        source_dir = BASE_DIR / "static" / "photos" / target_source
         source_dir.mkdir(parents=True, exist_ok=True)
-
-        # Vider le dossier de transit pour ne préparer que cette photo
-        for f in source_dir.iterdir():
-            f.unlink()
 
         # Copier la photo pour la traiter
         shutil.copy(str(pending_path), str(source_dir / pending_path.name))
@@ -660,13 +679,23 @@ def manage_pending_photo():
         screen_width, screen_height = config.get("display_width", 1920), config.get("display_height", 1080)
         try:
             preparation_successful = False
-            for update in _handle_photo_preparation_stream("smartphone", screen_width, screen_height):
+            # Utiliser la fonction importée correcte et la source 'guests'
+            for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type=target_source):
                 # On vérifie si la préparation s'est terminée avec succès en lisant le flux d'événements
-                if json.loads(update.lstrip('data: ').strip()).get("type") == "done":
+                if update.get("type") == "done":
                     preparation_successful = True
             
             if preparation_successful:
                 pending_path.unlink() # Supprimer l'original seulement si tout s'est bien passé
+
+                # --- NOUVEAU: Activer automatiquement la source 'invites' si elle ne l'est pas ---
+                # Cela garantit que la photo validée sera bien diffusée par le diaporama.
+                current_sources = config.get('display_sources', [])
+                if 'invites' not in current_sources:
+                    current_sources.append('invites')
+                    config['display_sources'] = current_sources
+                    save_config(config)
+
                 return jsonify({"success": True, "message": "Photo approuvée et préparée."})
             else:
                 return jsonify({"success": False, "message": "La préparation de la photo a échoué. La photo reste en attente."}), 500
@@ -674,6 +703,15 @@ def manage_pending_photo():
             return jsonify({"success": False, "message": f"Erreur lors de la préparation: {e}"}), 500
 
     return jsonify({"success": False, "message": "Action inconnue."}), 400
+
+@app.route('/debug/pending')
+@login_required
+def debug_pending():
+    """Route de diagnostic pour voir les fichiers bruts."""
+    if not PENDING_UPLOADS_DIR.exists():
+        return f"Le dossier {PENDING_UPLOADS_DIR} n'existe pas."
+    files = [f.name for f in PENDING_UPLOADS_DIR.iterdir()]
+    return f"Fichiers dans le dossier d'attente : {files}"
 
 @app.route('/')
 def home():
@@ -704,8 +742,27 @@ def logout():
 @app.route('/configure', methods=['GET', 'POST'])
 @login_required
 def configure():
+    # --- DEBUG: Vérifier les fichiers en attente au chargement de la page ---
+    try:
+        if PENDING_UPLOADS_DIR.exists():
+            pending_files = [f.name for f in PENDING_UPLOADS_DIR.iterdir() if f.is_file() and not f.name.startswith('.')]
+            print(f"[Configure] Chargement de la page. {len(pending_files)} photo(s) en attente dans {PENDING_UPLOADS_DIR}: {pending_files}")
+        else:
+            print(f"[Configure] Le dossier {PENDING_UPLOADS_DIR} n'existe pas encore.")
+    except Exception as e:
+        print(f"[Configure] Erreur lors du listage des fichiers en attente : {e}")
+
     config = load_config()
     invitations = load_invitations()
+
+    # Récupérer la liste des photos en attente pour le template
+    pending_photos_list = []
+    if PENDING_UPLOADS_DIR.exists():
+        pending_photos_list = sorted(
+            [f.name for f in PENDING_UPLOADS_DIR.iterdir() if f.is_file() and not f.name.startswith('.')],
+            key=lambda p: os.path.getmtime(PENDING_UPLOADS_DIR / p),
+            reverse=True
+        )
 
     if request.method == 'POST':
         # Gérer le champ 'source' qui correspond à 'photo_source' dans le config
@@ -731,10 +788,10 @@ def configure():
             'telegram_boost_factor',
             'smb_update_interval_hours'
             # New fields
-            , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token', # 'telegram_token' is now 'telegram_bot_token'
+            , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token',
             'telegram_authorized_users', 'voice_control_language',
-            'skip_initial_auto_import',
-            'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y'
+            'voice_control_engine', 'skip_initial_auto_import',
+            'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y', 'notification_sound_volume'
         ]: 
             if key in request.form:
                 value = request.form.get(key)
@@ -828,7 +885,8 @@ def configure():
         prepared_photos_by_source=prepared_media_by_source, # Le template utilise ce nom de variable
         favorite_photos=favorite_photos, # Nouvelle variable pour l'onglet des favoris
         slideshow_running=slideshow_running,
-        invitations=invitations
+        invitations=invitations,
+        pending_photos=pending_photos_list
     )
 
 @app.route("/import-usb")
@@ -909,7 +967,7 @@ def import_smartphone():
 
         config = load_config()
         screen_width, screen_height = config.get("display_width", 1920), config.get("display_height", 1080)
-        source_dir = Path("static") / "photos" / "smartphone"
+        source_dir = BASE_DIR / "static" / "photos" / "smartphone"
 
         try:
             # --- Étape 1: Réception et sauvegarde des fichiers ---
@@ -931,9 +989,11 @@ def import_smartphone():
             yield stream_event({"type": "progress", "stage": "PREPARING", "percent": 80, "message": f"{len(uploaded_files)} photos reçues, préparation en cours..."})
 
             # --- Étape 2: Préparation des photos ---
-            # La préparation est maintenant gérée par un appel séparé depuis le client.
+            for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type="smartphone"):
+                yield stream_event(update)
 
         except Exception as e:
+            print(f"[Import Smartphone] Erreur : {e}")
             yield stream_event({"type": "error", "message": f"Erreur critique lors de l'import : {str(e)}"})
 
     return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
@@ -1347,9 +1407,13 @@ def schedule_worker():
                 logging.info("[Scheduler] Heure inactive détectée et diaporama en cours. Arrêt...")
                 stop_slideshow()
             elif in_schedule and not slideshow_is_running:
-                logging.info("[Scheduler] Heure active et diaporama arrêté. Démarrage de la séquence d'allumage.")
-                # set_display_power gère l'allumage de la prise et le démarrage du diaporama
-                set_display_power(True)
+                logging.info("[Scheduler] Heure active et diaporama arrêté. Séquence de démarrage...")
+                # 1. On s'assure que l'écran est allumé (via DPMS si pas de prise)
+                set_display_power(on=True)
+                # 2. On attend un court instant pour laisser l'environnement d'affichage se stabiliser
+                time.sleep(2)
+                # 3. On lance explicitement le diaporama
+                start_slideshow()
 
         except Exception as e:
             logging.error(f"[Scheduler] Erreur dans le worker de planification : {e}", exc_info=True)
@@ -1679,8 +1743,8 @@ def delete_source_photos(source_name):
     if not re.match(r'^[a-zA-Z0-9_-]+$', source_name):
         return jsonify({"success": False, "message": "Nom de source invalide."}), 400
 
-    prepared_dir = Path('static/prepared') / source_name
-    backup_dir = Path('static/.backups') / source_name
+    prepared_dir = PREPARED_DIR / source_name
+    backup_dir = BASE_DIR / 'static' / '.backups' / source_name
 
     try:
         if prepared_dir.is_dir():
@@ -2294,6 +2358,11 @@ def get_smart_plug_status():
 
     except requests.exceptions.Timeout:
         return jsonify({"status": "unreachable", "message": "Timeout lors de la connexion à la prise."})
+    except requests.exceptions.HTTPError as e:
+        # Gérer spécifiquement les erreurs d'authentification pour un meilleur feedback
+        if e.response.status_code == 401:
+            return jsonify({"status": "error", "message": "Erreur 401: Non autorisé. Vérifiez votre token d'accès Home Assistant."})
+        return jsonify({"status": "error", "message": f"Erreur HTTP: {str(e)}"})
     except requests.exceptions.RequestException as e:
         # Renvoyer une erreur plus explicite
         return jsonify({"status": "error", "message": f"Erreur de connexion: {str(e)}"})
@@ -2819,7 +2888,7 @@ def apply_filter_api():
         return jsonify({"success": False, "message": "Chemin de la photo ou nom du filtre manquant."}), 400
 
     # Le chemin relatif est de la forme 'source/nom_photo.jpg'
-    photo_full_path = Path('static/prepared') / photo_relative_path
+    photo_full_path = PREPARED_DIR / photo_relative_path
 
     if not photo_full_path.is_file():
         return jsonify({"success": False, "message": f"Photo non trouvée : {photo_full_path}"}), 404
@@ -2895,7 +2964,7 @@ def set_polaroid_text():
         path_obj = Path(photo_relative_path)
         polaroid_filename = f"{path_obj.stem}_polaroid.jpg"
         polaroid_relative_path = path_obj.with_name(polaroid_filename)
-        polaroid_full_path = Path('static/prepared') / polaroid_relative_path
+        polaroid_full_path = PREPARED_DIR / polaroid_relative_path
 
         if not polaroid_full_path.exists():
              return jsonify({"success": False, "message": "La version Polaroid de cette photo n'existe pas."}), 404
@@ -2928,7 +2997,7 @@ def set_image_text():
 
     try:
         # Le chemin relatif est de la forme 'source/nom_photo.jpg'
-        photo_full_path = Path('static/prepared') / photo_relative_path
+        photo_full_path = PREPARED_DIR / photo_relative_path
 
         if not photo_full_path.is_file():
             return jsonify({"success": False, "message": f"Photo non trouvée : {photo_full_path}"}), 404

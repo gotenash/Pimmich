@@ -1119,47 +1119,40 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # 1. Fondu au noir avant de lancer la vidéo
         if previous_surface:
             fade_to_black(screen, previous_surface, transition_duration / 2, clock)
-
-        print(f"[Slideshow] Preparing video (Audio: {'On' if audio_enabled else 'Off'}, Output: {audio_output}, Volume: {audio_volume}%): {video_path}")
+        
+        print(f"[Slideshow] Lancement de la vidéo avec mpv : {video_path}")
         # On réaffiche la souris au cas où l'utilisateur voudrait interagir avec mpv (barre de progression, etc.)
         pygame.mouse.set_visible(True)
         
-        # --- Forcer le volume système avec amixer ---
-        if audio_enabled:
-            print(f"[Audio] Forcing system volume to {audio_volume}% using amixer.")
-            # Liste des contrôles de volume à définir.
-            # On ignore les erreurs si un contrôle n'existe pas.
-            for control in ['Master', 'PCM', 'Headphone', 'HDMI']:
-                try:
-                    subprocess.run(['amixer', 'sset', control, f'{audio_volume}%', 'unmute'], check=False, capture_output=True, text=True)
-                except FileNotFoundError:
-                    print("AVERTISSEMENT: La commande 'amixer' est introuvable. Impossible de régler le volume système.")
-                    break # Inutile de continuer si amixer n'est pas là
-        
-        # Commande pour mpv
-        # --ao=pulse: Utilise la couche de compatibilité PulseAudio de PipeWire, qui est souvent plus robuste
-        # --hwdec=auto : Tente d'utiliser le décodage vidéo matériel, crucial pour les RPi
-        # --hwdec=v4l2m2m-copy : Décodeur matériel spécifique et optimisé pour Raspberry Pi.
-        # --vo=gpu : Utilise le rendu GPU, plus efficace
-        hwdec_mode = 'v4l2m2m-copy' if hwdec_enabled else 'no'
+        # --- NOUVELLE APPROCHE : Retour à MPV avec une configuration robuste ---
         command = [
             'mpv',
             '--no-config',
-            '--no-terminal', # Pour des logs propres, sans barres de progression
-            f'--hwdec={hwdec_mode}',
-            '--vo=gpu',
-            '--ao=pulse', # PulseAudio (ou PipeWire-Pulse) est un bon défaut pour la compatibilité
-            '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop',
-            video_path
+            '--no-terminal',
+            '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop'
         ]
 
+        if hwdec_enabled:
+            # Activation du décodage matériel si demandé (recommandé pour RPi 3/4)
+            command.extend(['--hwdec=auto', '--vo=gpu'])
+        else:
+            # Mode logiciel par défaut (plus stable sur certains systèmes mais plus lent)
+            command.extend(['--hwdec=no', '--vo=x11'])
+
+        command.append(video_path)
+
         if audio_enabled:
-            # On ne spécifie plus de périphérique de sortie audio.
-            # mpv utilisera la sortie par défaut du système, ce qui est plus robuste.
-            # L'utilisateur peut configurer la sortie par défaut via les paramètres du système d'exploitation.
+            # Régler le volume système avec amixer pour une meilleure compatibilité
+            try:
+                subprocess.run(['amixer', 'sset', 'Master', f'{audio_volume}%', 'unmute'], check=False, capture_output=True, text=True)
+                print(f"[Audio] Volume système réglé à {audio_volume}% via amixer.")
+            except FileNotFoundError:
+                print("[Audio] AVERTISSEMENT: 'amixer' non trouvé. Le volume ne peut pas être réglé.")
+                   # Passer le volume à mpv également
             command.extend([f'--volume={audio_volume}', '--no-mute'])
         else:
              command.append('--no-audio')
+
         
         print(f"[Slideshow] Executing mpv command: {' '.join(command)}")
         # On capture la sortie pour un meilleur diagnostic en cas d'erreur.
@@ -1494,6 +1487,9 @@ def start_slideshow():
 
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
+                    # Réappliquer le mode plein écran et cacher la souris après la vidéo pour éviter les bordures
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                    pygame.mouse.set_visible(False)
                 else: # C'est une image
                     current_pil_image = None # Initialize to None to ensure it's always defined
                     try:

@@ -614,6 +614,10 @@
             <input class="form-check-input" type="checkbox" id="display_source_telegram" name="display_sources" value="telegram" {% if 'telegram' in config.display_sources %}checked{% endif %}>
             <label class="form-check-label" for="display_source_telegram">{{ _('Photos reçues par Telegram') }}</label>
         </div>
+        <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" id="display_source_invites" name="display_sources" value="invites" {% if 'invites' in config.display_sources %}checked{% endif %}>
+            <label class="form-check-label" for="display_source_invites">{{ _('Photos des invités (validées)') }}</label>
+        </div>
     </fieldset>
     <fieldset class="mt-4">
         <legend><h3>{{ _("Configuration du partage Samba (Windows)") }}</h3></legend>
@@ -768,6 +772,15 @@
             <p><strong>{{ _("Étape Manuelle Requise :") }}</strong> {{ _('Pour utiliser le mot-clé personnalisé "Cadre Magique", vous devez créer un modèle sur le site de Picovoice, le télécharger, et le placer dans le dossier `voice_models` sous le nom `cadre-magique_raspberry-pi.ppn`.') }}</p>
         </div>
 
+        <div class="mt-4">
+            <label for="voice_control_engine" class="block text-sm font-medium text-gray-700">{{ _("Moteur de mot-clé") }}</label>
+            <select id="voice_control_engine" name="voice_control_engine" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="porcupine" {% if config.get('voice_control_engine', 'porcupine') == 'porcupine' %}selected{% endif %}>Picovoice Porcupine (Recommandé, nécessite une clé API)</option>
+                <option value="vosk" {% if config.get('voice_control_engine', 'porcupine') == 'vosk' %}selected{% endif %}>Vosk (100% local, sans clé API, plus gourmand)</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">{{ _("Choisissez 'Vosk' si vous ne souhaitez pas créer de compte Picovoice.") }}</p>
+        </div>
+
         <div class="form-check form-switch my-3">
             <input class="form-check-input" type="checkbox" id="voice_control_enabled" name="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
             <label class="form-check-label" for="voice_control_enabled">{{ _("Activer le contrôle vocal (action immédiate)") }}</label>
@@ -800,7 +813,9 @@
         </div>
 
         <div id="voice-control-status-container" class="mt-6 p-3 bg-gray-100 rounded-lg border">
-            <p><strong>{{ _("État du service vocal :") }}</strong> <span id="voice-control-status-message" class="font-mono">...</span></p>
+            <p><strong>{{ _("État du service vocal :") }}</strong> 
+                <span id="voice-control-status-message" class="font-mono">...</span>
+            </p>
         </div>
 
     </fieldset>
@@ -823,13 +838,13 @@
         <p class="text-sm text-gray-600 mb-3">
             {{ _("Si votre microphone n'apparaît pas dans la liste ci-dessus, utilisez cet outil pour vérifier si le système d'exploitation le détecte correctement.") }}
         </p>
-        <button type="button" id="run-audio-diagnostics-btn" class="system-button bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+        <button type="button" id="run-audio-diagnostics-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-play-circle mr-2"></i>{{ _("Lancer le diagnostic") }}
         </button>
         <div id="audio-diagnostics-results-container" class="hidden mt-4">
             <h4 class="font-semibold text-gray-800 mb-2">{{ _("Résultats du diagnostic :") }}</h4>
             <div class="bg-gray-800 rounded-lg overflow-auto" style="max-height: 300px;">
-                <pre id="audio-diagnostics-results" class="text-white p-4 text-sm" style="white-space: pre-wrap; word-break: break-all;"></pre>
+                <pre id="audio-diagnostics-results" class="text-white p-4 text-xs" style="white-space: pre-wrap; word-break: break-all;"></pre>
             </div>
         </div>
     </fieldset>
@@ -934,7 +949,7 @@
     <fieldset>
         <legend><h3>{{ _("Photos en attente de validation") }}</h3></legend>
         <div class="flex justify-between items-center mb-4">
-            <p class="text-gray-600">{{ _("Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées à la source \"Smartphone\".") }}</p>
+            <p class="text-gray-600">{{ _('Approuvez ou rejetez les photos envoyées. Les photos approuvées seront ajoutées à la source "Invités".') }}</p>
             <button type="button" id="refresh-pending-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"><i class="fas fa-sync-alt mr-2"></i>{{ _("Actualiser") }}</button>
         </div>
         <div id="pending-photos-grid" class="photo-grid">
@@ -1915,59 +1930,81 @@
   // On définit ces fonctions ici pour qu'elles soient accessibles partout et éviter les erreurs de chargement.
 
   async function refreshValidationTab() {
-      // ... (code existant, pas de changement ici)
-  }
-
-  async function handlePendingAction(filename, action) {
       const grid = document.getElementById('pending-photos-grid');
       const badge = document.getElementById('pending-count-badge');
       const validationTab = document.getElementById('tab-validation');
       const isTabActive = validationTab && validationTab.style.display === 'block';
 
-      if (isTabActive && grid && !grid.hasChildNodes()) {
-          grid.innerHTML = '<p class="text-center text-gray-500 italic">Chargement des photos en attente...</p>';
-      }
-
       try {
           const response = await fetch(`/api/get_pending_photos?_=${new Date().getTime()}`);
           const data = await response.json();
-          if (!data.success) throw new Error(data.message || "Erreur serveur");
+          
+          if (!data.success) {
+              console.error("Erreur récupération photos en attente:", data.message);
+              return;
+          }
 
           const photoCount = data.photos.length;
 
+          // Mise à jour du badge
           if (badge) {
+              badge.textContent = photoCount;
               if (photoCount > 0) {
-                  badge.textContent = photoCount;
                   badge.classList.remove('hidden');
               } else {
                   badge.classList.add('hidden');
               }
           }
 
+          // Mise à jour de la grille
           if (isTabActive && grid) {
               if (photoCount === 0) {
-                  grid.innerHTML = '<p class="text-center text-gray-500 italic">Aucune photo en attente de validation.</p>';
+                  grid.innerHTML = '<p class="text-center text-gray-500 italic">{{ _("Aucune photo en attente de validation.") }}</p>';
               } else {
                   grid.innerHTML = '';
                   data.photos.forEach(filename => {
                       const tile = document.createElement('div');
-                      tile.className = 'photo-tile';
+                      tile.className = 'photo-tile relative';
                       tile.dataset.filename = filename;
                       const imgSrc = `/static/pending_uploads/${filename}`;
+                      
                       tile.innerHTML = `
-                          <a href="${imgSrc}" class="glightbox" data-gallery="pending" title="${filename}"><img src="${imgSrc}" class="w-32 h-32 object-cover rounded shadow"></a>
+                          <a href="${imgSrc}" class="glightbox" data-gallery="pending" title="${filename}">
+                              <img src="${imgSrc}" class="w-32 h-32 object-cover rounded shadow bg-gray-200">
+                          </a>
                           <div class="photo-actions mt-1 flex items-center justify-around w-full gap-x-2">
-                              <button class="approve-btn bg-green-500 hover:bg-green-600 text-white text-xs rounded py-1 px-2" title="Approuver"><i class="fas fa-check"></i></button>
-                              <button class="reject-btn bg-red-500 hover:bg-red-600 text-white text-xs rounded py-1 px-2" title="Rejeter"><i class="fas fa-times"></i></button>
+                              <button class="approve-btn bg-green-500 hover:bg-green-600 text-white text-xs rounded py-1 px-2" title="{{ _('Approuver') }}"><i class="fas fa-check"></i></button>
+                              <button class="reject-btn bg-red-500 hover:bg-red-600 text-white text-xs rounded py-1 px-2" title="{{ _('Rejeter') }}"><i class="fas fa-times"></i></button>
                           </div>`;
                       grid.appendChild(tile);
                   });
-                  GLightbox({ selector: '#pending-photos-grid .glightbox' });
+                  if (typeof GLightbox === 'function') {
+                      GLightbox({ selector: '#pending-photos-grid .glightbox' });
+                  }
               }
           }
       } catch (error) {
-          if (isTabActive && grid) grid.innerHTML = `<p class="text-center text-red-500">Erreur: ${error.message}</p>`;
-          if (badge) badge.classList.add('hidden');
+          console.error("Erreur lors de l'actualisation des photos en attente:", error);
+      }
+  }
+
+  async function handlePendingAction(filename, action) {
+      try {
+          const response = await fetch('/api/manage_pending_photo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: filename, action: action })
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+              refreshValidationTab();
+          } else {
+              alert("{{ _('Erreur :') }} " + result.message);
+          }
+      } catch (error) {
+          console.error("Erreur lors de l'action:", error);
+          alert("{{ _('Erreur de communication avec le serveur.') }}");
       }
   }
 
@@ -4404,6 +4441,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- Contrôle Vocal ---
 async function loadAudioDevices() {
+    console.log("Chargement des périphériques audio...");
     const select = document.getElementById('voice_control_device_index');
     if (!select) return;
 
@@ -4413,6 +4451,7 @@ async function loadAudioDevices() {
     try {
         const response = await fetch('/api/audio_devices');
         const data = await response.json();
+        console.log("Périphériques reçus:", data);
 
         select.innerHTML = `<option value="">{{ _("Périphérique par défaut") }}</option>`;
         if (data.success) {
@@ -4431,11 +4470,13 @@ async function loadAudioDevices() {
             }
         } else {
             // Afficher le message d'erreur spécifique renvoyé par le serveur
-            select.innerHTML = `<option value="">${data.message || "{{ _('Erreur chargement') }}"}</option>`;
+            const errorMessage = data.message || "{{ _('Erreur chargement') }}";
+            select.innerHTML = `<option value="">${errorMessage}</option>`;
+            console.error("Erreur API Audio:", errorMessage);
         }
     } catch (error) {
         // Ce bloc est pour les erreurs réseau (ex: serveur non joignable)
-        select.innerHTML = `<option value="">{{ _("Erreur de communication") }}</option>`;
+        select.innerHTML = `<option value="">{{ _("Erreur de communication avec le serveur") }}</option>`;
     }
 }
 
@@ -4446,7 +4487,7 @@ async function fetchVoiceControlStatus() {
     try {
         const response = await fetch('/api/voice_control/status');
         const data = await response.json();
-        statusSpan.textContent = data.message || 'N/A';
+        statusSpan.textContent = data.message || "{{ _('Statut inconnu') }}";
         if (data.status === 'running' || data.status === 'listening') {
             statusSpan.className = 'font-mono text-green-600';
         } else if (data.status === 'error') {
@@ -4455,7 +4496,7 @@ async function fetchVoiceControlStatus() {
             statusSpan.className = 'font-mono text-gray-500';
         }
     } catch (error) {
-        statusSpan.textContent = "{{ _('Erreur de connexion') }}";
+        statusSpan.textContent = i18n.connectionError;
         statusSpan.className = 'font-mono text-red-600';
     }
 }
@@ -4497,7 +4538,7 @@ const diagnosticsPre = document.getElementById('audio-diagnostics-results');
 
 if (runDiagnosticsBtn) {
     runDiagnosticsBtn.addEventListener('click', async () => {
-        runDiagnosticsBtn.disabled = true;
+        runDiagnosticsBtn.disabled = true; // Correction: le bouton doit être désactivé
         runDiagnosticsBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${i18n.diagnosticsInProgress}`;
         diagnosticsContainer.classList.remove('hidden');
         diagnosticsPre.textContent = i18n.pleaseWait;
@@ -4518,7 +4559,7 @@ if (runDiagnosticsBtn) {
         } catch (error) {
             diagnosticsPre.textContent = i18n.commErrorServer;
         } finally {
-            runDiagnosticsBtn.disabled = false;
+            runDiagnosticsBtn.disabled = false; // Correction: le bouton doit être réactivé
             runDiagnosticsBtn.innerHTML = `<i class="fas fa-play-circle mr-2"></i>${i18n.runDiagnostics}`;
         }
     });
