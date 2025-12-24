@@ -112,6 +112,12 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 echo "Installation de la bibliothèque pour les QR codes..."
+
+echo "Pré-installation de resampy pour compatibilité avec Python 3.12+..."
+# resampy a des problèmes de build avec les versions récentes de Python.
+# On installe une version pré-compilée (wheel) pour éviter l'erreur.
+pip install resampy==0.4.3
+
 pip install "qrcode[pil]"
 echo "Mise à jour de la bibliothèque pour le bot Telegram..."
 pip install --upgrade python-telegram-bot
@@ -195,13 +201,14 @@ chmod -R u+rwX static logs cache config
 
 echo "=== [8/12] Création du fichier d'identification sécurisé ==="
 CREDENTIALS_FILE="/boot/firmware/credentials.json"
+VENV_PYTHON="venv/bin/python3"
 
 if [ ! -f "$CREDENTIALS_FILE" ]; then
     echo "Génération d'un mot de passe aléatoire et création du fichier d'identification..."
-    # On utilise sudo pour exécuter le script python qui a besoin des droits pour écrire dans /boot/firmware
-    # Le script python est exécuté via l'interpréteur de l'environnement virtuel pour avoir accès à werkzeug.
-    # Le script affichera lui-même le mot de passe généré.
-    sudo venv/bin/python3 utils/create_initial_user.py --output "$CREDENTIALS_FILE"
+    # On utilise `sudo` avec le chemin complet vers le python du venv.
+    # L'option -E de sudo préserve l'environnement, ce qui peut aider.
+    # Le script python affichera lui-même le mot de passe généré.
+    sudo -E "$VENV_PYTHON" utils/create_initial_user.py --output "$CREDENTIALS_FILE"
 else
     echo "✅ Le fichier d'identification $CREDENTIALS_FILE existe déjà. Aucune modification."
 fi
