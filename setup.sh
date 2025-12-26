@@ -219,7 +219,9 @@ echo "✅ Système configuré pour démarrer en mode console avec auto-login."
 
 
 echo "=== [10/12] Configuration du lancement automatique de Sway ==="
-BASH_PROFILE="/home/pi/.bash_profile"
+# Récupération du dossier home de l'utilisateur réel
+USER_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
+BASH_PROFILE="$USER_HOME/.bash_profile"
 if ! grep -q 'exec sway' "$BASH_PROFILE"; then
     echo 'if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then' >> "$BASH_PROFILE"
     echo '  exec sway' >> "$BASH_PROFILE"
@@ -230,16 +232,20 @@ else
 fi
 
 echo "=== [11/12] Configuration du lancement automatique de Pimmich dans Sway ==="
-SWAY_CONFIG_DIR="/home/pi/.config/sway"
+SWAY_CONFIG_DIR="$USER_HOME/.config/sway"
 SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
 mkdir -p "$SWAY_CONFIG_DIR"
 
+# Chemin absolu vers le script de démarrage
+INSTALL_DIR=$(pwd)
+START_SCRIPT="$INSTALL_DIR/start_pimmich.sh"
+
 # Rendre exécutable
-chmod +x /home/pi/pimmich/start_pimmich.sh
+chmod +x "$START_SCRIPT"
 
 # Ajout de l'exec_always si absent
 if ! grep -q 'start_pimmich.sh' "$SWAY_CONFIG_FILE" 2>/dev/null; then
-    echo 'exec_always --no-startup-id /home/pi/pimmich/start_pimmich.sh' >> "$SWAY_CONFIG_FILE"
+    echo "exec_always --no-startup-id $START_SCRIPT" >> "$SWAY_CONFIG_FILE"
     echo "Ajout de start_pimmich.sh dans la config sway"
 else
     echo "✅ start_pimmich.sh déjà présent dans la config sway"
