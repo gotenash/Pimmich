@@ -7,6 +7,16 @@ set -e # Arrête le script si une commande échoue
 
 # Se placer dans le répertoire racine de Pimmich
 cd "$(dirname "$0")"
+REPO_DIR=$(pwd)
+
+# PROTECTION CRITIQUE : S'exécuter depuis /tmp pour survivre à l'écrasement par git reset
+if [ "$1" != "--safe-run" ]; then
+    cp "$0" /tmp/pimmich_update_safe.sh
+    chmod +x /tmp/pimmich_update_safe.sh
+    exec /tmp/pimmich_update_safe.sh --safe-run "$REPO_DIR"
+elif [ -n "$2" ]; then
+    cd "$2"
+fi
 
 # Bloc de protection pour sauvegarder/restaurer la config malgré le reset git
 {
@@ -23,6 +33,10 @@ cd "$(dirname "$0")"
     # Utilise une méthode robuste qui évite les blocages dus aux conflits locaux.
     git fetch --all
     git reset --hard origin/main
+    
+    # Rétablir les permissions d'exécution (git reset peut les faire sauter)
+    echo "--- Correction des permissions ---"
+    chmod +x *.sh 2>/dev/null || true
 
     echo "--- Restauration de la configuration locale ---"
     if [ -d "$BACKUP_DIR/config" ]; then
