@@ -1315,7 +1315,7 @@
                                     {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
                                 {% endif %}
 
-                                <a href="{{ media_url }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                                <a href="{{ media_url }}" class="glightbox block relative" data-gallery="{{ source_name }}" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
                                   <img src="{{ thumb_url }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition bg-gray-200" alt="{{ _('Aperçu de %(media)s', media=media.path) }}">
                                   {% if media.type == 'video' %}
                                   <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded">
@@ -1324,8 +1324,8 @@
                                   {% endif %}
                                 </a>
                                 <!-- Actions alignées avec "justify-between" pour pousser la poubelle à droite -->
-                                {% if media.type == 'image' %}
                                 <div class="photo-actions mt-1 flex flex-col w-full gap-y-1">
+                                    {% if media.type == 'image' %}
                                     <select class="filter-select text-xs rounded border-gray-300 py-1 w-full" data-photo="{{ photo_path }}">
                                         <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
                                         <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
@@ -1341,15 +1341,17 @@
                                         <option value="polaroid_vintage" {% if active_filter == 'polaroid_vintage' %}selected{% endif %}>{{ _("Polaroid Vintage") }}</option>
                                         <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                                     </select>
+                                    {% endif %}
                                     <div class="flex justify-end w-full gap-x-2">
                                         <button type="button" class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i class="fas fa-list-ul"></i></button>
                                         <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
-                                        <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
+                                        <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i class="fas fa-trash-alt"></i></button>
                                     </div>
                                 </div>
                                 <div class="add-to-playlist-menu hidden absolute bg-white border rounded shadow-lg p-2 z-20" style="bottom: 20px; right: 20px;">
                                     <!-- Le menu des playlists sera injecté ici -->
                                 </div>
+                                {% if media.type == 'image' %}
                                 <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
                                     <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
                                     <span class="generic-text-status text-xs text-gray-500 ml-1"></span>
@@ -1460,7 +1462,7 @@
                             {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
                         {% endif %}
 
-                        <a href="{{ media_url }}" class="glightbox" data-gallery="favorites" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                        <a href="{{ media_url }}" class="glightbox block relative" data-gallery="favorites" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
                           <img src="{{ thumb_url }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition bg-gray-200" alt="{{ _('Aperçu de %(media)s', media=media.path) }}">
                           {% if media.type == 'video' %}
                           <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded">
@@ -1468,8 +1470,8 @@
                           </div>
                           {% endif %}
                         </a>
-                        {% if media.type == 'image' %}
                         <div class="photo-actions mt-1 flex flex-col w-full gap-y-1">
+                            {% if media.type == 'image' %}
                             <select class="filter-select text-xs rounded border-gray-300 py-1 w-full" data-photo="{{ photo_path }}">
                                 <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
                                 <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
@@ -1485,15 +1487,17 @@
                                 <option value="polaroid_vintage" {% if active_filter == 'polaroid_vintage' %}selected{% endif %}>{{ _("Polaroid Vintage") }}</option>
                                 <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                             </select>
+                            {% endif %}
                             <div class="flex justify-end w-full gap-x-2">
                                         <button type="button" class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i class="fas fa-list-ul"></i></button>
                                 <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
-                                <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
+                                <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
                                 <div class="add-to-playlist-menu hidden absolute bg-white border rounded shadow-lg p-2 z-20" style="bottom: 20px; right: 20px;">
                                     <!-- Le menu des playlists sera injecté ici -->
                                 </div>
+                        {% if media.type == 'image' %}
                         <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
                             <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
                             <span class="generic-text-status text-xs text-gray-500 ml-1"></span>
@@ -2281,7 +2285,7 @@ async function renderPlaylists() {
 
                     return `
                         <div class="photo-tile relative cursor-move" data-id="${photoPath}">
-                            <a href="${mediaUrl}" class="glightbox" data-gallery="playlist-${playlist.id}" title="${photoPath}">
+                            <a href="${mediaUrl}" class="glightbox block relative" data-gallery="playlist-${playlist.id}" title="${photoPath}">
                                 <img src="${thumbUrl}" class="w-24 h-24 object-cover rounded shadow bg-gray-200 cursor-pointer hover:scale-105 transition-transform">
                                 ${videoIconHtml}
                             </a>
