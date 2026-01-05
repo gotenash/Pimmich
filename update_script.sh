@@ -8,10 +8,30 @@ set -e # Arrête le script si une commande échoue
 # Se placer dans le répertoire racine de Pimmich
 cd "$(dirname "$0")"
 
-echo "STEP:PULL:--- Étape 1/2: Téléchargement des mises à jour (git) ---"
-# Utilise une méthode robuste qui évite les blocages dus aux conflits locaux.
-git fetch --all
-git reset --hard origin/main
+# Bloc de protection pour sauvegarder/restaurer la config malgré le reset git
+{
+    echo "--- Sauvegarde de la configuration locale ---"
+    BACKUP_DIR="/tmp/pimmich_conf_backup"
+    rm -rf "$BACKUP_DIR"
+    mkdir -p "$BACKUP_DIR"
+    
+    if [ -d "config" ]; then
+        cp -a config "$BACKUP_DIR/"
+    fi
+
+    echo "STEP:PULL:--- Étape 1/2: Téléchargement des mises à jour (git) ---"
+    # Utilise une méthode robuste qui évite les blocages dus aux conflits locaux.
+    git fetch --all
+    git reset --hard origin/main
+
+    echo "--- Restauration de la configuration locale ---"
+    if [ -d "$BACKUP_DIR/config" ]; then
+        # On restaure le contenu en écrasant les fichiers par défaut du repo
+        cp -a "$BACKUP_DIR/config/." config/
+    fi
+    
+    rm -rf "$BACKUP_DIR"
+}
 
 echo "STEP:PIP:--- Étape 2/2: Mise à jour des dépendances Python ---"
 source venv/bin/activate
