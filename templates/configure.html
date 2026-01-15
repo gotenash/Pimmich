@@ -152,7 +152,7 @@
 <div id="main-nav" class="flex justify-center space-x-1 sm:space-x-2 p-1 bg-transparent rounded-lg mb-4">
     <button class="main-nav-link inline-flex items-center" data-group="group-diaporama"><i class="fas fa-desktop fa-fw mr-2"></i>{{ _('Diaporama') }}</button>
     <button class="main-nav-link inline-flex items-center" data-group="group-contenu"><i class="fas fa-photo-video fa-fw mr-2"></i>{{ _('Contenu') }}</button>
-    <button class="main-nav-link inline-flex items-center" data-group="group-interactions"><i class="fas fa-comments fa-fw mr-2"></i>{{ _('Interactions') }}</button>
+    <button class="main-nav-link inline-flex items-center" data-group="group-interactions"><i class="fas fa-comments fa-fw mr-2"></i>{{ _('Interactions') }} <span id="interactions-pending-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
     <button class="main-nav-link inline-flex items-center" data-group="group-maintenance"><i class="fas fa-server fa-fw mr-2"></i>{{ _('Système') }}</button>
 </div>
 
@@ -615,7 +615,7 @@
             <label class="form-check-label" for="display_source_telegram">{{ _('Photos reçues par Telegram') }}</label>
         </div>
         <div class="form-check form-switch my-2">
-            <input class="form-check-input" type="checkbox" id="display_source_invites" name="display_sources" value="invites" {% if 'invites' in config.display_sources %}checked{% endif %}>
+            <input class="form-check-input" type="checkbox" id="display_source_invites" name="display_sources" value="invités" {% if 'invités' in config.display_sources %}checked{% endif %}>
             <label class="form-check-label" for="display_source_invites">{{ _('Photos des invités (validées)') }}</label>
         </div>
     </fieldset>
@@ -1936,6 +1936,7 @@
   async function refreshValidationTab() {
       const grid = document.getElementById('pending-photos-grid');
       const badge = document.getElementById('pending-count-badge');
+      const interactionsBadge = document.getElementById('interactions-pending-badge');
       const validationTab = document.getElementById('tab-validation');
       const isTabActive = validationTab && validationTab.style.display === 'block';
 
@@ -1951,14 +1952,16 @@
           const photoCount = data.photos.length;
 
           // Mise à jour du badge
-          if (badge) {
-              badge.textContent = photoCount;
-              if (photoCount > 0) {
-                  badge.classList.remove('hidden');
-              } else {
-                  badge.classList.add('hidden');
+          [badge, interactionsBadge].forEach(el => {
+              if (el) {
+                  el.textContent = photoCount;
+                  if (photoCount > 0) {
+                      el.classList.remove('hidden');
+                  } else {
+                      el.classList.add('hidden');
+                  }
               }
-          }
+          });
 
           // Mise à jour de la grille
           if (isTabActive && grid) {
@@ -1971,11 +1974,26 @@
                       tile.className = 'photo-tile relative';
                       tile.dataset.filename = filename;
                       const imgSrc = `/static/pending_uploads/${filename}`;
+                      const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(filename);
+                      
+                      let contentHtml;
+                      if (isVideo) {
+                          contentHtml = `
+                              <a href="${imgSrc}" class="glightbox block relative" data-gallery="pending" title="${filename}">
+                                  <video src="${imgSrc}#t=0.1" class="w-32 h-32 object-cover rounded shadow bg-gray-200" preload="metadata" muted></video>
+                                  <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded pointer-events-none">
+                                      <i class="fas fa-play text-white text-3xl opacity-75"></i>
+                                  </div>
+                              </a>`;
+                      } else {
+                          contentHtml = `
+                              <a href="${imgSrc}" class="glightbox" data-gallery="pending" title="${filename}">
+                                  <img src="${imgSrc}" class="w-32 h-32 object-cover rounded shadow bg-gray-200">
+                              </a>`;
+                      }
                       
                       tile.innerHTML = `
-                          <a href="${imgSrc}" class="glightbox" data-gallery="pending" title="${filename}">
-                              <img src="${imgSrc}" class="w-32 h-32 object-cover rounded shadow bg-gray-200">
-                          </a>
+                          ${contentHtml}
                           <div class="photo-actions mt-1 flex items-center justify-around w-full gap-x-2">
                               <button class="approve-btn bg-green-500 hover:bg-green-600 text-white text-xs rounded py-1 px-2" title="{{ _('Approuver') }}"><i class="fas fa-check"></i></button>
                               <button class="reject-btn bg-red-500 hover:bg-red-600 text-white text-xs rounded py-1 px-2" title="{{ _('Rejeter') }}"><i class="fas fa-times"></i></button>
@@ -4348,6 +4366,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const eventSource = new EventSource('/api/update_app');
 
+        // Flag pour savoir si une mise à jour est en cours.
+        let updateInProgress = true;
+
+        function startReloadSequence() {
+            if (!updateInProgress) return; // S'assurer de ne pas le lancer deux fois
+            updateInProgress = false;
+            eventSource.close();
+
+            displayMessage(statusDiv, "{{ _('Mise à jour terminée. L\'application redémarre. La page se rechargera automatiquement...') }}", 'success');
+            
+            // Afficher un overlay et commencer à recharger la page
+            setTimeout(() => {
+                document.body.innerHTML = `<div class="fixed inset-0 bg-gray-800 text-white flex flex-col items-center justify-center text-center p-4 z-50"><i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p></div>`;
+                setInterval(() => { location.reload(true); }, 3000);
+            }, 2000);
+        }
+
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
@@ -4362,13 +4397,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if (data.stage === 'RESTART') {
-                    eventSource.close();
-                    displayMessage(statusDiv, "{{ _('Mise à jour terminée. L\'application va redémarrer. La page se rechargera dans quelques instants...') }}", 'success');
-                    setTimeout(() => {
-                        document.body.innerHTML = `<div class="fixed inset-0 bg-gray-800 text-white flex flex-col items-center justify-center text-center p-4 z-50"><i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p></div>`;
-                        setInterval(() => { location.reload(true); }, 3000);
-                    }, 5000);
+                    startReloadSequence();
                 } else if (data.type === 'error') {
+                    updateInProgress = false;
                     eventSource.close();
                     allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
                     btn.innerHTML = `<i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}`;
@@ -4379,10 +4410,13 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         eventSource.onerror = () => {
-            eventSource.close();
-            displayMessage(statusDiv, "{{ _('Erreur de connexion au serveur pour la mise à jour.') }}", 'error');
-            allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
-            btn.innerHTML = `<i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}`;
+            // Si la connexion est perdue pendant la mise à jour, c'est probablement
+            // parce que le serveur a redémarré. C'est le comportement attendu.
+            if (updateInProgress) {
+                progressBar.style.width = `100%`;
+                progressBar.textContent = `100%`;
+                startReloadSequence();
+            }
         };
     });
 
