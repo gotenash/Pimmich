@@ -11,68 +11,158 @@ CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 DESCRIPTION_MAP_CACHE_FILE = CACHE_DIR / "immich_description_map.json"
 
+# Modification Sigalou 24/01/2026 - Ajout d'une limite maximale de photos
+# Cette variable permet de limiter le nombre de photos récupérées depuis Immich
+# pour éviter de saturer le Raspberry Pi ON POURRA AJOUTER CELA SUR L ECRAN DE CONFIGURATION
+max_photos_to_download = 15  # Nombre maximum de photos à télécharger
+# Fin Modification Sigalou 24/01/2026
+
 def download_and_extract_album(config):
     server_url = config.get("immich_url")
     api_key = config.get("immich_token")
     album_name = config.get("album_name")
 
-    if not all([server_url, api_key, album_name]):
-        yield {"type": "error", "message": "Configuration incomplète : serveur, token ou nom d'album manquant."}
+    if not all([server_url, api_key]):
+        yield {"type": "error", "message": "Configuration incomplète : url du serveur ou clé API manquant."}
         return
 
     yield {"type": "progress", "stage": "CONNECTING", "percent": 5, "message": "Connexion à Immich..."}
     time.sleep(0.5)
 
-    headers = { "x-api-key": api_key }
-    album_list_url = f"{server_url}/api/albums"
+    headers = {"x-api-key": api_key}
     
-    try:
-        response = requests.get(album_list_url, headers=headers, timeout=10)
+    # Modification Sigalou 25/01/2026 - Gestion mode album OU mode aléatoire
+    if album_name and album_name.strip():
+        # MODE ALBUM : Récupérer les photos d'un album spécifique
+        yield {"type": "progress", "stage": "SEARCHING", "percent": 10, "message": f"Recherche de l'album '{album_name}'..."}
+        
+        album_list_url = f"{server_url}/api/albums"
+        try:
+            response = requests.get(album_list_url, headers=headers, timeout=10)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            yield {"type": "error", "message": f"Impossible de se connecter au serveur Immich : {str(e)}"}
+            return
+
+        albums = response.json()
+        album_id = next((album["id"] for album in albums if album["albumName"] == album_name), None)
+        if not album_id:
+            available_albums = [album["albumName"] for album in albums[:5]]  # Limiter à 5 pour l'affichage
+            yield {"type": "error", "message": f"Album '{album_name}' introuvable. Albums disponibles : {', '.join(available_albums)}"}
+            return
+
+        yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
+
+        assets_url = f"{server_url}/api/albums/{album_id}"
+        response = requests.get(assets_url, headers=headers, timeout=30)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        yield {"type": "error", "message": f"Impossible de se connecter au serveur Immich : {str(e)}"}
-        return
 
-    yield {"type": "progress", "stage": "SEARCHING", "percent": 10, "message": "Recherche de l'album..."}
+        album_data = response.json()
+        assets = album_data.get("assets", [])
+        
+        # Application de la limite max_photos_to_download
+        total_assets = len(assets)
+        if total_assets > max_photos_to_download:
+            yield {"type": "info", "message": f"L'album contient {total_assets} photos. Limitation à {max_photos_to_download} photos."}
+            assets = assets[:max_photos_to_download]
     
-    albums = response.json()
-    album_id = next((album["id"] for album in albums if album["albumName"] == album_name), None)
-    if not album_id:
-        available_albums = [album["albumName"] for album in albums[:5]]  # Limiter à 5 pour l'affichage
-        yield {"type": "error", "message": f"Album '{album_name}' introuvable. Albums disponibles : {', '.join(available_albums)}"}
-        return
+    else:
+        # MODE ALÉATOIRE : Récupérer des photos aléatoires avec leurs métadonnées complètes
+        yield {"type": "progress", "stage": "FETCHING_RANDOM", "percent": 10, "message": f"Récupération de {max_photos_to_download} photos aléatoires..."}
+        
+        random_url = f"{server_url}/api/search/random"
+        payload = {"size": max_photos_to_download}
+        try:
+            response = requests.post(random_url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            assets_light = response.json()
+            yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
+            
+            # Modification Sigalou 25/01/2026 - Enrichir avec les détails complets via API asset
+            # L'API /search/random ne renvoie pas les exifInfo, donc on appelle /assets/{id} pour chaque photo
+            assets = []
+            for i, asset_light in enumerate(assets_light):
+                asset_id = asset_light.get("id")
+                if asset_id:
+                    try:
+                        asset_detail_url = f"{server_url}/api/assets/{asset_id}"
+                        detail_response = requests.get(asset_detail_url, headers=headers, timeout=10)
+                        if detail_response.status_code == 200:
+                            assets.append(detail_response.json())
+                        else:
+                            assets.append(asset_light)  # Fallback si l'API échoue
+                    except:
+                        assets.append(asset_light)  # Fallback en cas d'erreur
+            # Fin Modification Sigalou 25/01/2026
+            
+        except requests.exceptions.RequestException as e:
+            yield {"type": "error", "message": f"Impossible de récupérer les photos aléatoires : {str(e)}"}
+            return
+    # Fin Modification Sigalou 25/01/2026
+    
+    # Modification Sigalou 25/01/2026 - Enrichissement des métadonnées Immich
+    # Créer le mappage filename → métadonnées pour les deux modes (album ET aléatoire)
+    filename_to_metadata_map = {}
+    
+    for asset in assets:
+        original_filename = asset.get("originalFileName")
+        
+        if not original_filename:
+            continue
+        
+        exif_info = asset.get("exifInfo", {})
+        
+        # Récupérer les métadonnées disponibles depuis Immich
+        description = exif_info.get("description")
+        date_time_original = exif_info.get("dateTimeOriginal")
+        city = exif_info.get("city")
+        country = exif_info.get("country")
+        
+        # Construire l'objet métadonnées
+        metadata = {}
+        
+        if description:
+            metadata["description"] = description
+        
+        if date_time_original:
+            metadata["date_taken"] = date_time_original
+        
+        # Localisation
+        location_parts = []
+        if city:
+            metadata["city"] = city
+            location_parts.append(city)
+        if country:
+            metadata["country"] = country
+            location_parts.append(country)
+        if location_parts:
+            metadata["location"] = ", ".join(location_parts)
+        
+        # Coordonnées GPS
+        latitude = exif_info.get("latitude")
+        longitude = exif_info.get("longitude")
+        if latitude is not None and longitude is not None:
+            metadata["latitude"] = latitude
+            metadata["longitude"] = longitude
+        
+        # Ajouter au mappage (même si metadata est vide {})
+        filename_to_metadata_map[original_filename] = metadata
+    
+    # Sauvegarder le mappage dans un fichier cache pour l'étape de préparation
+    try:
+        with open(DESCRIPTION_MAP_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(filename_to_metadata_map, f, ensure_ascii=False, indent=2)
+        yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 20, "message": "Métadonnées sauvegardées."}
 
-    yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
-
-    assets_url = f"{server_url}/api/albums/{album_id}"
-    response = requests.get(assets_url, headers=headers, timeout=30)
-    response.raise_for_status()
-
-    album_data = response.json()
-    assets = album_data.get("assets", [])
+    except Exception as e:
+        yield {"type": "warning", "message": f"Avertissement : Impossible de sauvegarder le mappage des métadonnées : {e}"}
+    # Fin Modification Sigalou 25/01/2026
+    
     asset_ids = [asset["id"] for asset in assets]
 
     if not asset_ids:
-        yield {"type": "error", "message": "L'album est vide ou ne contient aucune photo accessible."}
+        yield {"type": "error", "message": "Aucune photo accessible."}
         return
-    
-    # Créer un mappage nom de fichier -> description
-    filename_to_description_map = {}
-    for asset in assets:
-        original_filename = asset.get("originalFileName")
-        # La description est dans exifInfo
-        description = asset.get("exifInfo", {}).get("description")
-        if original_filename and description:
-            filename_to_description_map[original_filename] = description
-
-    # Sauvegarder le mappage dans un fichier cache pour que l'étape de préparation puisse l'utiliser.
-    try:
-        with open(DESCRIPTION_MAP_CACHE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(filename_to_description_map, f, ensure_ascii=False, indent=2)
-        print(f"[Immich Import] Mappage des descriptions sauvegardé dans {DESCRIPTION_MAP_CACHE_FILE}")
-    except Exception as e:
-        # On ne bloque pas le processus, on affiche juste un avertissement.
-        yield {"type": "warning", "message": f"Avertissement : Impossible de sauvegarder le mappage des descriptions : {e}"}
 
     nb_photos = len(asset_ids)
     yield {"type": "progress", "stage": "DOWNLOADING", "percent": 25, "message": f"Téléchargement de l'archive ({nb_photos} photos)..."}
@@ -91,7 +181,7 @@ def download_and_extract_album(config):
     photos_folder = os.path.join("static", "photos", "immich")
     prepared_folder = os.path.join("static", "prepared", "immich")
 
-    # Vider les dossiers de destination (source et préparé) avant l'import pour éviter les mélanges.
+    # Vider les dossiers de destination avant l'import
     if os.path.exists(photos_folder):
         shutil.rmtree(photos_folder)
     os.makedirs(photos_folder, exist_ok=True)
@@ -107,4 +197,4 @@ def download_and_extract_album(config):
         yield {"type": "error", "message": f"Erreur lors de l'extraction : {str(e)}"}
         return
 
-    yield { "type": "done", "stage": "DOWNLOAD_COMPLETE", "percent": 80, "message": f"{nb_photos} photos prêtes pour préparation.", "total_downloaded": nb_photos }
+    yield {"type": "done", "stage": "DOWNLOAD_COMPLETE", "percent": 80, "message": f"{nb_photos} photos prêtes pour préparation.", "total_downloaded": nb_photos}
