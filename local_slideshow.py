@@ -206,14 +206,14 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
             screen.blit(new_surface_scaled, (0, 0)) # Just blit new image directly
         
         # Draw overlay during transition
-        draw_overlay(screen, screen_width, screen_height, config, main_font)
+        draw_overlay(screen, screen_width, screen_height, config, main_font, None)
 
         pygame.display.flip()
         clock.tick(fps)
 
     # Ensure the new image is fully blitted at the end of the transition
     screen.blit(new_surface_scaled, (0, 0))
-    draw_overlay(screen, screen_width, screen_height, config, main_font)
+    draw_overlay(screen, screen_width, screen_height, config, main_font, None)
     pygame.display.flip()
 
     return new_pil_image
@@ -350,6 +350,78 @@ def get_tides(config):
             print("[Tides] Clé API StormGlass, latitude ou longitude manquante. Les marées sont désactivées.")
             _tides_warning_printed = True
         return None
+
+
+# --- Modification Sigalou 25/01/2026 - Gestion des métadonnées photo (date + localisation) ---
+# Cache global pour les métadonnées des photos (évite de recharger le JSON à chaque photo)
+_photo_metadata_cache = None
+_photo_metadata_last_load = None
+
+def load_photo_metadata_cache():
+    """
+    Charge le cache des métadonnées photos depuis le fichier JSON créé lors du téléchargement.
+    Ce fichier contient les informations EXIF de chaque photo (date, ville, pays, coordonnées GPS).
+    """
+    global _photo_metadata_cache, _photo_metadata_last_load
+
+    cache_file = Path(BASE_DIR) / 'cache' / 'immich_description_map.json'
+
+    if not cache_file.exists():
+        return {}
+
+    # Vérifier si le fichier a été modifié depuis le dernier chargement
+    try:
+        file_mtime = cache_file.stat().st_mtime
+
+        # Recharger si c'est le premier chargement ou si le fichier a changé
+        if _photo_metadata_last_load is None or file_mtime > _photo_metadata_last_load:
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                _photo_metadata_cache = json.load(f)
+            _photo_metadata_last_load = file_mtime
+
+        return _photo_metadata_cache
+
+    except Exception as e:
+        print(f"[Metadata]  Erreur chargement cache : {e}")
+        return {}
+
+def get_photo_metadata(photo_path):
+    """
+    Récupère les métadonnées d'une photo depuis le cache.
+    Retourne un dictionnaire avec : date_taken, city, country, location, latitude, longitude
+    """
+    try:
+        metadata_map = load_photo_metadata_cache()
+
+        if not metadata_map:
+            return {}
+
+        # Récupérer le nom du fichier
+        filename = Path(photo_path).name
+
+        # 🔍 RECHERCHE INSENSIBLE À LA CASSE (fix principal) car leur nom de l'image est recréé par dest_filename = f"{base_name}.jpg"  dans prepare_all_photos, donc si l'extension etait .JPG elle devient .jpg
+        filename_lower = filename.lower()
+        for cached_filename, metadata in metadata_map.items():
+            if cached_filename.lower() == filename_lower:
+                return metadata
+
+        # Essayer sans suffixes _polaroid, _postcard (insensible casse)
+        base_filename = re.sub(r'(_polaroid|_postcard)\.(jpg|jpeg|png|JPG|JPEG|PNG)$', 
+                              r'.\2', filename, flags=re.IGNORECASE)
+        
+        base_filename_lower = base_filename.lower()
+        for cached_filename, metadata in metadata_map.items():
+            if cached_filename.lower() == base_filename_lower:
+                return metadata
+
+        return {}
+
+    except Exception as e:
+        print(f"[Metadata] Erreur extraction métadonnées pour {photo_path}: {e}")
+        return {}
+
+# --- Fin Modification Sigalou 25/01/2026 ---
+
 
     # 1. Vérifier le cache en mémoire d'abord
     now = datetime.now()
@@ -587,7 +659,7 @@ def control_fan(temperature, threshold=55, pin=14):
         set_gpio_output(pin, False)
 
 # New function to draw the overlay elements (clock, date, weather)
-def draw_overlay(screen, screen_width, screen_height, config, main_font):
+def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata=None):
     now = datetime.now()
     text_color = parse_color(config.get("clock_color", "#FFFFFF"))
     outline_color = parse_color(config.get("clock_outline_color", "#000000"))
@@ -788,6 +860,150 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font):
 
                 draw_text_with_outline(screen, tide_text, font_to_use, text_color, outline_color, tide_rect.topleft, anchor="topleft")
 
+
+    # --- Modification Sigalou 25/01/2026 - Affichage des métadonnées photo en bas de l'écran ---
+    # Ce bloc affiche la date de prise de vue et/ou la localisation de la photo
+    # si ces informations sont disponibles dans les métadonnées Immich
+    has_any_date = False
+    if photo_metadata is not None:
+        has_any_date = any(photo_metadata.get(field) for field in [
+            "SubSecDateTimeOriginal", "DateTimeOriginal", "SubSecCreateDate", 
+            "CreateDate", "SubSecModifyDate", "MediaCreateDate", "DateTimeCreated",
+            "fileModifiedAt", "fileCreatedAt"
+        ])
+
+    if photo_metadata and (has_any_date or config.get("show_photo_location", False)):
+    
+    
+    
+        metadata_elements = []
+        metadata_separator = "  •  "
+
+        # Récupérer la police personnalisée pour les métadonnées
+        metadata_font_path = config.get("photo_metadata_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+        metadata_font_size = int(config.get("photo_metadata_font_size", 23))
+
+        try:
+            metadata_font = pygame.font.Font(metadata_font_path, metadata_font_size)
+        except Exception as e:
+            print(f"[Display] Erreur chargement police métadonnées : {e}.")
+            metadata_font = main_font
+
+        # Couleurs personnalisées pour les métadonnées
+        metadata_text_color = parse_color(config.get("photo_metadata_color", "#ffffff"))
+        metadata_outline_color = parse_color(config.get("photo_metadata_outline_color", "#000000"))
+        
+        # Date de prise de vue (priorité 9 dates)
+        if config.get("show_photo_date", False):
+            date_priority = [
+                "subSecDateTimeOriginal", "dateTimeOriginal",  
+                "subSecCreateDate", "createDate",             
+                "subSecModifyDate", "modifyDate",             
+                "mediaCreateDate", "dateTimeCreated",
+                "fileModifiedAt", "fileCreatedAt"
+            ]
+            date_candidates = [photo_metadata.get(field) for field in date_priority]
+            date_taken_str = next((d for d in date_candidates if d), None)
+            
+            if date_taken_str:
+                try:
+                    photo_date = datetime.fromisoformat(date_taken_str.replace('Z', '+00:00'))
+                    photo_date_format = config.get("photo_date_format", "%d %B %Y")
+                    formatted_date = photo_date.strftime(photo_date_format)
+                    metadata_elements.append(formatted_date)
+                except Exception as e:
+                    print(f"[Display] Erreur formatage date : {e}")        
+       
+
+
+        # Localisation
+        if config.get("show_photo_location", False):
+            location_format = config.get("photo_location_format", "city_country")
+
+            if location_format == "city":
+                location_str = photo_metadata.get("city", "")
+            elif location_format == "country":
+                location_str = photo_metadata.get("country", "")
+            else:  # city_country (par défaut)
+                city = photo_metadata.get("city", "")
+                country = photo_metadata.get("country", "")
+                if city and country:
+                    location_str = f"{city}, {country}"
+                else:
+                    location_str = city or country
+
+            if location_str:
+                metadata_elements.append(location_str)
+
+        # Assembler et afficher les métadonnées
+        if metadata_elements:
+            metadata_text = metadata_separator.join(metadata_elements)
+            metadata_surface = metadata_font.render(metadata_text, True, metadata_text_color)
+
+            # Offsets optionnels
+            metadata_offset_x = int(config.get("photo_metadata_offset_x", 0))
+            metadata_offset_y = int(config.get("photo_metadata_offset_y", 0))
+
+            # Position selon la configuration
+            position = config.get("photo_metadata_position", "bottom_left")
+
+            if position == "bottom_left":
+                metadata_rect = metadata_surface.get_rect(
+                    left=15 + metadata_offset_x,
+                    bottom=(screen_height - 15) + metadata_offset_y
+                )
+            elif position == "bottom_right":
+                metadata_rect = metadata_surface.get_rect(
+                    right=(screen_width - 15) + metadata_offset_x,
+                    bottom=(screen_height - 15) + metadata_offset_y
+                )
+            elif position == "bottom_center":
+                metadata_rect = metadata_surface.get_rect(
+                    centerx=(screen_width // 2) + metadata_offset_x,
+                    bottom=(screen_height - 15) + metadata_offset_y
+                )
+            elif position == "top_left":
+                metadata_rect = metadata_surface.get_rect(
+                    left=15 + metadata_offset_x,
+                    top=15 + metadata_offset_y
+                )
+            elif position == "top_right":
+                metadata_rect = metadata_surface.get_rect(
+                    right=(screen_width - 15) + metadata_offset_x,
+                    top=15 + metadata_offset_y
+                )
+            else:  # Fallback
+                metadata_rect = metadata_surface.get_rect(
+                    left=15 + metadata_offset_x,
+                    bottom=(screen_height - 15) + metadata_offset_y
+                )
+
+            # Dessiner le fond si activé
+            if config.get("photo_metadata_background_enabled", True):
+                bg_color_hex = config.get("photo_metadata_background_color", "#00000080")
+                bg_color_rgba = parse_color(bg_color_hex)
+
+                if len(bg_color_rgba) == 3:
+                    bg_color_rgba = bg_color_rgba + (128,)
+
+                bg_width = metadata_rect.width + 20
+                bg_height = metadata_rect.height + 10
+                bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
+                bg_surface.fill(bg_color_rgba)
+                screen.blit(bg_surface, (metadata_rect.left - 10, metadata_rect.top - 5))
+
+            # Dessiner le texte avec contour
+            draw_text_with_outline(
+                screen, 
+                metadata_text, 
+                metadata_font, 
+                metadata_text_color, 
+                metadata_outline_color, 
+                metadata_rect.topleft, 
+                anchor="topleft"
+            )
+    # --- Fin Modification Sigalou 25/01/2026 ---
+
 def display_title_slide(screen, screen_width, screen_height, title, duration, config, photos_for_slide=None):
     """Affiche un écran titre avec le nom de la playlist et un pêle-mêle de photos."""
     print(f"[Slideshow] Affichage de l'écran titre : '{title}'")
@@ -949,12 +1165,17 @@ def display_title_slide(screen, screen_width, screen_height, title, duration, co
             if event.type == pygame.QUIT: pygame.quit(); sys.exit()
         time.sleep(0.1)
 
-# Fonction pour afficher une image et l'heure
-def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, config, main_font):
+# Fonction pour afficher une image et l'heure                        
+
+def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, config, main_font, photo_path=None, ignore_postcard_flag=False):
     """
     Affiche une image préparée avec un effet de pan/zoom et gère les contrôles (pause, suivant, précédent).
     """
     global paused, next_photo_requested, previous_photo_requested
+    # Modification Sigalou 25/01/2026 - Récupération des métadonnées de la photo
+    photo_metadata = get_photo_metadata(photo_path) if photo_path else None
+    # Fin Modification Sigalou 25/01/2026
+
 
     # Boucle de pause : si le diaporama est en pause, on attend ici.
     while paused:
@@ -986,13 +1207,13 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
         
         if not pan_zoom_enabled: # If pan/zoom is disabled, just show static image
             # Affichage statique : blit une fois et attendre la durée
-            draw_overlay(screen, screen_width, screen_height, config, main_font)
+            draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
             pygame.display.flip()
             # Boucle d'attente pour rester réactif aux signaux
             start_sleep = time.time()
             while time.time() - start_sleep < display_duration:
                 # Vérification en temps réel de l'arrivée d'une nouvelle carte postale
-                if NEW_POSTCARD_FLAG.exists(): return
+                if not ignore_postcard_flag and NEW_POSTCARD_FLAG.exists(): return
 
                 if next_photo_requested or previous_photo_requested: return
                 while paused:
@@ -1049,7 +1270,7 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
                 elapsed_animation_time = time.time() - start_animation_time
 
                 # Vérification en temps réel de l'arrivée d'une nouvelle carte postale
-                if NEW_POSTCARD_FLAG.exists(): return
+                if not ignore_postcard_flag and NEW_POSTCARD_FLAG.exists(): return
 
                 # Vérifier les signaux à chaque image de l'animation
                 if next_photo_requested or previous_photo_requested:
@@ -1076,7 +1297,7 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
                 screen.blit(scaled_pygame_image, (0, 0), (current_x, current_y, screen_width, screen_height))
 
                 # Draw overlay (clock/date/weather)
-                draw_overlay(screen, screen_width, screen_height, config, main_font)
+                draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
                 pygame.display.flip()
                 clock.tick(60) # Limit frame rate to 60 FPS for smoother animation
                 
@@ -1302,9 +1523,9 @@ def start_slideshow():
                             main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
 
                         pil_image = Image.open(new_postcard_path)
-                        
+
                         # Afficher avec pan/zoom pour la durée configurée
-                        display_photo_with_pan_zoom(screen, pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                        display_photo_with_pan_zoom(screen, pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, ignore_postcard_flag=True, photo_path=None)
                         
                         # Mettre à jour la surface précédente pour la transition suivante
                         previous_photo_surface = screen.copy()
@@ -1443,6 +1664,10 @@ def start_slideshow():
 
             playlist_index = 0
             while 0 <= playlist_index < len(playlist):
+                # Vérifier si une carte postale est arrivée pour sortir de la boucle et la traiter immédiatement
+                if NEW_POSTCARD_FLAG.exists():
+                    break
+
                 photo_path = playlist[playlist_index]
                 
                 # Réinitialiser les requêtes de changement de photo
@@ -1508,7 +1733,7 @@ def start_slideshow():
                             # For the first image, we need to blit it directly before pan/zoom takes over
                             # This blit is only for the initial display, not part of pan/zoom animation
                             screen.blit(pygame.image.fromstring(current_pil_image.tobytes(), current_pil_image.size, current_pil_image.mode), (0,0)) # type: ignore
-                            draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                            draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, None)
                             pygame.display.flip()
                     except Exception as e:
                         print(f"[Slideshow] Error loading or transitioning to photo {photo_path}: {e}")
@@ -1518,7 +1743,7 @@ def start_slideshow():
                         continue
 
                     if current_pil_image: # Only proceed if image was successfully loaded
-                        display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded)
+                        display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, photo_path)
                         previous_photo_surface = screen.copy()
                     else:
                         print(f"[Slideshow] Skipping photo {photo_path} due to loading error.")
