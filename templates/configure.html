@@ -152,7 +152,7 @@
 <div id="main-nav" class="flex justify-center space-x-1 sm:space-x-2 p-1 bg-transparent rounded-lg mb-4">
     <button class="main-nav-link inline-flex items-center" data-group="group-diaporama"><i class="fas fa-desktop fa-fw mr-2"></i>{{ _('Diaporama') }}</button>
     <button class="main-nav-link inline-flex items-center" data-group="group-contenu"><i class="fas fa-photo-video fa-fw mr-2"></i>{{ _('Contenu') }}</button>
-    <button class="main-nav-link inline-flex items-center" data-group="group-interactions"><i class="fas fa-comments fa-fw mr-2"></i>{{ _('Interactions') }} <span id="interactions-pending-badge" class="hidden bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
+    <button class="main-nav-link inline-flex items-center" data-group="group-interactions"><i class="fas fa-comments fa-fw mr-2"></i>{{ _('Interactions') }}</button>
     <button class="main-nav-link inline-flex items-center" data-group="group-maintenance"><i class="fas fa-server fa-fw mr-2"></i>{{ _('Système') }}</button>
 </div>
 
@@ -615,7 +615,7 @@
             <label class="form-check-label" for="display_source_telegram">{{ _('Photos reçues par Telegram') }}</label>
         </div>
         <div class="form-check form-switch my-2">
-            <input class="form-check-input" type="checkbox" id="display_source_invites" name="display_sources" value="invités" {% if 'invités' in config.display_sources %}checked{% endif %}>
+            <input class="form-check-input" type="checkbox" id="display_source_invites" name="display_sources" value="invites" {% if 'invites' in config.display_sources %}checked{% endif %}>
             <label class="form-check-label" for="display_source_invites">{{ _('Photos des invités (validées)') }}</label>
         </div>
     </fieldset>
@@ -1315,7 +1315,7 @@
                                     {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
                                 {% endif %}
 
-                                <a href="{{ media_url }}" class="glightbox block relative" data-gallery="{{ source_name }}" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                                <a href="{{ media_url }}" class="glightbox" data-gallery="{{ source_name }}" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
                                   <img src="{{ thumb_url }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition bg-gray-200" alt="{{ _('Aperçu de %(media)s', media=media.path) }}">
                                   {% if media.type == 'video' %}
                                   <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded">
@@ -1324,8 +1324,8 @@
                                   {% endif %}
                                 </a>
                                 <!-- Actions alignées avec "justify-between" pour pousser la poubelle à droite -->
+                                {% if media.type == 'image' %}
                                 <div class="photo-actions mt-1 flex flex-col w-full gap-y-1">
-                                    {% if media.type == 'image' %}
                                     <select class="filter-select text-xs rounded border-gray-300 py-1 w-full" data-photo="{{ photo_path }}">
                                         <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
                                         <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
@@ -1341,17 +1341,15 @@
                                         <option value="polaroid_vintage" {% if active_filter == 'polaroid_vintage' %}selected{% endif %}>{{ _("Polaroid Vintage") }}</option>
                                         <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                                     </select>
-                                    {% endif %}
                                     <div class="flex justify-end w-full gap-x-2">
                                         <button type="button" class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i class="fas fa-list-ul"></i></button>
                                         <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
-                                        <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i class="fas fa-trash-alt"></i></button>
+                                        <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
                                     </div>
                                 </div>
                                 <div class="add-to-playlist-menu hidden absolute bg-white border rounded shadow-lg p-2 z-20" style="bottom: 20px; right: 20px;">
                                     <!-- Le menu des playlists sera injecté ici -->
                                 </div>
-                                {% if media.type == 'image' %}
                                 <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
                                     <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
                                     <span class="generic-text-status text-xs text-gray-500 ml-1"></span>
@@ -1462,7 +1460,7 @@
                             {% set thumb_url = url_for('static', filename='prepared/' + media.thumbnail_path) %}
                         {% endif %}
 
-                        <a href="{{ media_url }}" class="glightbox block relative" data-gallery="favorites" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
+                        <a href="{{ media_url }}" class="glightbox" data-gallery="favorites" title="{{ _('Aperçu de %(media)s', media=media.path) }}">
                           <img src="{{ thumb_url }}" class="w-32 h-32 object-cover rounded shadow cursor-pointer hover:scale-105 transition bg-gray-200" alt="{{ _('Aperçu de %(media)s', media=media.path) }}">
                           {% if media.type == 'video' %}
                           <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded">
@@ -1470,8 +1468,8 @@
                           </div>
                           {% endif %}
                         </a>
+                        {% if media.type == 'image' %}
                         <div class="photo-actions mt-1 flex flex-col w-full gap-y-1">
-                            {% if media.type == 'image' %}
                             <select class="filter-select text-xs rounded border-gray-300 py-1 w-full" data-photo="{{ photo_path }}">
                                 <option value="none" {% if active_filter == 'none' %}selected{% endif %}>{{ _("Filtre...") }}</option>
                                 <option value="grayscale" {% if active_filter == 'grayscale' %}selected{% endif %}>{{ _("Noir & Blanc") }}</option>
@@ -1487,17 +1485,15 @@
                                 <option value="polaroid_vintage" {% if active_filter == 'polaroid_vintage' %}selected{% endif %}>{{ _("Polaroid Vintage") }}</option>
                                 <option value="original" class="text-blue-600 font-semibold">{{ _("Original") }}</option>
                             </select>
-                            {% endif %}
                             <div class="flex justify-end w-full gap-x-2">
                                         <button type="button" class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i class="fas fa-list-ul"></i></button>
                                 <button type="button" class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}" data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i class="fas fa-star"></i></button>
-                                <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i class="fas fa-trash-alt"></i></button>
+                                <button type="button" class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2" data-photo="{{ photo_path }}" title="{{ _('Supprimer cette photo') }}"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
                                 <div class="add-to-playlist-menu hidden absolute bg-white border rounded shadow-lg p-2 z-20" style="bottom: 20px; right: 20px;">
                                     <!-- Le menu des playlists sera injecté ici -->
                                 </div>
-                        {% if media.type == 'image' %}
                         <div class="generic-text-input-container mt-2" data-photo="{{ photo_path }}">
                             <input type="text" class="generic-text-input w-full text-xs p-1 border rounded" placeholder="{{ _('Ajouter une légende...') }}" value="{{ media.text or '' }}">
                             <span class="generic-text-status text-xs text-gray-500 ml-1"></span>
@@ -1936,7 +1932,6 @@
   async function refreshValidationTab() {
       const grid = document.getElementById('pending-photos-grid');
       const badge = document.getElementById('pending-count-badge');
-      const interactionsBadge = document.getElementById('interactions-pending-badge');
       const validationTab = document.getElementById('tab-validation');
       const isTabActive = validationTab && validationTab.style.display === 'block';
 
@@ -1952,16 +1947,14 @@
           const photoCount = data.photos.length;
 
           // Mise à jour du badge
-          [badge, interactionsBadge].forEach(el => {
-              if (el) {
-                  el.textContent = photoCount;
-                  if (photoCount > 0) {
-                      el.classList.remove('hidden');
-                  } else {
-                      el.classList.add('hidden');
-                  }
+          if (badge) {
+              badge.textContent = photoCount;
+              if (photoCount > 0) {
+                  badge.classList.remove('hidden');
+              } else {
+                  badge.classList.add('hidden');
               }
-          });
+          }
 
           // Mise à jour de la grille
           if (isTabActive && grid) {
@@ -1974,26 +1967,11 @@
                       tile.className = 'photo-tile relative';
                       tile.dataset.filename = filename;
                       const imgSrc = `/static/pending_uploads/${filename}`;
-                      const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(filename);
-                      
-                      let contentHtml;
-                      if (isVideo) {
-                          contentHtml = `
-                              <a href="${imgSrc}" class="glightbox block relative" data-gallery="pending" title="${filename}">
-                                  <video src="${imgSrc}#t=0.1" class="w-32 h-32 object-cover rounded shadow bg-gray-200" preload="metadata" muted></video>
-                                  <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 rounded pointer-events-none">
-                                      <i class="fas fa-play text-white text-3xl opacity-75"></i>
-                                  </div>
-                              </a>`;
-                      } else {
-                          contentHtml = `
-                              <a href="${imgSrc}" class="glightbox" data-gallery="pending" title="${filename}">
-                                  <img src="${imgSrc}" class="w-32 h-32 object-cover rounded shadow bg-gray-200">
-                              </a>`;
-                      }
                       
                       tile.innerHTML = `
-                          ${contentHtml}
+                          <a href="${imgSrc}" class="glightbox" data-gallery="pending" title="${filename}">
+                              <img src="${imgSrc}" class="w-32 h-32 object-cover rounded shadow bg-gray-200">
+                          </a>
                           <div class="photo-actions mt-1 flex items-center justify-around w-full gap-x-2">
                               <button class="approve-btn bg-green-500 hover:bg-green-600 text-white text-xs rounded py-1 px-2" title="{{ _('Approuver') }}"><i class="fas fa-check"></i></button>
                               <button class="reject-btn bg-red-500 hover:bg-red-600 text-white text-xs rounded py-1 px-2" title="{{ _('Rejeter') }}"><i class="fas fa-times"></i></button>
@@ -2303,7 +2281,7 @@ async function renderPlaylists() {
 
                     return `
                         <div class="photo-tile relative cursor-move" data-id="${photoPath}">
-                            <a href="${mediaUrl}" class="glightbox block relative" data-gallery="playlist-${playlist.id}" title="${photoPath}">
+                            <a href="${mediaUrl}" class="glightbox" data-gallery="playlist-${playlist.id}" title="${photoPath}">
                                 <img src="${thumbUrl}" class="w-24 h-24 object-cover rounded shadow bg-gray-200 cursor-pointer hover:scale-105 transition-transform">
                                 ${videoIconHtml}
                             </a>
@@ -2663,21 +2641,36 @@ document.addEventListener("DOMContentLoaded", () => {
         return div;
     }
 
-    function displayMessage(container, message, type = 'info') {
-        // Utilise le type fourni par le serveur ('info', 'success', 'warning', 'error')
-        // pour choisir la bonne couleur de message.
-        const messageElement = createStyledMessage(message, type);
-        container.appendChild(messageElement);
+		function displayMessage(container, message, type = 'info') {
+				// Classes CSS + icônes par type
+				const types = {
+						success: { class: 'bg-green-100 text-green-800 border-green-300', icon: 'fa-check-circle' },
+						error: { class: 'bg-red-100 text-red-800 border-red-300', icon: 'fa-exclamation-circle' },
+						warning: { class: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: 'fa-exclamation-triangle' },
+						info: { class: 'bg-blue-100 text-blue-800 border-blue-300', icon: 'fa-info-circle' },
+						progress: { class: 'bg-indigo-100 text-indigo-800 border-indigo-300', icon: 'fa-arrow-circle-right' }
+				};
+				
+				const config = types[type] || types.info;
+				
+				// Message avec icône
+				const messageElement = document.createElement('div');
+				messageElement.className = `p-2 mb-1 rounded border shadow-sm flex items-center ${config.class}`;
+				messageElement.innerHTML = `
+						<i class="fas ${config.icon} mr-2 text-sm"></i>
+						<span>${message}</span>
+				`;
+				
+				container.appendChild(messageElement);
 
-        // Limiter le nombre de lignes affichées à 10 pour éviter une liste trop longue.
-        // On supprime les messages les plus anciens si on dépasse la limite.
-        const maxLines = 10;
-        while (container.children.length > maxLines) {
-            container.removeChild(container.firstChild);
-        }
+				// Limite à 10 lignes (inchangé)
+				const maxLines = 10;
+				while (container.children.length > maxLines) {
+						container.removeChild(container.firstChild);
+				}
 
-        container.scrollTop = container.scrollHeight;
-    }
+				container.scrollTop = container.scrollHeight;
+		}
 
     // --- Gestion des favoris (placé ici pour être sûr que le DOM est chargé) ---
     document.querySelectorAll('.favorite-btn').forEach(button => {
@@ -2985,7 +2978,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function startPreparation() {
-            displayMessage(statusDiv, "Étape 1/2: Importation terminée. Démarrage de la préparation...", 'info');
+            //displayMessage(statusDiv, "Importation terminée. Démarrage de la préparation...", 'info');
             progressBar.style.width = "0%";
             progressBar.textContent = "0%";
 
@@ -2997,7 +2990,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const data = JSON.parse(event.data);
                     progressBar.style.width = `${data.percent || 0}%`;
                     progressBar.textContent = `${data.percent || 0}%`;
-                    displayMessage(statusDiv, `(2/2) ${data.message}`, data.type);
+                    displayMessage(statusDiv, `Préparation: ${data.message}`, data.type);
 
                     // Mettre à jour l'image d'aperçu si elle est fournie
                     if (data.current_photo_url && previewImage) {
@@ -3042,7 +3035,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = JSON.parse(event.data);
                 progressBar.style.width = `${data.percent || 0}%`;
                 progressBar.textContent = `${data.percent || 0}%`;
-                displayMessage(statusDiv, `(1/2) ${data.message}`, data.type);
+                displayMessage(statusDiv, `Importation: ${data.message}`, data.type);
 
                 if (data.type === 'done') {
                     importEventSource.close();
@@ -4366,23 +4359,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const eventSource = new EventSource('/api/update_app');
 
-        // Flag pour savoir si une mise à jour est en cours.
-        let updateInProgress = true;
-
-        function startReloadSequence() {
-            if (!updateInProgress) return; // S'assurer de ne pas le lancer deux fois
-            updateInProgress = false;
-            eventSource.close();
-
-            displayMessage(statusDiv, "{{ _('Mise à jour terminée. L\'application redémarre. La page se rechargera automatiquement...') }}", 'success');
-            
-            // Afficher un overlay et commencer à recharger la page
-            setTimeout(() => {
-                document.body.innerHTML = `<div class="fixed inset-0 bg-gray-800 text-white flex flex-col items-center justify-center text-center p-4 z-50"><i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p></div>`;
-                setInterval(() => { location.reload(true); }, 3000);
-            }, 2000);
-        }
-
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
@@ -4397,9 +4373,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if (data.stage === 'RESTART') {
-                    startReloadSequence();
+                    eventSource.close();
+                    displayMessage(statusDiv, "{{ _('Mise à jour terminée. L\'application va redémarrer. La page se rechargera dans quelques instants...') }}", 'success');
+                    setTimeout(() => {
+                        document.body.innerHTML = `<div class="fixed inset-0 bg-gray-800 text-white flex flex-col items-center justify-center text-center p-4 z-50"><i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p></div>`;
+                        setInterval(() => { location.reload(true); }, 3000);
+                    }, 5000);
                 } else if (data.type === 'error') {
-                    updateInProgress = false;
                     eventSource.close();
                     allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
                     btn.innerHTML = `<i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}`;
@@ -4410,13 +4390,10 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         eventSource.onerror = () => {
-            // Si la connexion est perdue pendant la mise à jour, c'est probablement
-            // parce que le serveur a redémarré. C'est le comportement attendu.
-            if (updateInProgress) {
-                progressBar.style.width = `100%`;
-                progressBar.textContent = `100%`;
-                startReloadSequence();
-            }
+            eventSource.close();
+            displayMessage(statusDiv, "{{ _('Erreur de connexion au serveur pour la mise à jour.') }}", 'error');
+            allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
+            btn.innerHTML = `<i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}`;
         };
     });
 
