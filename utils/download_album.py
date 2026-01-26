@@ -14,13 +14,31 @@ DESCRIPTION_MAP_CACHE_FILE = CACHE_DIR / "immich_description_map.json"
 # Modification Sigalou 24/01/2026 - Ajout d'une limite maximale de photos
 # Cette variable permet de limiter le nombre de photos récupérées depuis Immich
 # pour éviter de saturer le Raspberry Pi ON POURRA AJOUTER CELA SUR L ECRAN DE CONFIGURATION
-max_photos_to_download = 15  # Nombre maximum de photos à télécharger
 # Fin Modification Sigalou 24/01/2026
 
 def download_and_extract_album(config):
     server_url = config.get("immich_url")
     api_key = config.get("immich_token")
     album_name = config.get("album_name")
+
+    # Récupération de max_photos_to_download depuis la configuration
+    max_photos_config = config.get("max_photos_to_download", {"immich": 10})
+
+    # Gérer les deux formats possibles (dict ou int)
+    if isinstance(max_photos_config, dict):
+        raw_max_photos = max_photos_config.get("immich", 10)
+    else:
+        raw_max_photos = max_photos_config
+
+    # Normaliser et gérer les valeurs "illimitées"
+    try:
+        if raw_max_photos in (None, "", "0", "-1", 0, -1):
+            max_photos_to_download = None  # None = illimité
+        else:
+            max_photos_to_download = int(raw_max_photos)
+    except (ValueError, TypeError):
+        # En cas de valeur non convertible, on garde la valeur par défaut
+        max_photos_to_download = 10
 
     if not all([server_url, api_key]):
         yield {"type": "error", "message": "Configuration incomplète : url du serveur ou clé API manquant."}
@@ -30,13 +48,13 @@ def download_and_extract_album(config):
     time.sleep(0.5)
 
     headers = {"x-api-key": api_key}
-    
+
     # Modification Sigalou 25/01/2026 - Gestion mode album OU mode aléatoire
     if album_name and album_name.strip():
         # MODE ALBUM : Récupérer les photos d'un album spécifique
         yield {"type": "progress", "stage": "SEARCHING", "percent": 10, "message": f"Recherche de l'album '{album_name}'..."}
-        
         album_list_url = f"{server_url}/api/albums"
+
         try:
             response = requests.get(album_list_url, headers=headers, timeout=10)
             response.raise_for_status()
@@ -46,38 +64,38 @@ def download_and_extract_album(config):
 
         albums = response.json()
         album_id = next((album["id"] for album in albums if album["albumName"] == album_name), None)
+
         if not album_id:
-            available_albums = [album["albumName"] for album in albums[:5]]  # Limiter à 5 pour l'affichage
+            available_albums = [album["albumName"] for album in albums[:5]] # Limiter à 5 pour l'affichage
             yield {"type": "error", "message": f"Album '{album_name}' introuvable. Albums disponibles : {', '.join(available_albums)}"}
             return
 
-        yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
-
+        #yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
         assets_url = f"{server_url}/api/albums/{album_id}"
         response = requests.get(assets_url, headers=headers, timeout=30)
         response.raise_for_status()
-
         album_data = response.json()
         assets = album_data.get("assets", [])
-        
+
         # Application de la limite max_photos_to_download
         total_assets = len(assets)
-        if total_assets > max_photos_to_download:
+        if max_photos_to_download is not None and total_assets > max_photos_to_download:
             yield {"type": "info", "message": f"L'album contient {total_assets} photos. Limitation à {max_photos_to_download} photos."}
             assets = assets[:max_photos_to_download]
-    
+
     else:
         # MODE ALÉATOIRE : Récupérer des photos aléatoires avec leurs métadonnées complètes
-        yield {"type": "progress", "stage": "FETCHING_RANDOM", "percent": 10, "message": f"Récupération de {max_photos_to_download} photos aléatoires..."}
-        
+        size = max_photos_to_download if max_photos_to_download is not None else 500
+        yield {"type": "progress", "stage": "FETCHING_RANDOM", "percent": 10, "message": f"Récupération de {size} photos aléatoires..."}
         random_url = f"{server_url}/api/search/random"
-        payload = {"size": max_photos_to_download}
+        payload = {"size": size}
+
         try:
             response = requests.post(random_url, headers=headers, json=payload, timeout=30)
             response.raise_for_status()
             assets_light = response.json()
-            yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
-            
+
+            #yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
             # Modification Sigalou 25/01/2026 - Enrichir avec les détails complets via API asset
             # L'API /search/random ne renvoie pas les exifInfo, donc on appelle /assets/{id} pour chaque photo
             assets = []
@@ -90,76 +108,48 @@ def download_and_extract_album(config):
                         if detail_response.status_code == 200:
                             assets.append(detail_response.json())
                         else:
-                            assets.append(asset_light)  # Fallback si l'API échoue
+                            assets.append(asset_light) # Fallback si l'API échoue
                     except:
-                        assets.append(asset_light)  # Fallback en cas d'erreur
+                        assets.append(asset_light) # Fallback en cas d'erreur
             # Fin Modification Sigalou 25/01/2026
-            
         except requests.exceptions.RequestException as e:
             yield {"type": "error", "message": f"Impossible de récupérer les photos aléatoires : {str(e)}"}
             return
     # Fin Modification Sigalou 25/01/2026
-    
-    # Modification Sigalou 25/01/2026 - Enrichissement des métadonnées Immich
-    # Créer le mappage filename → métadonnées pour les deux modes (album ET aléatoire)
+
+    # Modification Sigalou 26/01/2026 - Cache COMPLET exifInfo (RAW)
     filename_to_metadata_map = {}
-    
+    total_assets = 0
+    photos_with_metadata = 0
+
     for asset in assets:
+        total_assets += 1
         original_filename = asset.get("originalFileName")
-        
         if not original_filename:
             continue
-        
+
+        # ⚡ STOCKE TOUT exifInfo brut (sans filtrage)
         exif_info = asset.get("exifInfo", {})
         
-        # Récupérer les métadonnées disponibles depuis Immich
-        description = exif_info.get("description")
-        date_time_original = exif_info.get("dateTimeOriginal")
-        city = exif_info.get("city")
-        country = exif_info.get("country")
+        # Compte seulement si exifInfo n'est pas vide
+        if exif_info:
+            photos_with_metadata += 1
         
-        # Construire l'objet métadonnées
-        metadata = {}
-        
-        if description:
-            metadata["description"] = description
-        
-        if date_time_original:
-            metadata["date_taken"] = date_time_original
-        
-        # Localisation
-        location_parts = []
-        if city:
-            metadata["city"] = city
-            location_parts.append(city)
-        if country:
-            metadata["country"] = country
-            location_parts.append(country)
-        if location_parts:
-            metadata["location"] = ", ".join(location_parts)
-        
-        # Coordonnées GPS
-        latitude = exif_info.get("latitude")
-        longitude = exif_info.get("longitude")
-        if latitude is not None and longitude is not None:
-            metadata["latitude"] = latitude
-            metadata["longitude"] = longitude
-        
-        # Ajouter au mappage (même si metadata est vide {})
-        filename_to_metadata_map[original_filename] = metadata
-    
-    # Sauvegarder le mappage dans un fichier cache pour l'étape de préparation
+        filename_to_metadata_map[original_filename] = exif_info  # ← SIMPLE !
+
+    # Sauvegarde
     try:
         with open(DESCRIPTION_MAP_CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(filename_to_metadata_map, f, ensure_ascii=False, indent=2)
-        yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 20, "message": "Métadonnées sauvegardées."}
-
+        yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 20, 
+               "message": f"Metadonnées sauvées pour {photos_with_metadata} photos sur {total_assets}"}
     except Exception as e:
-        yield {"type": "warning", "message": f"Avertissement : Impossible de sauvegarder le mappage des métadonnées : {e}"}
-    # Fin Modification Sigalou 25/01/2026
+        yield {"type": "warning", "message": f"Erreur sauvegarde Metadonnées : {e}"}
+    # Fin Modification Sigalou 26/01/2026
     
-    asset_ids = [asset["id"] for asset in assets]
 
+
+    asset_ids = [asset["id"] for asset in assets]
     if not asset_ids:
         yield {"type": "error", "message": "Aucune photo accessible."}
         return
@@ -168,7 +158,6 @@ def download_and_extract_album(config):
     yield {"type": "progress", "stage": "DOWNLOADING", "percent": 25, "message": f"Téléchargement de l'archive ({nb_photos} photos)..."}
 
     zip_path = "temp_album.zip"
-    
     try:
         if not download_album_archive(server_url, api_key, asset_ids, zip_path):
             yield {"type": "error", "message": "Échec du téléchargement de l'archive."}
