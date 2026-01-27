@@ -2663,21 +2663,36 @@ document.addEventListener("DOMContentLoaded", () => {
         return div;
     }
 
-    function displayMessage(container, message, type = 'info') {
-        // Utilise le type fourni par le serveur ('info', 'success', 'warning', 'error')
-        // pour choisir la bonne couleur de message.
-        const messageElement = createStyledMessage(message, type);
-        container.appendChild(messageElement);
+		function displayMessage(container, message, type = 'info') {
+				// Classes CSS + icônes par type
+				const types = {
+						success: { class: 'bg-green-100 text-green-800 border-green-300', icon: 'fa-check-circle' },
+						error: { class: 'bg-red-100 text-red-800 border-red-300', icon: 'fa-exclamation-circle' },
+						warning: { class: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: 'fa-exclamation-triangle' },
+						info: { class: 'bg-blue-100 text-blue-800 border-blue-300', icon: 'fa-info-circle' },
+						progress: { class: 'bg-indigo-100 text-indigo-800 border-indigo-300', icon: 'fa-arrow-circle-right' }
+				};
+				
+				const config = types[type] || types.info;
+				
+				// Message avec icône
+				const messageElement = document.createElement('div');
+				messageElement.className = `p-2 mb-1 rounded border shadow-sm flex items-center ${config.class}`;
+				messageElement.innerHTML = `
+						<i class="fas ${config.icon} mr-2 text-sm"></i>
+						<span>${message}</span>
+				`;
+				
+				container.appendChild(messageElement);
 
-        // Limiter le nombre de lignes affichées à 10 pour éviter une liste trop longue.
-        // On supprime les messages les plus anciens si on dépasse la limite.
-        const maxLines = 10;
-        while (container.children.length > maxLines) {
-            container.removeChild(container.firstChild);
-        }
+				// Limite à 10 lignes (inchangé)
+				const maxLines = 10;
+				while (container.children.length > maxLines) {
+						container.removeChild(container.firstChild);
+				}
 
-        container.scrollTop = container.scrollHeight;
-    }
+				container.scrollTop = container.scrollHeight;
+		}
 
     // --- Gestion des favoris (placé ici pour être sûr que le DOM est chargé) ---
     document.querySelectorAll('.favorite-btn').forEach(button => {
@@ -2985,7 +3000,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function startPreparation() {
-            displayMessage(statusDiv, "Étape 1/2: Importation terminée. Démarrage de la préparation...", 'info');
+            //displayMessage(statusDiv, "Étape 1/2: Importation terminée. Démarrage de la préparation...", 'info');
             progressBar.style.width = "0%";
             progressBar.textContent = "0%";
 
@@ -2997,7 +3012,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const data = JSON.parse(event.data);
                     progressBar.style.width = `${data.percent || 0}%`;
                     progressBar.textContent = `${data.percent || 0}%`;
-                    displayMessage(statusDiv, `(2/2) ${data.message}`, data.type);
+                    displayMessage(statusDiv, `Préparation: ${data.message}`, data.type);
 
                     // Mettre à jour l'image d'aperçu si elle est fournie
                     if (data.current_photo_url && previewImage) {
@@ -3042,7 +3057,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = JSON.parse(event.data);
                 progressBar.style.width = `${data.percent || 0}%`;
                 progressBar.textContent = `${data.percent || 0}%`;
-                displayMessage(statusDiv, `(1/2) ${data.message}`, data.type);
+                displayMessage(statusDiv, `Importation: ${data.message}`, data.type);
 
                 if (data.type === 'done') {
                     importEventSource.close();
