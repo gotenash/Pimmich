@@ -267,7 +267,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
         yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Aucune nouvelle photo à préparer."}
         return
     
-    yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
+    #yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
     
     for i, filename in enumerate(files_to_prepare, start=1):
         # Check for cancellation
