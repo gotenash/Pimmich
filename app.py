@@ -1783,6 +1783,37 @@ def reboot():
     os.system('sudo reboot')
     return redirect(url_for('configure'))
 
+@app.route('/system_reboot', methods=['POST'])
+@login_required
+def system_reboot():
+    """Affiche la page de redémarrage et lance le reboot après 1 seconde."""
+    return render_template('rebooting.html')
+
+@app.route('/api/trigger_reboot', methods=['POST'])
+@login_required
+def trigger_reboot():
+    """Lance la commande de redémarrage système."""
+    try:
+        # Lancer le reboot en arrière-plan pour que la réponse HTTP puisse être envoyée
+        import threading
+        def delayed_reboot():
+            time.sleep(1)  # Attendre 1 seconde pour que la page se charge
+            os.system("sudo reboot")
+        
+        reboot_thread = threading.Thread(target=delayed_reboot)
+        reboot_thread.daemon = True
+        reboot_thread.start()
+        
+        return jsonify({"success": True, "message": "Redémarrage initié"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/ping', methods=['GET'])
+def ping():
+    """Endpoint simple pour vérifier que le serveur est disponible."""
+    return jsonify({"status": "ok"})
+
+
 @app.route('/restart_app', methods=['POST'])
 @login_required
 def restart_app():
