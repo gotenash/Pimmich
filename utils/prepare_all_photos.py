@@ -242,7 +242,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     if source_type != "smartphone":
         basenames_to_delete = prepared_basenames - source_basenames
         if basenames_to_delete:
-            yield {"type": "progress", "stage": "CLEANING", "message": f"Suppression de {len(basenames_to_delete)} médias obsolètes..."}
+            yield {"type": "progress", "stage": "CLEANING", "percent": 25, "message": f"Suppression de {len(basenames_to_delete)} médias obsolètes..."}
             for basename in basenames_to_delete:
                 for file_to_delete in PREPARED_SOURCE_DIR.glob(f"{basename}*"):
                     try:
@@ -267,7 +267,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
         yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Aucune nouvelle photo à préparer."}
         return
     
-    #yield {"type": "stats", "stage": "PREPARING_START", "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
+    yield {"type": "stats", "stage": "PREPARING_START", "percent": 22, "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
     
     for i, filename in enumerate(files_to_prepare, start=1):
         # Check for cancellation
@@ -307,8 +307,11 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
                 
                 prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height, source_type=source_type, caption=caption)
                 message_type = "photo"
-            
-            percent = int((i / total) * 100)
+                
+            if i == 1:
+                percent = 25  # Modif Sigalou, Début boucle après cleaning 21%
+            else:
+                percent = 25 + int(((i - 1) / total) * 75) #Modif Sigalou 25 à 100% 
             yield {
                 "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent, 
                 "message": f"Nouveau média préparé ({message_type}) : {filename} ({i}/{total})",
