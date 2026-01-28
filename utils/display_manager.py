@@ -18,20 +18,27 @@ from .config_manager import load_config
 LOGSDIR = Path(__file__).resolve().parent.parent / "logs"
 DEBUGLOG = LOGSDIR / "displaydebug.log"
 
+# Variable pour activer/désactiver le debug (True = activé, False = désactivé)
+DEBUG_ENABLED = True
+
 def log_debug(msg):
-    """Log debug avec timestamp dans fichier + console réduite."""
+    """Log debug avec timestamp dans fichier."""
+    if not DEBUG_ENABLED:
+        return  # Ne rien faire si le debug est désactivé
+    
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     full_msg = f"{timestamp} [DISPLAY_DEBUG] {msg}"
-    print(full_msg, file=open("slideshowstdout.log", "a"))  # Backup console
     try:
         LOGSDIR.mkdir(exist_ok=True)
         with open(DEBUGLOG, "a", encoding="utf-8") as f:
             f.write(full_msg + "\n")
             f.flush()
-    except:
-        pass  # Ignore erreurs disque
+    except Exception as e:
+        # Fallback vers la console si le fichier ne peut être écrit
+        print(f"Erreur log debug: {e}")
+        print(full_msg)
 
-log_debug("DISPLAY_MANAGER CHARGÉ SANS CRASH - VERSION SIGALOU")
+#log_debug("DISPLAY_MANAGER CHARGÉ SANS CRASH - VERSION SIGALOU")
 
 def get_display_output_name():
     """Trouve nom sortie HDMI active (Wayfire/Sway)."""
@@ -42,7 +49,7 @@ def get_display_output_name():
         # Test wlr-randr (Wayfire/Pi OS)
         log_debug("wlr-randr...")
         result = subprocess.run(["wlr-randr"], capture_output=True, text=True, check=False, timeout=5)
-        log_debug(f"wlr RC:{result.returncode} STDOUT:{result.stdout[:200]}...")
+        log_debug(f"wlr RC:{result.returncode} STDOUT:{result.stdout}...")
         if result.returncode == 0:
             for line in result.stdout.splitlines():
                 if "connected" in line.lower() and "disconnected" not in line.lower():
@@ -68,12 +75,12 @@ def get_display_output_name():
                 active = o.get("active", False)
                 log_debug(f"sway {name} active:{active}")
                 if active or o.get("current_mode"):
-                    log_debug(f"SWAY HDMI: {name}")
+                    log_debug(f"SWAY HDMI: {name} ✅")
                     return name
-        log_debug("0x0 - AUCUNE SORTIE")
+        log_debug("0x0 - AUCUNE SORTIE 😒")
         return None
     except Exception as e:
-        log_debug(f"ERREUR: {e}")
+        log_debug(f"ERREUR: {e}😒")
         return None
 
 def send_smartplug_command(url):
