@@ -1126,11 +1126,12 @@
                 <i class="fas fa-redo"></i> {{ _("Redémarrer l'application web") }}
             </button>
         </form>
-        <form method="POST" action="/reboot" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir REDÉMARRER le système ?') }}');">
-            <button type="submit" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded">
-                <i class="fas fa-sync-alt"></i> {{ _("Redémarrer le système") }}
-            </button>
-        </form>
+				<!-- Formulaire pour le redémarrage -->
+				<form id="rebootForm" action="/system_reboot" method="POST" style="display:inline;">
+						<button type="button" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded" onclick="confirmReboot()">
+								<i class="fas fa-sync-alt"></i> {{ _("Redémarrer le système") }}
+						</button>
+				</form>
         <form method="POST" action="/shutdown" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir ÉTEINDRE le système ?') }}');">
             <button type="submit" class="system-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
                 <i class="fas fa-power-off"></i> {{ _("Éteindre le système") }}
@@ -1781,6 +1782,12 @@
     polaroidPlaceholder: "{{ _('Ajouter une légende...') }}",
     selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
   };
+
+	function confirmReboot() {
+			if (confirm('Êtes-vous sûr de vouloir redémarrer le système ?')) {
+					document.getElementById('rebootForm').submit();
+			}
+	}
 
   // Ajouter les traductions pour l'onglet Telegram
   i18n.testing = "{{ _('Test en cours...') }}";
@@ -3001,8 +3008,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function startPreparation() {
             //displayMessage(statusDiv, "Étape 1/2: Importation terminée. Démarrage de la préparation...", 'info');
-            progressBar.style.width = "0%";
-            progressBar.textContent = "0%";
+            progressBar.style.width = "25%";
+            progressBar.textContent = "25%";
 
             if (previewContainer) previewContainer.classList.remove('hidden');
             const prepareEventSource = new EventSource(`/prepare-photos?source=${source}`);
