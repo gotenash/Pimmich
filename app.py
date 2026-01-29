@@ -773,6 +773,23 @@ def configure():
         if 'source' in request.form:
             config['photo_source'] = request.form.get('source')
 
+        # --- NOUVEAU: Gérer la limite de photos pour Immich ---
+        if 'max_photos_to_download_immich' in request.form:
+            try:
+                # S'assurer que le dictionnaire imbriqué existe
+                if 'max_photos_to_download' not in config or not isinstance(config['max_photos_to_download'], dict):
+                    config['max_photos_to_download'] = {}
+                
+                value = request.form.get('max_photos_to_download_immich')
+                
+                # On stocke un entier. 0, -1 ou vide signifie "illimité" pour le script de téléchargement.
+                if value is None or value.strip() in ("", "0", "-1"):
+                    config['max_photos_to_download']['immich'] = 0
+                else:
+                    config['max_photos_to_download']['immich'] = int(value)
+            except (ValueError, TypeError):
+                flash(_("La valeur pour la limite de photos Immich est invalide. La valeur précédente est conservée."), "warning")
+
         for key in [
             'immich_url', 'immich_token', 'album_name',
             'display_duration', 'active_start', 'active_end',
