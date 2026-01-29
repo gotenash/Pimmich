@@ -45,9 +45,9 @@ def get_display_output_name():
         log_debug(f"wlr RC:{result.returncode} STDOUT:{result.stdout[:200]}...")
         if result.returncode == 0:
             for line in result.stdout.splitlines():
-                if "connected" in line.lower() and "disconnected" not in line.lower():
+                if line and not line[0].isspace():
                     output = line.split()[0]
-                    log_debug(f"HDMI output: {output}")
+                    log_debug(f"Output detected: {output}")
                     print(f"SORTIE {output}")  # Info user
                     return output
         # Fallback Sway

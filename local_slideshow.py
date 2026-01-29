@@ -336,22 +336,6 @@ _tides_data = None
 _last_tides_fetch = None
 _tides_warning_printed = False
 
-def get_tides(config):
-    """Récupère les prochaines marées haute et basse, avec un cache en mémoire et un cache fichier persistant."""
-    global _tides_data, _last_tides_fetch, _tides_warning_printed
-    api_key = config.get("stormglass_api_key")
-    lat = config.get("tide_latitude")
-    lon = config.get("tide_longitude")
-    # Intervalle de cache de 12 heures pour limiter les appels API à 2 par jour max.
-    cache_duration_seconds = 12 * 3600
-
-    if not all([api_key, lat, lon]):
-        if not _tides_warning_printed:
-            print("[Tides] Clé API StormGlass, latitude ou longitude manquante. Les marées sont désactivées.")
-            _tides_warning_printed = True
-        return None
-
-
 # --- Modification Sigalou 25/01/2026 - Gestion des métadonnées photo (date + localisation) ---
 # Cache global pour les métadonnées des photos (évite de recharger le JSON à chaque photo)
 _photo_metadata_cache = None
@@ -392,36 +376,39 @@ def get_photo_metadata(photo_path):
     """
     try:
         metadata_map = load_photo_metadata_cache()
-
         if not metadata_map:
             return {}
-
-        # Récupérer le nom du fichier
         filename = Path(photo_path).name
-
-        # 🔍 RECHERCHE INSENSIBLE À LA CASSE (fix principal) car leur nom de l'image est recréé par dest_filename = f"{base_name}.jpg"  dans prepare_all_photos, donc si l'extension etait .JPG elle devient .jpg
         filename_lower = filename.lower()
         for cached_filename, metadata in metadata_map.items():
             if cached_filename.lower() == filename_lower:
                 return metadata
-
-        # Essayer sans suffixes _polaroid, _postcard (insensible casse)
-        base_filename = re.sub(r'(_polaroid|_postcard)\.(jpg|jpeg|png|JPG|JPEG|PNG)$', 
-                              r'.\2', filename, flags=re.IGNORECASE)
-        
+        base_filename = re.sub(r'(_polaroid|_postcard)\.(jpg|jpeg|png|JPG|JPEG|PNG)$', r'.\2', filename, flags=re.IGNORECASE)
         base_filename_lower = base_filename.lower()
         for cached_filename, metadata in metadata_map.items():
             if cached_filename.lower() == base_filename_lower:
                 return metadata
-
         return {}
-
     except Exception as e:
         print(f"[Metadata] Erreur extraction métadonnées pour {photo_path}: {e}")
         return {}
 
 # --- Fin Modification Sigalou 25/01/2026 ---
 
+def get_tides(config):
+    """Récupère les prochaines marées haute et basse, avec un cache en mémoire et un cache fichier persistant."""
+    global _tides_data, _last_tides_fetch, _tides_warning_printed
+    api_key = config.get("stormglass_api_key")
+    lat = config.get("tide_latitude")
+    lon = config.get("tide_longitude")
+    # Intervalle de cache de 12 heures pour limiter les appels API à 2 par jour max.
+    cache_duration_seconds = 12 * 3600
+
+    if not all([api_key, lat, lon]):
+        if not _tides_warning_printed:
+            print("[Tides] Clé API StormGlass, latitude ou longitude manquante. Les marées sont désactivées.")
+            _tides_warning_printed = True
+        return None
 
     # 1. Vérifier le cache en mémoire d'abord
     now = datetime.now()
@@ -510,7 +497,7 @@ def get_photo_metadata(photo_path):
     except Exception as e:
         print(f"[Tides] Erreur générale lors de la récupération des marées : {e}")
         traceback.print_exc()
-        _tides_data = [] # Retourner une liste vide en cas d'erreur
+        _tides_data = None # Mettre le cache en mémoire à None pour forcer une nouvelle tentative
         return None
 
 def load_icon(icon_name, size, is_weather_icon=True):

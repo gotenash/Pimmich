@@ -1244,7 +1244,8 @@ def force_tide_update():
 
     try:
         start_time_utc = datetime.utcnow()
-        end_time_utc = start_time_utc + timedelta(days=1)
+        # --- MODIFICATION: Récupérer 7 jours de données pour être cohérent avec le slideshow ---
+        end_time_utc = start_time_utc + timedelta(days=7)
 
         headers = {'Authorization': api_key}
         params = {'lat': lat, 'lng': lon, 'start': start_time_utc.isoformat(), 'end': end_time_utc.isoformat()}
@@ -1256,24 +1257,11 @@ def force_tide_update():
         now_utc = datetime.utcnow().replace(tzinfo=None)
         future_extremes = [e for e in extremes_data if datetime.fromisoformat(e['time'].replace('Z', '+00:00')).replace(tzinfo=None) > now_utc]
 
-        next_high_raw = min((e for e in future_extremes if e['type'] == 'high'), key=lambda x: x['time'], default=None)
-        next_low_raw = min((e for e in future_extremes if e['type'] == 'low'), key=lambda x: x['time'], default=None)
-
-        tides_data = {}
-        if next_high_raw:
-            tides_data['next_high'] = {'time': datetime.fromisoformat(next_high_raw['time']).astimezone(), 'height': next_high_raw['height']}
-        if next_low_raw:
-            tides_data['next_low'] = {'time': datetime.fromisoformat(next_low_raw['time']).astimezone(), 'height': next_low_raw['height']}
-
-        if not tides_data:
+        if not future_extremes:
             return jsonify({"success": False, "message": "Aucune marée future trouvée par l'API."})
 
-        # Préparer les données pour le cache JSON (avec des chaînes ISO)
-        data_to_cache = {'data': {}, 'timestamp': datetime.now().isoformat()}
-        if tides_data.get('next_high'):
-            data_to_cache['data']['next_high'] = {'time': tides_data['next_high']['time'].isoformat(), 'height': tides_data['next_high']['height']}
-        if tides_data.get('next_low'):
-            data_to_cache['data']['next_low'] = {'time': tides_data['next_low']['time'].isoformat(), 'height': tides_data['next_low']['height']}
+        # --- CORRECTION: Sauvegarder la liste complète des marées futures, pas juste les deux prochaines ---
+        data_to_cache = {'data': future_extremes, 'timestamp': datetime.now().isoformat()}
         
         tide_cache_path.parent.mkdir(exist_ok=True)
         with open(tide_cache_path, 'w') as f:
@@ -1283,6 +1271,11 @@ def force_tide_update():
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 402:
+            # --- AMÉLIORATION: Écrire un état de cooldown dans le cache ---
+            cooldown_data = {'data': [], 'timestamp': datetime.now().isoformat(), 'cooldown': True}
+            try:
+                with open(tide_cache_path, 'w') as f: json.dump(cooldown_data, f, indent=2)
+            except Exception: pass
             return jsonify({"success": False, "message": "Quota API StormGlass dépassé."})
         return jsonify({"success": False, "message": f"Erreur API ({e.response.status_code})."})
     except Exception as e:
@@ -2856,8 +2849,12 @@ def get_tide_info_api():
             api_status = f"En cooldown (quota API probablement atteint). Prochaine tentative après { (last_update_dt + timedelta(hours=12)).strftime('%H:%M') }."
         
         tides_data = cache_data.get('data', [])
-        if not tides_data:
-            api_status = "Aucune donnée de marée dans le cache."
+        
+        # --- CORRECTION: Gérer l'ancien format de cache (dictionnaire) ---
+        if not tides_data or not isinstance(tides_data, list):
+            api_status = "Aucune donnée de marée valide dans le cache. Forcez une mise à jour."
+            if isinstance(tides_data, dict):
+                api_status = "Ancien format de cache détecté. Forcez une mise à jour."
         else:
             today = datetime.now().date()
             tomorrow = today + timedelta(days=1)
