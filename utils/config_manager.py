@@ -76,6 +76,9 @@ def create_default_config():
         # --- NOUVELLES VARIABLES : Métadonnées photo ---
         "show_photo_date": False,
         "photo_date_format": "%Y",
+        "country_flag_size": "192x144",
+        "country_flag_opacity": 0.7,
+        "show_photo_location": True,        
         "show_photo_location": False,
         "photo_location_format": "city_country",
         "photo_metadata_color": "#ffffff",
