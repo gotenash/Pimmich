@@ -44,7 +44,7 @@ def download_and_extract_album(config):
         yield {"type": "error", "message": "Configuration incomplète : url du serveur ou clé API manquant."}
         return
 
-    yield {"type": "progress", "stage": "CONNECTING", "percent": 5, "message": "Connexion à Immich..."}
+    yield {"type": "progress", "stage": "CONNECTING", "percent": 2, "message": "Connexion à Immich..."}
     time.sleep(0.5)
 
     headers = {"x-api-key": api_key}
@@ -52,7 +52,7 @@ def download_and_extract_album(config):
     # Modification Sigalou 25/01/2026 - Gestion mode album OU mode aléatoire
     if album_name and album_name.strip():
         # MODE ALBUM : Récupérer les photos d'un album spécifique
-        yield {"type": "progress", "stage": "SEARCHING", "percent": 10, "message": f"Recherche de l'album '{album_name}'..."}
+        yield {"type": "progress", "stage": "SEARCHING", "percent": 4, "message": f"Recherche de l'album '{album_name}'..."}
         album_list_url = f"{server_url}/api/albums"
 
         try:
@@ -86,7 +86,7 @@ def download_and_extract_album(config):
     else:
         # MODE ALÉATOIRE : Récupérer des photos aléatoires avec leurs métadonnées complètes
         size = max_photos_to_download if max_photos_to_download is not None else 500
-        yield {"type": "progress", "stage": "FETCHING_RANDOM", "percent": 10, "message": f"Récupération de {size} photos aléatoires..."}
+        yield {"type": "progress", "stage": "FETCHING_RANDOM", "percent": 4, "message": f"Récupération de {size} photos aléatoires..."}
         random_url = f"{server_url}/api/search/random"
         payload = {"size": size}
 
@@ -95,7 +95,7 @@ def download_and_extract_album(config):
             response.raise_for_status()
             assets_light = response.json()
 
-            #yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
+            #yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 12, "message": "Récupération de la liste des photos..."}
             # Modification Sigalou 25/01/2026 - Enrichir avec les détails complets via API asset
             # L'API /search/random ne renvoie pas les exifInfo, donc on appelle /assets/{id} pour chaque photo
             assets = []
@@ -141,7 +141,7 @@ def download_and_extract_album(config):
     try:
         with open(DESCRIPTION_MAP_CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(filename_to_metadata_map, f, ensure_ascii=False, indent=2)
-        yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 20, 
+        yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 12, 
                "message": f"Metadonnées sauvées pour {photos_with_metadata} photos sur {total_assets}"}
     except Exception as e:
         yield {"type": "warning", "message": f"Erreur sauvegarde Metadonnées : {e}"}
@@ -155,7 +155,7 @@ def download_and_extract_album(config):
         return
 
     nb_photos = len(asset_ids)
-    yield {"type": "progress", "stage": "DOWNLOADING", "percent": 25, "message": f"Téléchargement de l'archive ({nb_photos} photos)..."}
+    yield {"type": "progress", "stage": "DOWNLOADING", "percent": 16, "message": f"Téléchargement de l'archive ({nb_photos} photos)..."}
 
     zip_path = "temp_album.zip"
     try:
@@ -166,7 +166,7 @@ def download_and_extract_album(config):
         yield {"type": "error", "message": f"Erreur critique lors du téléchargement : {str(e)}"}
         return
 
-    yield {"type": "progress", "stage": "EXTRACTING", "percent": 60, "message": "Extraction des photos..."}
+    #yield {"type": "progress", "stage": "EXTRACTING", "percent": 20, "message": "Extraction des photos..."}
     photos_folder = os.path.join("static", "photos", "immich")
     prepared_folder = os.path.join("static", "prepared", "immich")
 
@@ -186,4 +186,4 @@ def download_and_extract_album(config):
         yield {"type": "error", "message": f"Erreur lors de l'extraction : {str(e)}"}
         return
 
-    yield {"type": "done", "stage": "DOWNLOAD_COMPLETE", "percent": 80, "message": f"{nb_photos} photos prêtes pour préparation.", "total_downloaded": nb_photos}
+    yield {"type": "done", "stage": "DOWNLOAD_COMPLETE", "percent": 24, "message": f"{nb_photos} photos prêtes pour préparation.", "total_downloaded": nb_photos}
