@@ -135,6 +135,26 @@ def get_local_ip():
         s.close()
     return ip
 
+# NOUVELLE FONCTION
+def get_pi_model():
+    """Détecte le modèle du Raspberry Pi pour un décodage vidéo optimal."""
+    try:
+        with open('/proc/device-tree/model', 'r') as f:
+            model_str = f.read()
+            if 'Raspberry Pi 4' in model_str:
+                return 4
+            if 'Raspberry Pi 5' in model_str:
+                return 5
+            if 'Raspberry Pi 3' in model_str:
+                return 3
+    except FileNotFoundError:
+        # Pas un Raspberry Pi ou un système où ce fichier n'existe pas
+        return None
+    except Exception as e:
+        print(f"[Pi Detect] Erreur lors de la détection du modèle de Pi : {e}")
+        return None
+    return None # Modèle non reconnu
+
 # Helper function to parse hex colors (including alpha)
 def parse_color(hex_color):
     hex_color = str(hex_color).lstrip('#')
@@ -1341,10 +1361,24 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         ]
 
         if hwdec_enabled:
-            # Activation du décodage matériel si demandé (recommandé pour RPi 3/4)
-            command.extend(['--hwdec=auto', '--vo=gpu'])
+            # --- MODIFICATION SIGALOU 28/01/2026 ---
+            # Logique de décodage matériel spécifique au modèle de Raspberry Pi
+            # pour une performance optimale, notamment sur Pi 4.
+            pi_model = get_pi_model()
+            if pi_model in [4, 5]:
+                print("[Video Playback] Raspberry Pi 4/5 détecté. Utilisation de 'v4l2m2m' pour le décodage matériel.")
+                command.extend(['--hwdec=v4l2m2m', '--vo=gpu'])
+            elif pi_model == 3:
+                print("[Video Playback] Raspberry Pi 3 détecté. Utilisation de 'mmal' pour le décodage matériel.")
+                command.extend(['--hwdec=mmal', '--vo=gpu'])
+            else:
+                # Fallback pour les autres systèmes ou si la détection échoue
+                print("[Video Playback] Modèle de Pi non spécifique détecté. Utilisation de '--hwdec=auto'.")
+                command.extend(['--hwdec=auto', '--vo=gpu'])
+            # --- FIN MODIFICATION ---
         else:
             # Mode logiciel par défaut (plus stable sur certains systèmes mais plus lent)
+            print("[Video Playback] Décodage matériel désactivé. Utilisation du mode logiciel.")
             command.extend(['--hwdec=no', '--vo=x11'])
 
         command.append(video_path)
