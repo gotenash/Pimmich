@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="fr">
-<html lang="{{ get_locale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,23 +101,11 @@
             100% { width: 90%; }
         }
     </style>
-    <title>{{ _('Redémarrage') }} - Pimmich</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <!-- Logo Pimmich -->
         <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" style="width: 160px; height: auto;">
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
-        <div class="mb-6">
-            <i class="fas fa-sync-alt fa-spin fa-4x text-blue-500"></i>
-        </div>
-        <h1 class="text-2xl font-bold mb-4 text-gray-800">{{ _('Redémarrage en cours') }}</h1>
-        <p class="text-gray-600 mb-6">{{ _('Le système redémarre. Cette page se rafraîchira automatiquement une fois le système prêt.') }}</p>
         
         <h1>Redémarrage en cours</h1>
         
@@ -128,15 +115,12 @@
         
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
-        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
         </div>
         
         <p class="info">
             Le système va redémarrer dans quelques instants.<br>
             Cette page se rechargera automatiquement une fois le système prêt.
         </p>
-        <p id="status-text" class="text-sm text-gray-500">{{ _('Initialisation...') }}</p>
     </div>
 
     <script>
@@ -147,52 +131,6 @@
         // Déclencher le redémarrage immédiatement après le chargement de la page
         window.addEventListener('DOMContentLoaded', function() {
             setTimeout(triggerReboot, 100); // Petit délai pour s'assurer que la page est affichée
-        document.addEventListener('DOMContentLoaded', function() {
-            // Déclencher le reboot via l'API
-            fetch('/api/trigger_reboot', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('status-text').textContent = "{{ _('Redémarrage lancé...') }}";
-                        startProgress();
-                        // Commencer à vérifier le statut après 15 secondes
-                        setTimeout(checkStatus, 15000);
-                    } else {
-                        document.getElementById('status-text').textContent = "{{ _('Erreur : ') }}" + data.message;
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('status-text').textContent = "{{ _('Erreur de communication') }}";
-                });
-
-            function startProgress() {
-                const bar = document.getElementById('progress-bar');
-                let width = 0;
-                const interval = setInterval(() => {
-                    if (width >= 90) clearInterval(interval);
-                    else {
-                        width++;
-                        bar.style.width = width + '%';
-                    }
-                }, 500);
-            }
-
-            function checkStatus() {
-                const statusText = document.getElementById('status-text');
-                statusText.textContent = "{{ _('Attente du système...') }}";
-                const interval = setInterval(() => {
-                    fetch('/api/ping', { method: 'GET', cache: 'no-store' })
-                        .then(res => {
-                            if (res.ok) {
-                                clearInterval(interval);
-                                document.getElementById('progress-bar').style.width = '100%';
-                                statusText.textContent = "{{ _('Système prêt ! Redirection...') }}";
-                                setTimeout(() => window.location.href = '/configure', 1000);
-                            }
-                        })
-                        .catch(() => {});
-                }, 2000);
-            }
         });
         
         function triggerReboot() {
