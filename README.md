@@ -4,6 +4,12 @@ Pimmich est une application Python conçue pour transformer un Raspberry Pi en u
 
 <img src="static/pimmich_logo.png" alt="Pimmich Logo" width="300" style="display: block; margin: auto;">
 
+<p align="center">
+  <a href="https://ko-fi.com/pimmich">
+    <img src="https://img.shields.io/badge/Support%20on%20Ko--fi-F16061?logo=kofi&logoColor=white" alt="Support Pimmich on Ko-fi">
+  </a>
+</p>
+
 ---
 
 ## 📖 Table des matières
@@ -33,10 +39,10 @@ Pimmich est riche en fonctionnalités pour offrir une expérience complète et p
 - **Gestion des formats :** Prise en charge intelligente des photos portraits (fond flou) et des vidéos (avec son et accélération matérielle optionnelle).
 
 #### ⚙️ **Interface & Contrôle**
-- **Interface Web complète :** Une page de configuration locale, sécurisée par mot de passe et organisée en onglets clairs (Diaporama, Contenu, Interactions, Maintenance).
+- **Interface Web complète :** Une page de configuration locale, sécurisée par mot de passe et organisée en groupes et onglets thématiques pour une navigation intuitive.
 - **Contrôle Vocal :** Pilotez votre cadre avec des commandes vocales comme *"Cadre Magique, photo suivante"* ou *"Cadre Magique, lance la playlist Vacances"*.
 - **Gestion de contenu :**
-    - **Playlists :** Créez des albums virtuels, réorganisez les photos par glisser-déposer et lancez des diaporamas thématiques.
+    - **Playlists :** Créez des albums virtuels, réorganisez les photos par glisser-déposer et lancez des diaporamas thématiques avec un écran de titre dynamique (pêle-mêle de photos sur fond en liège).
     - **Favoris :** Marquez vos photos préférées pour qu'elles apparaissent plus souvent.
     - **Légendes :** Ajoutez du texte personnalisé sur vos photos et cartes postales.
 
@@ -73,7 +79,7 @@ Il existe deux méthodes pour installer Pimmich.
 Cette méthode est idéale pour une première installation rapide.
 
 1.  **Téléchargez l'image du mois en cours**
-    Rendez-vous sur la page des [Releases de Pimmich](https://github.com/gotenash/pimmich/releases) et téléchargez le fichier `.img` de la dernière version.
+    Téléchargez la version du Nouvel An (v1.6.0) directement ici : [pimmich271225.img.xz](https://github.com/gotenash/Pimmich/releases/download/v1.6.0/pimmich271225.img.xz) ou rendez-vous sur la page des Releases de Pimmich.
 
 2.  **Flashez l'image sur une carte SD**
     Utilisez un logiciel comme Raspberry Pi Imager ou BalenaEtcher pour écrire le fichier image que vous venez de télécharger sur votre carte microSD.
@@ -217,8 +223,7 @@ Voici un aperçu des fonctionnalités à venir :
 
 ## 🗓️ Octobre 2025 - (En cours de développement)
 - 📱 Création d’une APK Android pour contrôler le cadre (Pimmich télécommande)
-- 🗣️ Ajout de la commande vocale ("Cadre Magique") pour piloter le cadre (photo suivante, pause, etc.).
-- 🔘 Gestion d'un bouton physique pour démarrer/arrêter le diaporama.
+-  Gestion d'un bouton physique pour démarrer/arrêter le diaporama.
 - 🗂️ Gestion des albums directement depuis l'interface Pimmich (créer, renommer, etc.).
 
 ## ✅ Septembre 2025 - (Sortie prévue le 15 septembre)
@@ -226,7 +231,8 @@ Voici un aperçu des fonctionnalités à venir :
 - 🎵 **Gestion de Playlists Améliorée :**
     - ✅ Nouvel écran de lancement dynamique avec un pêle-mêle de photos sur un fond en liège.
     - ✅ Créez des albums virtuels, visualisez leur contenu, renommez-les et lancez des diaporamas thématiques.
-- 🗣️ **Amélioration du Contrôle Vocal :**
+- 🗣️ **Contrôle Vocal :**
+    - ✅ Ajout de la commande vocale ("Cadre Magique") pour piloter le cadre (photo suivante, pause, etc.).
     - ✅ Ajout de la commande "Revenir au diaporama principal".
     - ✅ Fiabilisation du lancement des playlists par la voix.
 - 📊 **Monitoring Avancé :** Ajout de graphiques d'historique pour la température, l'utilisation du CPU, de la RAM et du disque.

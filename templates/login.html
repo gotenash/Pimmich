@@ -2,6 +2,7 @@
 <html lang="{{ get_locale() }}">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ _('Connexion') }} - Pimmich</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
@@ -45,7 +46,7 @@
   {% endwith %}
 
   <div class="flex items-center justify-center min-h-screen">
-    <div class="container mx-auto p-8 bg-white/80 backdrop-blur-md rounded-xl shadow-xl max-w-sm">
+    <div class="w-11/12 max-w-xs p-6 md:p-8 bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-xl">
         <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="w-40 mx-auto mb-8">
         
         <form method="POST" action="{{ url_for('login') }}">

@@ -4,6 +4,12 @@ Pimmich is a Python application designed to turn a Raspberry Pi into a smart and
 
 <img src="static/pimmich_logo.png" alt="Pimmich Logo" width="300">
 
+<p align="center">
+  <a href="https://ko-fi.com/pimmich">
+    <img src="https://img.shields.io/badge/Support%20on%20Ko--fi-F16061?logo=kofi&logoColor=white" alt="Support Pimmich on Ko-fi">
+  </a>
+</p>
+
 ---
 
 ## 📖 Table of Contents
@@ -73,7 +79,7 @@ There are two methods to install Pimmich.
 This method is ideal for a quick first-time installation.
 
 1.  **Download the current month's image**
-    Go to the Pimmich Releases page and download the `.img` file of the latest version.
+    Download the New Year version (v1.6.0) directly here: pimmich271225.img.xz or go to the Pimmich Releases page.
 
 2.  **Flash the image to an SD card**
     Use software like Raspberry Pi Imager or BalenaEtcher to write the image file you just downloaded to your microSD card.

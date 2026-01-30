@@ -72,4 +72,8 @@ def get_photo_date_formatted(image, format="%d/%m/%Y"):
     if photo_date:
         return photo_date.strftime(format)
     return None
+<<<<<<< HEAD
 # Fin Modification Sigalou 25/01/2026
+=======
+# Fin Modification Sigalou 25/01/2026
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c

@@ -62,8 +62,11 @@ def load_country_codes():
             _country_codes_cache = {}
     return _country_codes_cache
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c
 def update_status_file(status_dict):
     """Met à jour le fichier de statut JSON pour la communication avec l'app web."""
     try:
@@ -157,6 +160,26 @@ def get_local_ip():
     finally:
         s.close()
     return ip
+
+# NOUVELLE FONCTION
+def get_pi_model():
+    """Détecte le modèle du Raspberry Pi pour un décodage vidéo optimal."""
+    try:
+        with open('/proc/device-tree/model', 'r') as f:
+            model_str = f.read()
+            if 'Raspberry Pi 4' in model_str:
+                return 4
+            if 'Raspberry Pi 5' in model_str:
+                return 5
+            if 'Raspberry Pi 3' in model_str:
+                return 3
+    except FileNotFoundError:
+        # Pas un Raspberry Pi ou un système où ce fichier n'existe pas
+        return None
+    except Exception as e:
+        print(f"[Pi Detect] Erreur lors de la détection du modèle de Pi : {e}")
+        return None
+    return None # Modèle non reconnu
 
 # Helper function to parse hex colors (including alpha)
 def parse_color(hex_color):
@@ -359,6 +382,65 @@ _tides_data = None
 _last_tides_fetch = None
 _tides_warning_printed = False
 
+# --- Modification Sigalou 25/01/2026 - Gestion des métadonnées photo (date + localisation) ---
+# Cache global pour les métadonnées des photos (évite de recharger le JSON à chaque photo)
+_photo_metadata_cache = None
+_photo_metadata_last_load = None
+
+def load_photo_metadata_cache():
+    """
+    Charge le cache des métadonnées photos depuis le fichier JSON créé lors du téléchargement.
+    Ce fichier contient les informations EXIF de chaque photo (date, ville, pays, coordonnées GPS).
+    """
+    global _photo_metadata_cache, _photo_metadata_last_load
+
+    cache_file = Path(BASE_DIR) / 'cache' / 'immich_description_map.json'
+
+    if not cache_file.exists():
+        return {}
+
+    # Vérifier si le fichier a été modifié depuis le dernier chargement
+    try:
+        file_mtime = cache_file.stat().st_mtime
+
+        # Recharger si c'est le premier chargement ou si le fichier a changé
+        if _photo_metadata_last_load is None or file_mtime > _photo_metadata_last_load:
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                _photo_metadata_cache = json.load(f)
+            _photo_metadata_last_load = file_mtime
+
+        return _photo_metadata_cache
+
+    except Exception as e:
+        print(f"[Metadata]  Erreur chargement cache : {e}")
+        return {}
+
+def get_photo_metadata(photo_path):
+    """
+    Récupère les métadonnées d'une photo depuis le cache.
+    Retourne un dictionnaire avec : date_taken, city, country, location, latitude, longitude
+    """
+    try:
+        metadata_map = load_photo_metadata_cache()
+        if not metadata_map:
+            return {}
+        filename = Path(photo_path).name
+        filename_lower = filename.lower()
+        for cached_filename, metadata in metadata_map.items():
+            if cached_filename.lower() == filename_lower:
+                return metadata
+        base_filename = re.sub(r'(_polaroid|_postcard)\.(jpg|jpeg|png|JPG|JPEG|PNG)$', r'.\2', filename, flags=re.IGNORECASE)
+        base_filename_lower = base_filename.lower()
+        for cached_filename, metadata in metadata_map.items():
+            if cached_filename.lower() == base_filename_lower:
+                return metadata
+        return {}
+    except Exception as e:
+        print(f"[Metadata] Erreur extraction métadonnées pour {photo_path}: {e}")
+        return {}
+
+# --- Fin Modification Sigalou 25/01/2026 ---
+
 def get_tides(config):
     """Récupère les prochaines marées haute et basse, avec un cache en mémoire et un cache fichier persistant."""
     global _tides_data, _last_tides_fetch, _tides_warning_printed
@@ -533,7 +615,7 @@ def get_photo_metadata(photo_path):
     except Exception as e:
         print(f"[Tides] Erreur générale lors de la récupération des marées : {e}")
         traceback.print_exc()
-        _tides_data = [] # Retourner une liste vide en cas d'erreur
+        _tides_data = None # Mettre le cache en mémoire à None pour forcer une nouvelle tentative
         return None
 
 def load_icon(icon_name, size, is_weather_icon=True):
@@ -959,7 +1041,10 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
             if location_str:
                 metadata_elements.append(location_str)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c
         # Assembler et afficher les métadonnées
         if metadata_elements:
             metadata_text = metadata_separator.join(metadata_elements)
@@ -1028,8 +1113,12 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                 anchor="topleft"
             )
     # --- Fin Modification Sigalou 25/01/2026 ---
+<<<<<<< HEAD
     
     
+=======
+
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c
         # --- DRAPEAU PAYS en haut à droite (ajout Sigalou 29/01/2026) ---
         if photo_metadata and config.get("show_country_flag", True):
             
@@ -1078,7 +1167,10 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                         pass  # Silencieux
         # --- Fin DRAPEAU ---
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c
 def display_title_slide(screen, screen_width, screen_height, title, duration, config, photos_for_slide=None):
     """Affiche un écran titre avec le nom de la playlist et un pêle-mêle de photos."""
     print(f"[Slideshow] Affichage de l'écran titre : '{title}'")
@@ -1429,10 +1521,24 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         ]
 
         if hwdec_enabled:
-            # Activation du décodage matériel si demandé (recommandé pour RPi 3/4)
-            command.extend(['--hwdec=auto', '--vo=gpu'])
+            # --- MODIFICATION SIGALOU 28/01/2026 ---
+            # Logique de décodage matériel spécifique au modèle de Raspberry Pi
+            # pour une performance optimale, notamment sur Pi 4.
+            pi_model = get_pi_model()
+            if pi_model in [4, 5]:
+                print("[Video Playback] Raspberry Pi 4/5 détecté. Utilisation de 'v4l2m2m' pour le décodage matériel.")
+                command.extend(['--hwdec=v4l2m2m', '--vo=gpu'])
+            elif pi_model == 3:
+                print("[Video Playback] Raspberry Pi 3 détecté. Utilisation de 'mmal' pour le décodage matériel.")
+                command.extend(['--hwdec=mmal', '--vo=gpu'])
+            else:
+                # Fallback pour les autres systèmes ou si la détection échoue
+                print("[Video Playback] Modèle de Pi non spécifique détecté. Utilisation de '--hwdec=auto'.")
+                command.extend(['--hwdec=auto', '--vo=gpu'])
+            # --- FIN MODIFICATION ---
         else:
             # Mode logiciel par défaut (plus stable sur certains systèmes mais plus lent)
+            print("[Video Playback] Décodage matériel désactivé. Utilisation du mode logiciel.")
             command.extend(['--hwdec=no', '--vo=x11'])
 
         command.append(video_path)

@@ -571,7 +571,9 @@
 
                         <label for="immich_token">{{ _("Token d'accès Immich :") }}</label>
                         <input type="text" id="immich_token" name="immich_token" value="{{ config.immich_token }}">
-
+                         <label for="max_photos_to_download_immich" class="block text-sm font-medium text-gray-700">{{ _('Limite de photos à télécharger (Immich)') }}</label>
+                         <input type="number" id="max_photos_to_download_immich" name="max_photos_to_download_immich" value="{{ config.get('max_photos_to_download', {}).get('immich', 10) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="10">
+                        <p class="mt-2 text-sm text-gray-500">{{ _("Nombre maximum de photos à récupérer depuis Immich. Mettez 0, -1 ou laissez vide pour ne pas avoir de limite.") }}</p>
                         <hr class="my-4">
                         <h5 class="text-lg font-semibold mt-2">{{ _("Mise à jour automatique (Immich)") }}</h5>
                         <div class="form-check form-switch my-3">
@@ -4400,7 +4402,14 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Afficher un overlay et commencer à recharger la page
             setTimeout(() => {
+<<<<<<< HEAD
                 document.body.innerHTML = `<div class="fixed inset-0 bg-gray-800 text-white flex flex-col items-center justify-center text-center p-4 z-50"><i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p></div>`;
+=======
+                const overlay = document.createElement('div');
+                overlay.className = "fixed inset-0 bg-gray-800 bg-opacity-90 text-white flex flex-col items-center justify-center text-center p-4 z-50";
+                overlay.innerHTML = `<i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p>`;
+                document.body.appendChild(overlay);
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c
                 setInterval(() => { location.reload(true); }, 3000);
             }, 2000);
         }

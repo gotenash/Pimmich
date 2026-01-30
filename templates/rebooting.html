@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -195,3 +196,202 @@
     </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Redémarrage en cours - Pimmich</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            max-width: 500px;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+        }
+        
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .status {
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        /* Spinner animé */
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 30px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top: 6px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Animation de pulsation pour le texte */
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .info {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-top: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: white;
+            animation: progress 40s ease-out forwards;
+        }
+        
+        @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 90%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Pimmich -->
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" style="width: 160px; height: auto;">
+        
+        <h1>Redémarrage en cours</h1>
+        
+        <div class="spinner"></div>
+        
+        <p class="status pulse" id="status">Redémarrage du système...</p>
+        
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+        
+        <p class="info">
+            Le système va redémarrer dans quelques instants.<br>
+            Cette page se rechargera automatiquement une fois le système prêt.
+        </p>
+    </div>
+
+    <script>
+        let checkInterval;
+        let rebootTriggered = false;
+        let checkStartTime = null;
+        
+        // Déclencher le redémarrage immédiatement après le chargement de la page
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(triggerReboot, 100); // Petit délai pour s'assurer que la page est affichée
+        });
+        
+        function triggerReboot() {
+            if (rebootTriggered) return;
+            rebootTriggered = true;
+            
+            fetch('/api/trigger_reboot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Redémarrage déclenché:', data);
+                // Attendre 10 secondes avant de commencer à vérifier (le temps que le système redémarre)
+                setTimeout(startChecking, 10000);
+            })
+            .catch(error => {
+                console.log('Erreur lors du déclenchement (normal, le serveur redémarre):', error);
+                // Même en cas d'erreur, on commence à vérifier après 10 secondes
+                setTimeout(startChecking, 10000);
+            });
+        }
+        
+        function startChecking() {
+            checkStartTime = Date.now();
+            updateStatus('Attente du redémarrage du système...');
+            
+            // Vérifier toutes les 5 secondes
+            checkInterval = setInterval(checkServerAvailability, 5000);
+        }
+        
+        function checkServerAvailability() {
+            const elapsedSeconds = Math.floor((Date.now() - checkStartTime) / 1000);
+            updateStatus(`Vérification de la disponibilité du serveur... (${elapsedSeconds}s)`);
+            
+            fetch('/api/ping', {
+                method: 'GET',
+                cache: 'no-cache'
+            })
+            .then(response => {
+                if (response.ok) {
+                    clearInterval(checkInterval);
+                    updateStatus('Système prêt ! Redirection...');
+                    
+                    // Rediriger vers la racine après 1 seconde
+                    setTimeout(() => {
+                        window.location.href = '/configure';
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                // Serveur pas encore disponible, on continue à vérifier
+                console.log('Serveur pas encore disponible, nouvelle tentative dans 5s...');
+            });
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+    </script>
+</body>
+</html>
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c

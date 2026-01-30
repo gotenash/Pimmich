@@ -52,9 +52,15 @@ def get_display_output_name():
         log_debug(f"wlr RC:{result.returncode} STDOUT:{result.stdout}...")
         if result.returncode == 0:
             for line in result.stdout.splitlines():
+<<<<<<< HEAD
                 if "connected" in line.lower() and "disconnected" not in line.lower():
                     output = line.split()[0]
                     log_debug(f"HDMI output: {output}")
+=======
+                if line and not line[0].isspace():
+                    output = line.split()[0]
+                    log_debug(f"Output detected: {output}")
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c
                     print(f"SORTIE {output}")  # Info user
                     return output
         # Fallback Sway
@@ -161,4 +167,8 @@ def set_software_display_power(on):
     except Exception as e:
         err_msg = f"Erreur DPMS: {e}"
         log_debug(err_msg)
+<<<<<<< HEAD
         return False, err_msg
+=======
+        return False, err_msg
+>>>>>>> 585d33c75477652e9a2d7455d8b4e6c4f1b92b2c
