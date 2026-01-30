@@ -16,3 +16,4 @@ static/photos/
 *.jpeg
 *.png
 *.gif
+static/.backups/
