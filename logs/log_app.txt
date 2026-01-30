@@ -865,3 +865,83 @@
 2026-01-30 19:47:06,984 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:06] "GET /api/logs?type=app HTTP/1.0" 200 -
 2026-01-30 19:47:06,994 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:06] "GET /api/slideshow/status HTTP/1.0" 200 -
 2026-01-30 19:47:06,996 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:06] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:47:11,917 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:11] "GET /api/voice_control/status HTTP/1.0" 200 -
+2026-01-30 19:47:11,926 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:11] "GET /immich_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:11,931 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:11] "GET /samba_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:11,947 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:11] "GET /telegram_bot_status HTTP/1.0" 200 -
+2026-01-30 19:47:11,972 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:11] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:47:11,980 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:11] "GET /api/system_info HTTP/1.0" 200 -
+2026-01-30 19:47:11,982 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:11] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:47:16,928 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:16] "GET /immich_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:16,951 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:16] "GET /api/voice_control/status HTTP/1.0" 200 -
+2026-01-30 19:47:16,969 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:16] "GET /samba_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:16,989 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:16] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:47:16,993 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:16] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:47:21,915 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:21] "GET /api/voice_control/status HTTP/1.0" 200 -
+[DEBUG] Listing pending photos in: /home/pi/pimmich/static/pending_uploads
+2026-01-30 19:47:21,945 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:21] "GET /api/tide_info HTTP/1.0" 200 -
+[DEBUG] Found 0 pending photos.
+2026-01-30 19:47:21,953 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:21] "GET /api/get_pending_photos?_=1769798841991 HTTP/1.0" 200 -
+2026-01-30 19:47:21,965 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:21] "GET /immich_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:21,979 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:21] "GET /samba_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:22,017 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:22] "GET /telegram_bot_status HTTP/1.0" 200 -
+2026-01-30 19:47:22,053 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:22] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:47:22,075 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:22] "GET /api/logs?type=app HTTP/1.0" 200 -
+2026-01-30 19:47:22,084 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:22] "GET /api/interface_status/eth0 HTTP/1.0" 200 -
+2026-01-30 19:47:22,097 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:22] "GET /api/system_info HTTP/1.0" 200 -
+2026-01-30 19:47:22,107 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:22] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:47:22,183 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:22] "GET /api/wifi_status HTTP/1.0" 200 -
+2026-01-30 19:47:26,909 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:26] "GET /api/voice_control/status HTTP/1.0" 200 -
+2026-01-30 19:47:26,920 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:26] "GET /immich_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:26,931 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:26] "GET /samba_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:26,960 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:26] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:47:26,965 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:26] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:47:31,921 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:31] "GET /api/voice_control/status HTTP/1.0" 200 -
+2026-01-30 19:47:31,933 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:31] "GET /immich_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:31,945 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:31] "GET /samba_update_status HTTP/1.0" 200 -
+2026-01-30 19:47:31,982 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:31] "GET /telegram_bot_status HTTP/1.0" 200 -
+2026-01-30 19:47:32,001 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:32] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:47:32,008 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:32] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:47:32,019 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:47:32] "GET /api/system_info HTTP/1.0" 200 -
+2026-01-30 19:48:35,924 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:35] "GET /api/voice_control/status HTTP/1.0" 200 -
+[DEBUG] Listing pending photos in: /home/pi/pimmich/static/pending_uploads
+2026-01-30 19:48:35,952 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:35] "GET /samba_update_status HTTP/1.0" 200 -
+[DEBUG] Found 0 pending photos.2026-01-30 19:48:35,955 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:35] "GET /immich_update_status HTTP/1.0" 200 -
+
+2026-01-30 19:48:35,978 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:35] "GET /api/get_pending_photos?_=1769798915998 HTTP/1.0" 200 -
+2026-01-30 19:48:36,004 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /api/logs?type=app HTTP/1.0" 200 -
+2026-01-30 19:48:36,022 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /telegram_bot_status HTTP/1.0" 200 -
+2026-01-30 19:48:36,034 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /api/tide_info HTTP/1.0" 200 -
+2026-01-30 19:48:36,042 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:48:36,065 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /api/system_info HTTP/1.0" 200 -
+2026-01-30 19:48:36,072 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:48:36,094 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /api/interface_status/eth0 HTTP/1.0" 200 -
+2026-01-30 19:48:36,158 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:48:36] "GET /api/wifi_status HTTP/1.0" 200 -
+2026-01-30 19:49:35,919 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:35] "GET /api/voice_control/status HTTP/1.0" 200 -
+[DEBUG] Listing pending photos in: /home/pi/pimmich/static/pending_uploads
+2026-01-30 19:49:35,932 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:35] "GET /immich_update_status HTTP/1.0" 200 -
+[DEBUG] Found 0 pending photos.
+2026-01-30 19:49:35,934 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:35] "GET /api/get_pending_photos?_=1769798976004 HTTP/1.0" 200 -
+2026-01-30 19:49:35,942 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:35] "GET /samba_update_status HTTP/1.0" 200 -
+2026-01-30 19:49:35,978 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:35] "GET /telegram_bot_status HTTP/1.0" 200 -
+2026-01-30 19:49:35,984 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:35] "GET /api/logs?type=app HTTP/1.0" 200 -
+2026-01-30 19:49:35,999 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:35] "GET /api/tide_info HTTP/1.0" 200 -
+2026-01-30 19:49:36,013 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:36] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:49:36,033 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:36] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:49:36,049 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:36] "GET /api/system_info HTTP/1.0" 200 -
+2026-01-30 19:49:36,058 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:36] "GET /api/interface_status/eth0 HTTP/1.0" 200 -
+2026-01-30 19:49:36,133 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:49:36] "GET /api/wifi_status HTTP/1.0" 200 -
+2026-01-30 19:50:35,930 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:35] "GET /immich_update_status HTTP/1.0" 200 -
+[DEBUG] Listing pending photos in: /home/pi/pimmich/static/pending_uploads
+2026-01-30 19:50:35,945 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:35] "GET /api/voice_control/status HTTP/1.0" 200 -
+[DEBUG] Found 0 pending photos.2026-01-30 19:50:35,965 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:35] "GET /samba_update_status HTTP/1.0" 200 -
+
+2026-01-30 19:50:35,990 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:35] "GET /api/get_pending_photos?_=1769799035997 HTTP/1.0" 200 -
+2026-01-30 19:50:36,099 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /current_photo_status HTTP/1.0" 200 -
+2026-01-30 19:50:36,104 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /telegram_bot_status HTTP/1.0" 200 -
+2026-01-30 19:50:36,161 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /api/slideshow/status HTTP/1.0" 200 -
+2026-01-30 19:50:36,171 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /api/logs?type=app HTTP/1.0" 200 -
+2026-01-30 19:50:36,226 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /api/tide_info HTTP/1.0" 200 -
+2026-01-30 19:50:36,286 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /api/system_info HTTP/1.0" 200 -
+2026-01-30 19:50:36,330 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /api/interface_status/eth0 HTTP/1.0" 200 -
+2026-01-30 19:50:36,632 - werkzeug - INFO - 127.0.0.1 - - [30/Jan/2026 19:50:36] "GET /api/wifi_status HTTP/1.0" 200 -
