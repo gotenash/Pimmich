@@ -22,3 +22,6 @@ logs/
 log.*
 cache/
 config/
+__pycache__/
+*.pyc
+*.pyo
