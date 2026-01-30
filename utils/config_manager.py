@@ -71,7 +71,31 @@ def create_default_config():
         "voice_control_language": "fr",
         "porcupine_access_key": "",
         "voice_control_device_index": "",
-        "notification_sound_volume": 80, # NOUVEAU: Volume pour les sons de notification
+        "notification_sound_volume": 80,
+        
+        # --- NOUVELLES VARIABLES : Métadonnées photo ---
+        "show_photo_date": False,
+        "photo_date_format": "%Y",
+        "country_flag_size": "192x144",
+        "country_flag_opacity": 0.7,
+        "show_photo_location": True,        
+        "show_photo_location": False,
+        "photo_location_format": "city_country",
+        "photo_metadata_color": "#ffffff",
+        "photo_metadata_outline_color": "#000000",
+        "photo_metadata_font_size": 23,
+        "photo_metadata_font_path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "photo_metadata_offset_x": 0,
+        "photo_metadata_offset_y": 0,
+        "photo_metadata_position": "bottom_left",
+        "photo_metadata_background_enabled": True,
+        "photo_metadata_background_color": "#00000080",
+        
+        # --- NOUVELLE VARIABLE : Limite de téléchargement ---
+        "max_photos_to_download": {
+            "immich": 10,
+            "telegram": 100
+        }
     }
 
 def load_config():

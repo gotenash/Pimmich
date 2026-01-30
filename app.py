@@ -666,8 +666,8 @@ def manage_pending_photo():
         # 1. Copier la photo vers le dossier de transit (au lieu de la déplacer).
         # 2. Lancer la préparation.
         # 3. Si la préparation réussit, supprimer la photo du dossier d'attente.
-        # Utiliser un dossier spécifique 'invites' pour éviter de mélanger ou supprimer d'autres photos
-        target_source = "invites"
+        # Utiliser un dossier spécifique 'invités' pour éviter de mélanger ou supprimer d'autres photos
+        target_source = "invités"
         source_dir = BASE_DIR / "static" / "photos" / target_source
         source_dir.mkdir(parents=True, exist_ok=True)
 
@@ -691,12 +691,16 @@ def manage_pending_photo():
                 # --- NOUVEAU: Activer automatiquement la source 'invites' si elle ne l'est pas ---
                 # Cela garantit que la photo validée sera bien diffusée par le diaporama.
                 current_sources = config.get('display_sources', [])
-                if 'invites' not in current_sources:
-                    current_sources.append('invites')
+                if 'invités' not in current_sources:
+                    current_sources.append('invités')
                     config['display_sources'] = current_sources
                     save_config(config)
 
-                return jsonify({"success": True, "message": "Photo approuvée et préparée."})
+                # Redémarrer le diaporama pour inclure la nouvelle photo immédiatement
+                if is_slideshow_running():
+                    restart_slideshow_for_update()
+
+                return jsonify({"success": True, "message": "Photo approuvée et préparée. Le diaporama a été mis à jour."})
             else:
                 return jsonify({"success": False, "message": "La préparation de la photo a échoué. La photo reste en attente."}), 500
         except Exception as e:
@@ -1779,6 +1783,37 @@ def reboot():
     os.system('sudo reboot')
     return redirect(url_for('configure'))
 
+@app.route('/system_reboot', methods=['POST'])
+@login_required
+def system_reboot():
+    """Affiche la page de redémarrage et lance le reboot après 1 seconde."""
+    return render_template('rebooting.html')
+
+@app.route('/api/trigger_reboot', methods=['POST'])
+@login_required
+def trigger_reboot():
+    """Lance la commande de redémarrage système."""
+    try:
+        # Lancer le reboot en arrière-plan pour que la réponse HTTP puisse être envoyée
+        import threading
+        def delayed_reboot():
+            time.sleep(1)  # Attendre 1 seconde pour que la page se charge
+            os.system("sudo reboot")
+        
+        reboot_thread = threading.Thread(target=delayed_reboot)
+        reboot_thread.daemon = True
+        reboot_thread.start()
+        
+        return jsonify({"success": True, "message": "Redémarrage initié"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/ping', methods=['GET'])
+def ping():
+    """Endpoint simple pour vérifier que le serveur est disponible."""
+    return jsonify({"status": "ok"})
+
+
 @app.route('/restart_app', methods=['POST'])
 @login_required
 def restart_app():
@@ -1790,6 +1825,7 @@ def restart_app():
         time.sleep(2)
         print("[Restart] Redémarrage de l'application web demandé par l'utilisateur.")
         sys.exit(RESTART_EXIT_CODE)
+        os._exit(RESTART_EXIT_CODE)
 
     # Lancer le redémarrage dans un thread pour ne pas bloquer la réponse HTTP
     restart_thread = threading.Thread(target=do_restart)
@@ -2769,6 +2805,7 @@ def update_app():
                 time.sleep(3)
                 print("[Update] Redémarrage du serveur suite à la mise à jour...")
                 os.kill(os.getpid(), signal.SIGTERM)
+                os._exit(42)
             
             restart_thread = threading.Thread(target=restart_server)
             restart_thread.start()
@@ -3148,7 +3185,65 @@ def toggle_voice_control():
         logging.error(f"Erreur lors du basculement du contrôle vocal : {e}", exc_info=True)
         return jsonify({"success": False, "message": _("Erreur interne du serveur : %(error)s", error=str(e))}), 500
 
+def migrate_guest_folders():
+    """Migre les anciens dossiers 'guests' et 'invites' vers 'invités'."""
+    base_photos = BASE_DIR / "static" / "photos"
+    base_prepared = BASE_DIR / "static" / "prepared"
+    target_name = "invités"
+    legacy_names = ["guests", "invites"]
+
+    # Créer les dossiers cibles s'ils n'existent pas
+    (base_photos / target_name).mkdir(parents=True, exist_ok=True)
+    (base_prepared / target_name).mkdir(parents=True, exist_ok=True)
+
+    for legacy in legacy_names:
+        # Migration des photos sources
+        legacy_photos_dir = base_photos / legacy
+        if legacy_photos_dir.exists() and legacy_photos_dir.is_dir():
+            print(f"[Migration] Déplacement des photos de '{legacy}' vers '{target_name}'...")
+            for item in legacy_photos_dir.iterdir():
+                dest = base_photos / target_name / item.name
+                if not dest.exists():
+                    shutil.move(str(item), str(dest))
+            # Supprimer le dossier source s'il est vide
+            try:
+                legacy_photos_dir.rmdir()
+            except OSError:
+                pass # Le dossier n'est pas vide, on le laisse
+
+        # Migration des photos préparées
+        legacy_prepared_dir = base_prepared / legacy
+        if legacy_prepared_dir.exists() and legacy_prepared_dir.is_dir():
+            print(f"[Migration] Déplacement des fichiers préparés de '{legacy}' vers '{target_name}'...")
+            for item in legacy_prepared_dir.iterdir():
+                dest = base_prepared / target_name / item.name
+                if not dest.exists():
+                    shutil.move(str(item), str(dest))
+            try:
+                legacy_prepared_dir.rmdir()
+            except OSError:
+                pass
+
+    # Mise à jour de la configuration pour remplacer les anciennes sources par la nouvelle
+    config = load_config()
+    sources = config.get('display_sources', [])
+    new_sources = set(sources)
+    modified = False
+    for legacy in legacy_names:
+        if legacy in new_sources:
+            new_sources.remove(legacy)
+            new_sources.add(target_name)
+            modified = True
+    
+    if modified:
+        config['display_sources'] = list(new_sources)
+        save_config(config)
+        print(f"[Migration] Configuration mise à jour : sources {sources} -> {list(new_sources)}")
+
 if __name__ == '__main__':
+    # Lancer la migration des dossiers invités au démarrage
+    migrate_guest_folders()
+
     # Démarrer les workers de mise à jour dans des threads séparés
     immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
     immich_thread.start()

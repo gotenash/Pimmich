@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# Gestionnaire d'affichage Pimmich - VERSION IDÉALE SIGALOU 2026-01-25
+# MODIFICATION SIGALOU - 25/01/2026: Fusion des versions stables pour corriger cycles HDMI/signal perdu.
+# RAISON: wlr-randr prioritaire pour Wayfire/Pi OS (évite BadRROutput), logs debug pour tracer, timeouts anti-blocage.
+# ÉLÉMENTS CONSERVÉS: Détection robuste HDMI, smartplug + DPMS séquentiel, reboot flag pour résolution stable.
+# SUPPRIMÉ: Prints excessifs (gardés en log), doublons ; ajouté timeout=5s partout.
+
 import os
 import subprocess
 import time
@@ -7,108 +14,151 @@ import requests
 from pathlib import Path
 from .config_manager import load_config
 
-def get_display_output_name():
-    """
-    Trouve le nom de la sortie d'affichage principale (celle qui est active ou a un mode).
-    """
-    try:
-        if "SWAYSOCK" not in os.environ:
-            user_id = os.getuid()
-            sock_path_pattern = f"/run/user/{user_id}/sway-ipc.*"
-            socks = glob.glob(sock_path_pattern)
-            if socks:
-                os.environ["SWAYSOCK"] = socks[0]
-            else:
-                return None
+# Logs debug pour tracer cycles HDMI sans spam console
+LOGSDIR = Path(__file__).resolve().parent.parent / "logs"
+DEBUGLOG = LOGSDIR / "displaydebug.log"
 
-        result = subprocess.run(['swaymsg', '-t', 'get_outputs'], capture_output=True, text=True, check=True, env=os.environ)
-        outputs = json.loads(result.stdout)
-        
-        for output in outputs:
-            if output.get('active', False) or output.get('current_mode'):
-                return output.get('name')
+# Variable pour activer/désactiver le debug (True = activé, False = désactivé)
+DEBUG_ENABLED = True
+
+def log_debug(msg):
+    """Log debug avec timestamp dans fichier."""
+    if not DEBUG_ENABLED:
+        return  # Ne rien faire si le debug est désactivé
+    
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    full_msg = f"{timestamp} [DISPLAY_DEBUG] {msg}"
+    try:
+        LOGSDIR.mkdir(exist_ok=True)
+        with open(DEBUGLOG, "a", encoding="utf-8") as f:
+            f.write(full_msg + "\n")
+            f.flush()
+    except Exception as e:
+        # Fallback vers la console si le fichier ne peut être écrit
+        print(f"Erreur log debug: {e}")
+        print(full_msg)
+
+#log_debug("DISPLAY_MANAGER CHARGÉ SANS CRASH - VERSION SIGALOU")
+
+def get_display_output_name():
+    """Trouve nom sortie HDMI active (Wayfire/Sway)."""
+    # MODIFICATION SIGALOU - 25/01/2026: wlr-randr prioritaire pour Pi OS Wayfire.
+    # RAISON: Corrige détection 0x0 -> 1920x1080, évite écran noir/HDMI perdu.
+    log_debug("get_display_output_name LANCÉ")
+    try:
+        # Test wlr-randr (Wayfire/Pi OS)
+        log_debug("wlr-randr...")
+        result = subprocess.run(["wlr-randr"], capture_output=True, text=True, check=False, timeout=5)
+        log_debug(f"wlr RC:{result.returncode} STDOUT:{result.stdout}...")
+        if result.returncode == 0:
+            for line in result.stdout.splitlines():
+                if "connected" in line.lower() and "disconnected" not in line.lower():
+                    output = line.split()[0]
+                    log_debug(f"HDMI output: {output}")
+                    print(f"SORTIE {output}")  # Info user
+                    return output
+        # Fallback Sway
+        log_debug("sway...")
+        env = os.environ.copy()
+        if "SWAYSOCK" not in env:
+            uid = os.getuid()
+            socks = glob.glob(f"/run/user/{uid}/sway-ipc.*")
+            if socks:
+                env["SWAYSOCK"] = socks[0]
+        result = subprocess.run(["swaymsg", "-t", "get_outputs"], capture_output=True, text=True,
+                                env=env, timeout=5, check=False)
+        if result.returncode == 0:
+            outputs = json.loads(result.stdout)
+            log_debug(f"sway {len(outputs)} outputs")
+            for o in outputs:
+                name = o.get("name", "?")
+                active = o.get("active", False)
+                log_debug(f"sway {name} active:{active}")
+                if active or o.get("current_mode"):
+                    log_debug(f"SWAY HDMI: {name} ✅")
+                    return name
+        log_debug("0x0 - AUCUNE SORTIE 😒")
         return None
     except Exception as e:
-        print(f"Erreur lors de la récupération du nom de la sortie d'affichage : {e}")
+        log_debug(f"ERREUR: {e}😒")
         return None
 
-def _send_smart_plug_command(url):
-    """Envoie une requête HTTP à l'URL de la prise connectée."""
+def send_smartplug_command(url):
+    """Envoi HTTP à prise connectée."""
     if not url:
-        return False, "URL de la prise connectée non configurée."
+        return False, "Pas d'URL"
     try:
-        # Utiliser un timeout court pour ne pas bloquer le système
-        response = requests.post(url, timeout=5)
-        # On considère que c'est un succès si la requête aboutit (code 2xx)
-        if 200 <= response.status_code < 300:
-            print(f"Commande prise connectée envoyée avec succès à {url}")
-            return True, "Commande envoyée à la prise."
-        else:
-            error_msg = f"La prise connectée a répondu avec une erreur {response.status_code}."
-            print(error_msg)
-            return False, error_msg
-    except requests.RequestException as e:
-        error_msg = f"Erreur de communication avec la prise connectée : {e}"
-        print(error_msg)
-        return False, error_msg
+        log_debug(f"Envoi commande prise: {url}")
+        r = requests.post(url, timeout=5)
+        log_debug(f"Prise réponse: {r.status_code}")
+        if 200 <= r.status_code < 300:
+            print(f"Commande prise envoyée: {url}")
+            return True, "OK"
+        return False, f"Erreur {r.status_code}"
+    except Exception as e:
+        return False, str(e)
 
-def set_display_power(on=True):
-    """
-    Allume ou éteint l'écran, en utilisant une prise connectée si configurée,
-    sinon en utilisant la commande logicielle (swaymsg).
-    """
+def set_display_power(on):
+    """Allume/éteint écran (prise ou logiciel)."""
+    # MODIFICATION SIGALOU - 25/01/2026: Séquence sûre prise+DPMS.
+    # RAISON: Évite cycles HDMI brutaux ; reboot force résolution post-prise.
+    log_debug(f"set_display_power({on})")
     config = load_config()
-
-    if config.get("smart_plug_enabled"):
-        # --- Logique de la prise connectée ---
+    if config.get("smartplug_enabled"):
         if on:
-            # --- SÉQUENCE D'ALLUMAGE AVEC REDÉMARRAGE SYSTÈME ---
-            print("[Display Manager] Allumage de la prise connectée...")
-            on_url = config.get("smart_plug_on_url")
-            success, message = _send_smart_plug_command(on_url)
+            # Allumage prise + reboot pour HDMI stable
+            on_url = config.get("smartplug_on_url")
+            success, msg = send_smartplug_command(on_url)
             if not success:
-                return False, f"Échec de l'allumage de la prise : {message}"
-            
-            # Attendre que l'écran s'allume avant de redémarrer
-            delay = int(config.get("smart_plug_on_delay", 5))
-            print(f"Attente de {delay} secondes pour l'initialisation de l'écran...")
+                return False, f"Échec prise: {msg}"
+            delay = int(config.get("smartplug_on_delay", 5))
+            print(f"Attente {delay}s pour init écran...")
             time.sleep(delay)
-
-            # Créer un fichier drapeau pour indiquer qu'un redémarrage est intentionnel
-            # pour éviter une boucle de redémarrage.
-            # On le place dans le dossier 'cache' pour qu'il persiste après le redémarrage.
-            flag_path = Path(__file__).resolve().parent.parent / 'cache' / 'pimmich_reboot_flag.tmp'
-            flag_path.parent.mkdir(exist_ok=True) # S'assurer que le dossier cache existe
+            # Flag + reboot
+            flag_path = LOGSDIR / "pimmichrebootflag.tmp"
+            flag_path.parent.mkdir(exist_ok=True)
             flag_path.touch()
-
-            print("[Display Manager] Lancement du redémarrage du système pour garantir la bonne résolution...")
-            os.system('sudo reboot')
-            # Le script s'arrêtera ici car le système redémarre.
-            return True, "Redémarrage système initié."
+            print("Display Manager: Reboot pour résolution HDMI...")
+            os.system("sudo reboot")
+            return True, "Reboot initié"
         else:
-            # --- SÉQUENCE D'EXTINCTION ---
-            # 1. Mettre l'écran en veille logicielle d'abord
-            _set_software_display_power(on=False)
-            time.sleep(1) # Petite pause
-            # 2. Couper l'alimentation de la prise
-            off_url = config.get("smart_plug_off_url")
-            return _send_smart_plug_command(off_url)
+            # Extinction: DPMS puis prise
+            set_software_display_power(False)
+            time.sleep(1)  # Pause stabilise
+            off_url = config.get("smartplug_off_url")
+            return send_smartplug_command(off_url)
     else:
-        # --- Logique logicielle par défaut ---
-        return _set_software_display_power(on)
-        
-def _set_software_display_power(on=True):
-    """Allume ou éteint l'écran en utilisant swaymsg (contrôle logiciel)."""
-    output_name = get_display_output_name()
-    if not output_name:
-        return False, "Aucune sortie d'affichage principale trouvée."
-    
+        # Logiciel only
+        print("Display Manager: Pas de prise, DPMS uniquement.")
+        return set_software_display_power(on)
+
+def set_software_display_power(on):
+    """DPMS via wlr-randr/swaymsg."""
+    # MODIFICATION SIGALOU - 25/01/2026: wlr-randr --on/off prioritaire.
+    # RAISON: Fix Wayfire "BadRROutput" -> HDMI stable, no signal perdu.
+    log_debug(f"set_software_display_power({on})")
+    output = get_display_output_name()
+    if not output:
+        print("Display Manager: Pas de HDMI.")
+        return False, "Pas de HDMI"
     state = "on" if on else "off"
     try:
-        subprocess.run(['swaymsg', 'output', output_name, 'dpms', state], check=True, capture_output=True, text=True)
-        print(f"Écran '{output_name}' passé en mode DPMS '{state}'.")
-        return True, f"Écran passé en mode {state}."
+        # wlr-randr first (Wayfire/Pi)
+        cmd = ["wlr-randr", "--output", output, f"--{state}"]
+        log_debug(f"Commande: {' '.join(cmd)}")
+        result = subprocess.run(cmd, timeout=5, capture_output=True, text=True, check=False)
+        log_debug(f"wlr DPMS RC:{result.returncode} STDOUT:{result.stdout.strip()} ERR:{result.stderr.strip()}")
+        if result.returncode == 0:
+            print(f"Écran {output} -> {state} via wlr-randr.")
+            return True, "OK"
+        # Fallback sway
+        log_debug("Fallback swaymsg DPMS...")
+        result = subprocess.run(["swaymsg", "output", output, "dpms", state],
+                                timeout=5, capture_output=True, text=True)
+        log_debug(f"sway DPMS RC:{result.returncode}")
+        print(f"Écran {output} -> {state} via swaymsg.")
+        return True, "OK"
     except Exception as e:
-        error_message = f"Erreur lors du changement d'état de l'écran : {e}"
-        print(error_message)
-        return False, error_message
+        err_msg = f"Erreur DPMS: {e}"
+        log_debug(err_msg)
+        return False, err_msg

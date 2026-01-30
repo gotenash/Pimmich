@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔄 Pimmich Redémarre...</title>
+    <meta http-equiv="refresh" content="600"> <!-- Fallback 10min -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            text-align: center; min-height: 100vh; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .logo { font-size: 48px; margin-bottom: 20px; }
+        .status { font-size: 28px; font-weight: 600; margin-bottom: 20px; }
+        .spinner { 
+            border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; 
+            border-radius: 50%; width: 60px; height: 60px; 
+            animation: spin 1s linear infinite; margin: 30px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .message { font-size: 18px; line-height: 1.6; max-width: 500px; margin-bottom: 30px; }
+        .retry-info { font-size: 14px; opacity: 0.9; }
+        .progress { font-size: 16px; margin: 10px 0; }
+        .success, .error, .timeout { padding: 40px; border-radius: 16px; margin: 20px 0; }
+        .success { background: rgba(74, 222, 128, 0.2); border: 2px solid #4ade80; }
+        .timeout { background: rgba(251, 191, 36, 0.2); border: 2px solid #f59e0b; }
+        a { color: #fbbf24; text-decoration: none; font-weight: 500; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="logo">🖼️</div>
+    <h1 class="status">🔄 Redémarrage du Raspberry Pi en cours...</h1>
+    <div class="spinner"></div>
+    <p class="message">
+        <strong>Phase 1/3 : Boot système (30-60s)</strong><br>
+        <strong>Phase 2/3 : Nginx (60-90s)</strong><br>
+        <strong>Phase 3/3 : Flask/Pimmich (90-120s)</strong>
+    </p>
+    <p class="progress" id="progress">Tentative <span id="retry-count">0</span>/120 (10min max)</p>
+    <p class="retry-info">Vérification automatique toutes les 5s...</p>
+
+    <script>
+        let retryCount = 0;
+        const maxRetries = 120;  // 10 minutes (120 × 5s)
+
+        function checkReconnect() {
+            const countEl = document.getElementById('retry-count');
+            retryCount++;
+            countEl.textContent = retryCount;
+
+            // Test 1: Health check (si /healthz existe)
+            fetch('/healthz', { method: 'HEAD', cache: 'no-cache', signal: AbortSignal.timeout(8000) })
+            .then(() => location.reload())  // Si healthz OK → reload direct
+            .catch(() => {
+                // Test 2: Configure (plus lent mais sûr)
+                fetch('/configure', { 
+                    method: 'HEAD', 
+                    cache: 'no-cache', 
+                    signal: AbortSignal.timeout(8000)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.body.innerHTML = `
+                            <div class="success">
+                                <div class="logo">✅</div>
+                                <h1 class="status">Pimmich reconnecté ! (${retryCount}s)</h1>
+                                <p class="message">Redirection vers la configuration...</p>
+                                <p><a href="/configure">🚀 Cliquer pour forcer</a></p>
+                            </div>`;
+                        setTimeout(() => location.href = '/configure', 3000);
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .catch(error => {
+                    console.log(`❌ Tentative ${retryCount} échouée:`, error.message);
+                    if (retryCount < maxRetries) {
+                        setTimeout(checkReconnect, 5000);
+                    } else {
+                        document.body.innerHTML = `
+                            <div class="timeout">
+                                <div class="logo">⏳</div>
+                                <h1 class="status">Timeout 10min</h1>
+                                <p class="message">
+                                    Nginx lent (502 normal). Attends 2min de plus ou :
+                                </p>
+                                <p style="font-size:20px;">
+                                    <a href="/configure">🔄 Config</a> | 
+                                    <a href="/" style="color:#60a5fa;">🏠 Accueil</a> | 
+                                    <a href="javascript:location.reload()">⟳ Refresh</a>
+                                </p>
+                            </div>`;
+                    }
+                });
+            });
+        }
+
+        checkReconnect();
+    </script>
+</body>
+</html>

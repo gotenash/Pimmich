@@ -1,0 +1,2664 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.11.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+RPi.GPIO non disponible. Le contrôle du ventilateur est désactivé.
+[Slideshow] Starting slideshow initialization.
+[Slideshow] Config loaded. show_clock: False, show_weather: False
+[Slideshow] Pygame initialized.
+[Slideshow] Screen resolution: 1920x1080
+[Slideshow] Pygame display set to FULLSCREEN.
+[Slideshow] Mouse cursor hidden.
+[Slideshow] Signal handlers registered.
+[Slideshow] Locale set to fr_FR.UTF-8.
+[Slideshow] Entering main slideshow loop.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5132.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_3519.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/RIMG0095.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20210726_122634.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20161027_181025.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_1474.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2017-08-11 17.29.47.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20240801_114407.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20201022_173039.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/RIMG0423.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/DSC01944.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/DSC01944.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMGP0636.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2019-04-07 15.39.11.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_0071.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_2404.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_2583.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_5822.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 654.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/Photo 654.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20190608_190800.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_1059.jpg. Passage au suivant.
+Aucune photo trouvée dans les sources activées. Vérification dans 60 secondes.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+pygame 2.6.1 (SDL 2.28.4, Python 3.11.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+RPi.GPIO non disponible. Le contrôle du ventilateur est désactivé.
+[Slideshow] Starting slideshow initialization.
+[Slideshow] Config loaded. show_clock: False, show_weather: False
+[Slideshow] Pygame initialized.
+[Slideshow] Screen resolution: 1920x1080
+[Slideshow] Pygame display set to FULLSCREEN.
+[Slideshow] Mouse cursor hidden.
+[Slideshow] Signal handlers registered.
+[Slideshow] Locale set to fr_FR.UTF-8.
+[Slideshow] Entering main slideshow loop.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Lancement de la vidéo avec mpv : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Executing mpv command: mpv --no-config --no-terminal --fs --no-osc --no-osd-bar --loop=no --ontop --hwdec=no --vo=x11 /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4 --no-audio
+Erreur lors de l'exécution de mpv pour la vidéo /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. mpv a retourné un code d'erreur.
+Sortie de mpv (stdout):
+
+Erreur de mpv (stderr):
+
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5092.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20231231_024758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240219_132805.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171031_153451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7759.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_143929.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/VID_20240706_150832.mp4. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20181101_132458.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20190803_140826_001.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20190811_210342.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20161029_153524.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_4923.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20240101_032950.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20240306_202435.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 993.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/Photo 993.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_20240723_135553.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20160730_152858.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_2313.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_8031.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/RIMG0203.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Transition] ERREUR: Impossible de charger l'image '/home/pi/pimmich/static/prepared/immich/IMG_6537.jpg': cannot identify image file '/home/pi/pimmich/static/prepared/immich/IMG_6537.jpg'
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+pygame 2.6.1 (SDL 2.28.4, Python 3.11.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+RPi.GPIO non disponible. Le contrôle du ventilateur est désactivé.
+[Slideshow] Starting slideshow initialization.
+[Slideshow] Config loaded. show_clock: False, show_weather: False
+[Slideshow] Pygame initialized.
+[Slideshow] Screen resolution: 1920x1080
+[Slideshow] Pygame display set to FULLSCREEN.
+[Slideshow] Mouse cursor hidden.
+[Slideshow] Signal handlers registered.
+[Slideshow] Locale set to fr_FR.UTF-8.
+[Slideshow] Entering main slideshow loop.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-27 12.42.31-6.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_9000.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20190730_172808.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_1490.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2016-05-06 16.58.28.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/RIMG0296.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_3829.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2017-10-24 14.20.53.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20190812_124702.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_6238.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20211221_104522.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/PICT0011michel bébé.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2016-05-07 15.02.30-1.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_6537.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_4767.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20201023_153257.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_8497.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20201024_092054.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_7676.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_6232.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+pygame 2.6.1 (SDL 2.28.4, Python 3.11.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+RPi.GPIO non disponible. Le contrôle du ventilateur est désactivé.
+[Slideshow] Starting slideshow initialization.
+[Slideshow] Config loaded. show_clock: False, show_weather: False
+[Slideshow] Pygame initialized.
+[Slideshow] Screen resolution: 1920x1080
+[Slideshow] Pygame display set to FULLSCREEN.
+[Slideshow] Mouse cursor hidden.
+[Slideshow] Signal handlers registered.
+[Slideshow] Locale set to fr_FR.UTF-8.
+[Slideshow] Entering main slideshow loop.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2015-11-08 13.56.30.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_6325.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/P1050514.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/P1050514.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_8440.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_5613.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_4758.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_7435.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMGP0747.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20170108_134655.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_20240727_093202.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20211101_173708.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2017-05-26 13.59.25.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/APDC0650.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/APDC0650.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2018-01-13 17.27.02.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_3244.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20181030_105215.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/20211103_180018.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2014-05-01 14.44.12.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_20240729_121554.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_2530.jpg. Passage au suivant.
+Aucune photo trouvée dans les sources activées. Vérification dans 60 secondes.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+pygame 2.6.1 (SDL 2.28.4, Python 3.11.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+RPi.GPIO non disponible. Le contrôle du ventilateur est désactivé.
+[Slideshow] Starting slideshow initialization.
+[Slideshow] Config loaded. show_clock: False, show_weather: False
+[Slideshow] Pygame initialized.
+[Slideshow] Screen resolution: 1920x1080
+[Slideshow] Pygame display set to FULLSCREEN.
+[Slideshow] Mouse cursor hidden.
+[Slideshow] Signal handlers registered.
+[Slideshow] Locale set to fr_FR.UTF-8.
+[Slideshow] Entering main slideshow loop.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2016-04-14 11.34.30.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240101_032954.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-03 20.15.42.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4377.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230709_230451.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0262.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160731_151316.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_8102.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20161219_165139.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_120620.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200512_174626.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20171026_090916.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_0286.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2946.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230617_184951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20160727_164902.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_6404.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2017-04-10 11.13.15-1.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/IMG_7375.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg
+[Slideshow] Fichier non trouvé (probablement supprimé) : /home/pi/pimmich/static/prepared/immich/2014-07-05 11.34.00.jpg. Passage au suivant.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+pygame 2.6.1 (SDL 2.28.4, Python 3.11.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+RPi.GPIO non disponible. Le contrôle du ventilateur est désactivé.
+[Slideshow] Starting slideshow initialization.
+[Slideshow] Config loaded. show_clock: False, show_weather: False
+[Slideshow] Pygame initialized.
+[Slideshow] Screen resolution: 1920x1080
+[Slideshow] Pygame display set to FULLSCREEN.
+[Slideshow] Mouse cursor hidden.
+[Slideshow] Signal handlers registered.
+[Slideshow] Locale set to fr_FR.UTF-8.
+[Slideshow] Entering main slideshow loop.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240623_113214.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20220801_145320.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 667.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/100_4586.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1101.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230716_165320.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/STD_2434.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240422_174951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3216.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2239.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2013-12-25 12.44.35.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0062.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181028_172522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4780.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4406.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200820_123533.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5855.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-10 22.13.20.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240623_113214.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20220801_145320.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 667.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/100_4586.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1101.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20230716_165320.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/STD_2434.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240422_174951.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_3216.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_2239.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2013-12-25 12.44.35.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/RIMG0062.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20181028_172522.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4780.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_4406.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20200820_123533.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_5855.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/2019-07-10 22.13.20.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20190728_150858.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 071.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20240623_113214.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/20220801_145320.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/Photo 667.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/100_4586.jpg
+[Slideshow] Using display_duration: 10 seconds.
+[Slideshow] Preparing to display: /home/pi/pimmich/static/prepared/immich/IMG_1101.jpg
