@@ -17,3 +17,6 @@ static/photos/
 *.png
 *.gif
 static/.backups/
+logs/
+*.log
+log.*
