@@ -10,3 +10,9 @@ models/
 config/*.json
 logs/
 static/backups/
+static/prepared/
+static/photos/
+*.jpg
+*.jpeg
+*.png
+*.gif
