@@ -104,14 +104,15 @@ def set_display_power(on):
     # RAISON: Évite cycles HDMI brutaux ; reboot force résolution post-prise.
     log_debug(f"set_display_power({on})")
     config = load_config()
-    if config.get("smartplug_enabled"):
+    # Correction des clés de configuration pour correspondre à app.py (smart_plug_*)
+    if config.get("smart_plug_enabled"):
         if on:
             # Allumage prise + reboot pour HDMI stable
-            on_url = config.get("smartplug_on_url")
+            on_url = config.get("smart_plug_on_url")
             success, msg = send_smartplug_command(on_url)
             if not success:
                 return False, f"Échec prise: {msg}"
-            delay = int(config.get("smartplug_on_delay", 5))
+            delay = int(config.get("smart_plug_on_delay", 5))
             print(f"Attente {delay}s pour init écran...")
             time.sleep(delay)
             # Flag + reboot
@@ -125,7 +126,7 @@ def set_display_power(on):
             # Extinction: DPMS puis prise
             set_software_display_power(False)
             time.sleep(1)  # Pause stabilise
-            off_url = config.get("smartplug_off_url")
+            off_url = config.get("smart_plug_off_url")
             return send_smartplug_command(off_url)
     else:
         # Logiciel only

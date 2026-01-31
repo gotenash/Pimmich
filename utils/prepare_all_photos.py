@@ -26,6 +26,21 @@ USER_TEXT_MAP_CACHE_FILE = Path("cache") / "user_texts.json"
 
 CANCEL_FLAG = Path('/tmp/pimmich_cancel_import.flag')
 
+def get_pi_model():
+    """Détecte le modèle du Raspberry Pi."""
+    try:
+        with open('/proc/device-tree/model', 'r') as f:
+            model_str = f.read()
+            if 'Raspberry Pi 4' in model_str:
+                return 4
+            if 'Raspberry Pi 5' in model_str:
+                return 5
+            if 'Raspberry Pi 3' in model_str:
+                return 3
+    except (FileNotFoundError, Exception):
+        return None
+    return None
+
 def prepare_photo(source_path, dest_path, output_width, output_height, source_type=None, caption=None):
     """Prépare une photo pour l'affichage avec redimensionnement, rotation EXIF et fond flou."""
     config = load_config()
@@ -157,37 +172,46 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
 def prepare_video(source_path, dest_path, output_width, output_height):
     """Prépare une vidéo pour l'affichage et génère sa vignette."""
     try:
-        # Detect hardware encoder
+        # --- MODIFICATION SIGALOU 29/01/2026 (2) ---
+        # Logique d'encodage améliorée pour Pi 4/5 et meilleure gestion des erreurs.
         encoder = 'libx264'
-        encoder_params = ['-preset', 'veryfast', '-crf', '23']
+        encoder_params = ['-preset', 'veryfast', '-crf', '23', '-profile:v', 'high', '-level', '4.0']
+        pi_model = get_pi_model()
         
         try:
             result = subprocess.run(['ffmpeg', '-encoders'], capture_output=True, text=True, check=True, timeout=5)
             available_encoders = result.stdout
             
-            if 'h264_v4l2m2m' in available_encoders:
+            if pi_model in [4, 5] and 'h264_v4l2m2m' in available_encoders:
                 encoder = 'h264_v4l2m2m'
-                encoder_params = ['-b:v', '4M']
-                print("[Video Prep] Utilisation de l'encodeur matériel optimisé : h264_v4l2m2m")
-            elif 'h264_omx' in available_encoders:
+                encoder_params = ['-b:v', '8M']
+                print("[Video Prep] Pi 4/5 détecté. Utilisation de l'encodeur matériel optimisé : h264_v4l2m2m")
+            elif pi_model and 'h264_omx' in available_encoders:
                 encoder = 'h264_omx'
-                encoder_params = ['-b:v', '4M']
-                print("[Video Prep] Utilisation de l'encodeur matériel : h264_omx")
+                encoder_params = ['-b:v', '8M']
+                print(f"[Video Prep] Pi modèle {pi_model} détecté. Utilisation de l'encodeur matériel stable : h264_omx")
+            elif 'h264_v4l2m2m' in available_encoders:
+                encoder = 'h264_v4l2m2m'
+                encoder_params = ['-b:v', '8M']
+                print("[Video Prep] Utilisation de l'encodeur matériel générique : h264_v4l2m2m")
             else:
                 print("[Video Prep] Aucun encodeur matériel trouvé, utilisation de l'encodeur logiciel : libx264")
-                encoder_params.extend(['-profile:v', 'high', '-level', '4.0'])
         except Exception as e:
             print(f"[Video Prep] Avertissement : Impossible de détecter les encodeurs ({e}). Utilisation de l'encodeur logiciel par défaut.")
         
         command = [
             'ffmpeg', '-i', source_path, '-vf', f"scale='min({output_width},iw)':'min({output_height},ih)':force_original_aspect_ratio=decrease,pad={output_width}:{output_height}:(ow-iw)/2:(oh-ih)/2",
             '-c:v', encoder, *encoder_params,
+            '-pix_fmt', 'yuv420p', # Ajout pour une meilleure compatibilité
             '-c:a', 'aac', '-b:a', '128k',
             '-y', dest_path
         ]
-        subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        result = subprocess.run(command, check=False, capture_output=True, text=True, encoding='utf-8')
+        if result.returncode != 0:
+            raise Exception(f"ffmpeg a échoué avec le code {result.returncode}. Erreur: {result.stderr.strip()}")
+
     except Exception as video_e:
-        raise Exception(f"Erreur lors du traitement de la vidéo '{os.path.basename(source_path)}' avec ffmpeg: {video_e}")
+        raise Exception(f"Erreur lors du traitement de la vidéo '{os.path.basename(source_path)}': {video_e}")
     
     # Generate thumbnail
     try:
