@@ -41,6 +41,27 @@ paused = False
 next_photo_requested = False
 previous_photo_requested = False
 
+# Chemin et cache pour les codes pays ISO 3166 (drapeaux)
+COUNTRY_CODES_PATH = Path(BASE_DIR) / 'static' / 'flags' / 'country_codes.json'
+_country_codes_cache = None  # Cache chargé une fois
+
+def load_country_codes():
+    """Charge le mapping ISO → nom pays (pour lookup inverse)"""
+    global _country_codes_cache
+    if _country_codes_cache is None:
+        try:
+            with open(COUNTRY_CODES_PATH, 'r', encoding='utf-8') as f:
+                codes = json.load(f)
+                # Inverse : nom_pays → iso (ex: "France" → "fr")
+                _country_codes_cache = {name.lower(): iso for iso, name in codes.items()}
+        except FileNotFoundError:
+            print("⚠️  country_codes.json manquant dans config/")
+            _country_codes_cache = {}
+        except Exception as e:
+            print(f"❌ Erreur chargement country_codes.json: {e}")
+            _country_codes_cache = {}
+    return _country_codes_cache
+
 def update_status_file(status_dict):
     """Met à jour le fichier de statut JSON pour la communication avec l'app web."""
     try:
@@ -1010,6 +1031,54 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                 anchor="topleft"
             )
     # --- Fin Modification Sigalou 25/01/2026 ---
+
+        # --- DRAPEAU PAYS en haut à droite (ajout Sigalou 29/01/2026) ---
+        if photo_metadata and config.get("show_country_flag", True):
+            
+            if country:
+                iso_code = country_codes.get(country.lower())
+                iso_code_country_flag_url = None   
+
+                if iso_code:
+                    iso_code_country_flag_url = f"{iso_code}.png"
+                #else:
+                    #flag_url = None A VOIR SI ON AJOUTE UN DRAPEAU QUI DIT QUE C EST INCONNU
+                    try:
+                        import requests
+                        from PIL import Image
+                        from io import BytesIO
+                        
+                        flag_size = config.get("country_flag_size", "128x96")
+                        flag_url = f"https://flagcdn.com/{flag_size}/{iso_code_country_flag_url}"
+                            
+                        response = requests.get(flag_url, timeout=1.5)
+                        if response.status_code == 200:
+                            flag_pil = Image.open(BytesIO(response.content)).convert('RGBA')
+                            
+                            
+                            # --- AJOUT : Appliquer une opacité au drapeau ---
+                            opacity = config.get("country_flag_opacity", 0.7)
+                            # Séparer les canaux RGBA
+                            r, g, b, a = flag_pil.split()
+                            # Réduire l'opacité du canal alpha
+                            a = a.point(lambda p: int(p * opacity))
+                            # Recombiner les canaux
+                            flag_pil = Image.merge('RGBA', (r, g, b, a))
+                            # --- FIN AJOUT ---
+                            
+                            flag_surf = pygame.image.fromstring(
+                                flag_pil.tobytes(), flag_pil.size, flag_pil.mode
+                            )
+                            
+                            # Position haut droite (marge 15px)
+                            flag_rect = flag_surf.get_rect(topright=(screen_width - 15, 15))
+                            screen.blit(flag_surf, flag_rect)
+                            
+                    except ImportError:
+                        print("[Display] pip install requests pillow")
+                    except Exception as e:
+                        pass  # Silencieux
+        # --- Fin DRAPEAU ---
 
 def display_title_slide(screen, screen_width, screen_height, title, duration, config, photos_for_slide=None):
     """Affiche un écran titre avec le nom de la playlist et un pêle-mêle de photos."""
