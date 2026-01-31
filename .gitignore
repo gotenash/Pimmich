@@ -1,3 +1,17 @@
-static/.backups/immich/100_0247.jpg
-static/.backups/immich/100_0550.jpg
-static/.backups/immich/IMG_20200705_135052.jpg
+# Cache Python (TOUS niveaux)
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# Logs
+**/*.log
+logs/
+
+# Data Pimmich
+config/
+static/backups/
+static/prepared/  
+static/photos/
+cache/
+models/
+venv/
