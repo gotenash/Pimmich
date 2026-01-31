@@ -1714,6 +1714,7 @@ def start_slideshow():
                     (message_font, "Aucune photo trouvée."),
                     (ip_font, f"Configurez sur : http://{ip_address}"),
                     (small_font, "(Identifiants dans credentials.json à la racine de la SD)"),
+                    (message_font, f"Résolution de l'écran : [{SCREEN_WIDTH} x {SCREEN_HEIGHT}]"),
                     (message_font, "Nouvelle tentative dans 60 secondes...")
                 ]
                 
