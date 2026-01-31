@@ -56,6 +56,13 @@ def create_default_config():
         "stormglass_api_key": "",
         "tide_offset_x": 0,
         "tide_offset_y": 0,
+        # --- Paramètres de la prise connectée ---
+        "smart_plug_enabled": False,
+        "smart_plug_on_url": "",
+        "smart_plug_off_url": "",
+        "smart_plug_on_delay": 5,
+        "smart_plug_status_url": "",
+        "home_assistant_token": "",
         "wifi_ssid": "",
         "wifi_country": "FR",
         "wifi_password": "",

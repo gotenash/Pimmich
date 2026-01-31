@@ -1366,8 +1366,9 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             # pour une performance optimale, notamment sur Pi 4.
             pi_model = get_pi_model()
             if pi_model in [4, 5]:
-                print("[Video Playback] Raspberry Pi 4/5 détecté. Utilisation de 'v4l2m2m' pour le décodage matériel.")
-                command.extend(['--hwdec=v4l2m2m', '--vo=gpu'])
+                # MODIFICATION SIGALOU 29/01/2026: Essayer v4l2m2m en priorité, mais autoriser le fallback sur mmal.
+                print("[Video Playback] Raspberry Pi 4/5 détecté. Tentative d'utilisation de 'v4l2m2m,mmal' pour le décodage matériel.")
+                command.extend(['--hwdec=v4l2m2m,mmal', '--vo=gpu'])
             elif pi_model == 3:
                 print("[Video Playback] Raspberry Pi 3 détecté. Utilisation de 'mmal' pour le décodage matériel.")
                 command.extend(['--hwdec=mmal', '--vo=gpu'])
@@ -1792,8 +1793,12 @@ def start_slideshow():
         print(f"FATAL ERROR IN SLIDESHOW: {e}")
         traceback.print_exc() # Print full traceback for any unhandled error
     finally:
-        from utils.display_manager import set_display_power
-        set_display_power(False)
+        # --- MODIFICATION SIGALOU 30/01/2026 ---
+        # La gestion de l'alimentation de l'écran est maintenant centralisée dans le `slideshow_manager`.
+        # On retire l'appel ici pour éviter les doubles appels et les conditions de concurrence
+        # qui pouvaient empêcher la prise connectée de s'éteindre correctement.
+        # from utils.display_manager import set_display_power
+        # set_display_power(False)
         # Nettoyer le fichier d'état à la sortie
         if os.path.exists(CURRENT_PHOTO_FILE):
             os.remove(CURRENT_PHOTO_FILE)
