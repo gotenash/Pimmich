@@ -279,13 +279,13 @@ def get_screen_resolution():
                 logger.info(f"Résolution détectée sur la sortie '{output.get('name')}': {mode['width']}x{mode['height']} (Active: {output.get('active', False)})")
                 return mode['width'], mode['height']
         
-        print("Aucune sortie avec un mode configuré trouvée (écran en veille ?), utilisation de la résolution de secours depuis la config.")
+        logger.info(f"😒 Aucune sortie avec un mode configuré trouvée (écran en veille ?), utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
     except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError, IndexError) as e:
-        logger.info(f"Erreur lors de la détection de la résolution de l'écran : {e}. Utilisation de la résolution de secours depuis la config.")
+        logger.info(f"😒 Erreur lors de la détection de la résolution de l'écran : {e}. Utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
     except Exception as e:
-        logger.info(f"Erreur inattendue lors de la détection de la résolution : {e}. Utilisation de la résolution de secours depuis la config.")
+        logger.info(f"😒 Erreur inattendue lors de la détection de la résolution : {e}. Utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
 
 def get_photo_previews():
@@ -350,7 +350,7 @@ def save_favorites(favorites_list):
         with open(FAVORITES_PATH, 'w') as f:
             json.dump(favorites_list, f, indent=2)
     except Exception as e:
-        logger.info(f"Erreur lors de la sauvegarde des favoris : {e}")
+        logger.info(f"😒 Erreur lors de la sauvegarde des favoris : {e}")
 
 def load_polaroid_texts():
     """Charge les textes des polaroids depuis un fichier JSON."""
@@ -368,7 +368,7 @@ def save_polaroid_texts(texts_dict):
         with open(POLAROID_TEXTS_PATH, 'w') as f:
             json.dump(texts_dict, f, indent=2)
     except Exception as e:
-        logger.info(f"Erreur lors de la sauvegarde des textes polaroid : {e}")
+        logger.info(f"😒 Erreur lors de la sauvegarde des textes polaroid : {e}")
 
 def load_text_states():
     """Charge les textes des photos depuis un fichier JSON."""
@@ -386,7 +386,7 @@ def save_text_states(states):
         with open(TEXT_STATES_PATH, 'w', encoding='utf-8') as f:
             json.dump(states, f, indent=4)
     except IOError as e:
-        logger.info(f"Erreur lors de la sauvegarde des états de texte : {e}")
+        logger.info(f"😒 Erreur lors de la sauvegarde des états de texte : {e}")
 
 def load_telegram_guest_users():
     """Charge les utilisateurs invités de Telegram depuis un fichier JSON."""
@@ -404,7 +404,7 @@ def save_telegram_guest_users(guest_users_dict):
         with open(TELEGRAM_GUEST_USERS_PATH, 'w') as f:
             json.dump(guest_users_dict, f, indent=4)
     except Exception as e:
-        logger.info(f"Erreur lors de la sauvegarde des invités Telegram : {e}")
+        logger.info(f"😒 Erreur lors de la sauvegarde des invités Telegram : {e}")
 
 def add_telegram_guest_user(user_id, guest_name):
     """Ajoute un nouvel invité Telegram et sauvegarde le fichier."""
@@ -428,7 +428,7 @@ def save_invitations(invitations_dict):
         with open(INVITATIONS_PATH, 'w') as f:
             json.dump(invitations_dict, f, indent=4)
     except Exception as e:
-        logger.info(f"Erreur lors de la sauvegarde des invitations : {e}")
+        logger.info(f"😒 Erreur lors de la sauvegarde des invitations : {e}")
 
 def get_prepared_photos_by_source():
     """
