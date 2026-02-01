@@ -57,20 +57,26 @@ file_formatter = EmojiFormatter(
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
-# Handler pour les erreurs uniquement
-err_handler = RotatingFileHandler(
-    LOGSDIR / "slideshow_err.log",
+
+file_handler = RotatingFileHandler(
+    LOGSDIR / "slideshow.log",
     maxBytes=10 * 1024 * 1024,
     backupCount=3,
     encoding="utf-8"
 )
-err_handler.setLevel(logging.ERROR)
-err_handler.setFormatter(file_formatter)
+file_handler.setLevel(level)
+
+file_formatter = EmojiFormatter(
+    '%(asctime)s %(emoji)s %(message)s',
+    datefmt='%d-%m %H:%M:%S'
+)
+file_handler.setFormatter(file_formatter)
+
 
 # Ajouter les handlers (éviter doublons si module réimporté)
 if not logger.handlers:
     logger.addHandler(file_handler)
-    logger.addHandler(err_handler)
+    #logger.addHandler(err_handler)
 
 # Messages de démarrage
 logger.info("----------------------------------------------------------------")

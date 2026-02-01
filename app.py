@@ -130,14 +130,9 @@ root_logger.addHandler(console_handler)
 # Logger spécifique pour app.py
 logger = logging.getLogger("pimmich.app")
 
-# Messages de démarrage
-logger.info("================================================================")
-logger.info("==================✅ Démarrage de Pimmich ======================")
-logger.info("================================================================")
-
 # Configuration spécifique pour Werkzeug
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(level)
+werkzeug_logger.setLevel(logging.WARNING)
 
 
 # ============================================================
@@ -206,7 +201,6 @@ LOG_FILES_MAP = {
     "app": {"path": "logs/pimmich.log", "name_key": "Pimmich (Serveur Web & Supervisor)"},
     "display_HDMI": {"path": "logs/display_HDMI.log", "name_key": "Affichage HDMI"},
     "slideshow_stdout": {"path": "logs/slideshow.log", "name_key": "Diaporama"},
-    "slideshow_stderr": {"path": "logs/slideshow_err.log", "name_key": "Diaporama - Erreurs"},
     "voice_control_stdout": {"path": "logs/voice_control_stdout.log", "name_key": "voice_control.py (Contrôle Vocal - Sortie Standard)"},
     "voice_control_stderr": {"path": "logs/voice_control_stderr.log", "name_key": "voice_control.py (Contrôle Vocal - Erreurs)"},
 }
