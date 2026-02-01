@@ -173,8 +173,10 @@
                 }
             }, 1000);
             
-            // ✅ PING TOUTES LES 2s (dès le début)
-            checkInterval = setInterval(checkServerAvailability, 2000);
+            // ✅ PING TOUTES LES 2s (après délai de sécurité)
+            setTimeout(() => {
+                checkInterval = setInterval(checkServerAvailability, 2000);
+            }, 20000); // Attendre 20s que le serveur s'éteigne vraiment avant de tester le retour
         }
         
         function checkServerAvailability() {
