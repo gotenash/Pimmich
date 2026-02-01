@@ -10,6 +10,7 @@ import time
 import requests
 import threading
 import logging
+from logging.handlers import RotatingFileHandler
 import asyncio
 import collections
 import shutil
@@ -40,25 +41,116 @@ import smbclient
 from smbprotocol.exceptions import SMBException
 
 
+# ============================================================
+# Configuration du logging avec émojis
+# ============================================================
+# Chargement config
+config = load_config()
+# Créer le dossier de logs
+LOGS_DIR = Path(__file__).resolve().parent / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
+class StripAnsiFormatter(logging.Formatter):
+    """Formatter qui retire les codes ANSI (couleurs) des logs."""
+    ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
+    
+    def format(self, record):
+        formatted = super().format(record)
+        return self.ANSI_ESCAPE.sub('', formatted)
+
+
+class EmojiFormatter(StripAnsiFormatter):
+    """Formatter personnalisé avec émojis selon le niveau, sans codes ANSI."""
+    EMOJI_MAP = {
+        "DEBUG": "🔍",
+        "INFO": "ℹ️",
+        "WARNING": "😒",
+        "ERROR": "❌",
+        "CRITICAL": "🔥"
+    }
+    
+    def format(self, record):
+        emoji = self.EMOJI_MAP.get(record.levelname, "")
+        record.emoji = emoji
+        return super().format(record)
+
+
+class CleanWerkzeugFormatter(EmojiFormatter):
+    """Formatter spécial pour Werkzeug qui nettoie les logs HTTP."""
+    
+    def format(self, record):
+        # Si c'est un log Werkzeug avec le format HTTP standard
+        if record.name == 'werkzeug' and ' - - [' in record.getMessage():
+            message = record.getMessage()
+            match = re.search(r'"([^"]+)"\s+(\d+)\s+(.*)$', message)
+            if match:
+                record.msg = f'🌐 "{match.group(1)}" {match.group(2)}'
+                record.args = ()
+                emoji = self.EMOJI_MAP.get(record.levelname, "")
+                record.emoji = emoji
+                return StripAnsiFormatter.format(self, record)
+        
+        return super().format(record)
+
+# >>> NOUVEAU : récupérer le niveau depuis la config
+level_name = config.get("level_log", "INFO")
+level = getattr(logging, level_name.upper(), logging.INFO)
+
+# Créer un logger racine pour toute l'application
+root_logger = logging.getLogger()
+root_logger.setLevel(level)
+
+# Handler 1 : Fichier avec rotation (10 Mo max, 5 backups)
+file_handler = RotatingFileHandler(
+    LOGS_DIR / "pimmich.log",
+    maxBytes=10 * 1024 * 1024,
+    backupCount=5,
+    encoding="utf-8"
+)
+file_handler.setLevel(level)
+file_formatter = CleanWerkzeugFormatter(
+    '%(asctime)s %(emoji)s %(message)s',
+    datefmt='%d-%m %H:%M:%S'
+)
+file_handler.setFormatter(file_formatter)
+
+# Handler 2 : Console (stdout/stderr) - pour la compatibilité avec start_pimmich.sh [Pourra etre supprimé dans quelques temps]
+console_handler = logging.StreamHandler()
+console_handler.setLevel(level)
+console_formatter = CleanWerkzeugFormatter(
+    '%(asctime)s %(emoji)s %(message)s',
+    datefmt='%d-%m %H:%M:%S'
+)
+console_handler.setFormatter(console_formatter)
+
+# Ajouter les handlers au logger racine
+root_logger.addHandler(file_handler)
+root_logger.addHandler(console_handler)
+
+# Logger spécifique pour app.py
+logger = logging.getLogger("pimmich.app")
+
+# Configuration spécifique pour Werkzeug
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.setLevel(logging.WARNING)
+
+
+# ============================================================
+# Création de l'application Flask
+# ============================================================
+
 app = Flask(__name__)
 
 # --- Clé secrète ---
-# Il est recommandé de ne pas hardcoder la clé secrète.
-# On essaie de la charger depuis les credentials, sinon on en génère une pour le fallback.
 try:
+    from utils.credentials_manager import load_credentials
     credentials = load_credentials()
     app.secret_key = credentials.get('flask_secret_key', 'supersecretkey_fallback_should_be_changed')
 except Exception:
     app.secret_key = 'supersecretkey_fallback_should_be_changed'
 
-# --- NOUVEAU: Limiter la taille des uploads pour éviter les crashs sur RPi ---
-# Limite à 32 Mo, ce qui est raisonnable pour des photos.
+# --- Limiter la taille des uploads ---
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
-
-# Configuration du logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[logging.StreamHandler()]) # Envoie les logs vers la sortie standard/erreur, qui est redirigée vers les fichiers de log.
 
 
 def get_locale():
@@ -106,9 +198,9 @@ PREPARED_DIR = BASE_DIR / "static" / "prepared"
 
 # Dictionnaire central pour les fichiers de log
 LOG_FILES_MAP = {
-    "app": {"path": "logs/log_app.txt", "name_key": "app.py (Serveur Web & Supervisor)"},
-    "slideshow_stdout": {"path": "logs/slideshow_stdout.log", "name_key": "local_slideshow.py (Diaporama - Sortie Standard)"},
-    "slideshow_stderr": {"path": "logs/slideshow_stderr.log", "name_key": "local_slideshow.py (Diaporama - Erreurs)"},
+    "app": {"path": "logs/pimmich.log", "name_key": "Pimmich (Serveur Web & Supervisor)"},
+    "display_HDMI": {"path": "logs/display_HDMI.log", "name_key": "Affichage HDMI"},
+    "slideshow_stdout": {"path": "logs/slideshow.log", "name_key": "Diaporama"},
     "voice_control_stdout": {"path": "logs/voice_control_stdout.log", "name_key": "voice_control.py (Contrôle Vocal - Sortie Standard)"},
     "voice_control_stderr": {"path": "logs/voice_control_stderr.log", "name_key": "voice_control.py (Contrôle Vocal - Erreurs)"},
 }
@@ -184,16 +276,16 @@ def get_screen_resolution():
         for output in outputs:
             if output.get('current_mode'):
                 mode = output['current_mode']
-                print(f"Résolution détectée sur la sortie '{output.get('name')}': {mode['width']}x{mode['height']} (Active: {output.get('active', False)})")
+                logger.info(f"Résolution détectée sur la sortie '{output.get('name')}': {mode['width']}x{mode['height']} (Active: {output.get('active', False)})")
                 return mode['width'], mode['height']
         
         print("Aucune sortie avec un mode configuré trouvée (écran en veille ?), utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
     except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError, IndexError) as e:
-        print(f"Erreur lors de la détection de la résolution de l'écran : {e}. Utilisation de la résolution de secours depuis la config.")
+        logger.info(f"Erreur lors de la détection de la résolution de l'écran : {e}. Utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
     except Exception as e:
-        print(f"Erreur inattendue lors de la détection de la résolution : {e}. Utilisation de la résolution de secours depuis la config.")
+        logger.info(f"Erreur inattendue lors de la détection de la résolution : {e}. Utilisation de la résolution de secours depuis la config.")
         return default_width, default_height
 
 def get_photo_previews():
@@ -240,7 +332,7 @@ def save_filter_states(states):
         with open(FILTER_STATES_PATH, 'w') as f:
             json.dump(states, f, indent=4)
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde des états de filtre : {e}")
+        logger.info(f"Erreur lors de la sauvegarde des états de filtre : {e}")
 
 def load_favorites():
     """Charge la liste des photos favorites depuis un fichier JSON."""
@@ -258,7 +350,7 @@ def save_favorites(favorites_list):
         with open(FAVORITES_PATH, 'w') as f:
             json.dump(favorites_list, f, indent=2)
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde des favoris : {e}")
+        logger.info(f"Erreur lors de la sauvegarde des favoris : {e}")
 
 def load_polaroid_texts():
     """Charge les textes des polaroids depuis un fichier JSON."""
@@ -276,7 +368,7 @@ def save_polaroid_texts(texts_dict):
         with open(POLAROID_TEXTS_PATH, 'w') as f:
             json.dump(texts_dict, f, indent=2)
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde des textes polaroid : {e}")
+        logger.info(f"Erreur lors de la sauvegarde des textes polaroid : {e}")
 
 def load_text_states():
     """Charge les textes des photos depuis un fichier JSON."""
@@ -294,7 +386,7 @@ def save_text_states(states):
         with open(TEXT_STATES_PATH, 'w', encoding='utf-8') as f:
             json.dump(states, f, indent=4)
     except IOError as e:
-        print(f"Erreur lors de la sauvegarde des états de texte : {e}")
+        logger.info(f"Erreur lors de la sauvegarde des états de texte : {e}")
 
 def load_telegram_guest_users():
     """Charge les utilisateurs invités de Telegram depuis un fichier JSON."""
@@ -312,7 +404,7 @@ def save_telegram_guest_users(guest_users_dict):
         with open(TELEGRAM_GUEST_USERS_PATH, 'w') as f:
             json.dump(guest_users_dict, f, indent=4)
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde des invités Telegram : {e}")
+        logger.info(f"Erreur lors de la sauvegarde des invités Telegram : {e}")
 
 def add_telegram_guest_user(user_id, guest_name):
     """Ajoute un nouvel invité Telegram et sauvegarde le fichier."""
@@ -336,7 +428,7 @@ def save_invitations(invitations_dict):
         with open(INVITATIONS_PATH, 'w') as f:
             json.dump(invitations_dict, f, indent=4)
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde des invitations : {e}")
+        logger.info(f"Erreur lors de la sauvegarde des invitations : {e}")
 
 def get_prepared_photos_by_source():
     """
@@ -410,7 +502,7 @@ def handle_new_telegram_photo(temp_photo_path_str, caption, user_name=None):
     Cette fonction est synchrone et peut maintenant inclure le nom de l'expéditeur.
     """
     with app.app_context():
-        print(f"[Telegram] Traitement de la nouvelle photo : {temp_photo_path_str}")
+        logger.info(f"[Telegram] Traitement de la nouvelle photo : {temp_photo_path_str}")
         try:
             # Construire la légende finale en ajoutant le nom de l'expéditeur
             final_caption = caption
@@ -459,11 +551,11 @@ def handle_new_telegram_photo(temp_photo_path_str, caption, user_name=None):
             try:
                 with open(NEW_POSTCARD_FLAG_PATH, 'w') as f:
                     f.write(path_to_write)
-                print(f"[Telegram] Fichier de notification sonore créé avec le chemin : {path_to_write}")
+                logger.info(f"[Telegram] Fichier de notification sonore créé avec le chemin : {path_to_write}")
             except Exception as e:
-                print(f"[Telegram] ERREUR lors de la création du fichier de notification : {e}")
+                logger.info(f"[Telegram] ERREUR lors de la création du fichier de notification : {e}")
 
-            print(f"[Telegram] Photo {new_filename_base}.jpg traitée avec succès.")
+            logger.info(f"[Telegram] Photo {new_filename_base}.jpg traitée avec succès.")
         except Exception as e:
             error_message = f"[Telegram] ERREUR lors du traitement de la photo : {e}\n{traceback.format_exc()}"
             print(error_message)
@@ -595,7 +687,7 @@ def handle_upload():
             unique_suffix = f"{int(time.time())}_{secrets.token_hex(2)}"
             final_path = PENDING_UPLOADS_DIR / f"{base}_{unique_suffix}{ext}"
             file.save(final_path)
-            print(f"[Upload] Nouveau fichier reçu de l'invité et en attente : {final_path.name}")
+            logger.info(f"[Upload] Nouveau fichier reçu de l'invité et en attente : {final_path.name}")
             count += 1
 
     flash(_('%(count)s photo(s) envoyée(s) pour validation avec succès !', count=count), "success")
@@ -610,7 +702,7 @@ def get_pending_photos():
         if not PENDING_UPLOADS_DIR.exists():
             PENDING_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
-        print(f"[DEBUG] Listing pending photos in: {PENDING_UPLOADS_DIR}")
+        logger.debug(f"Listing pending photos in: {PENDING_UPLOADS_DIR}")
 
         # Lister les fichiers dans le dossier des uploads en attente.
         files_with_mtime = []
@@ -619,13 +711,13 @@ def get_pending_photos():
                 try:
                     files_with_mtime.append((f.name, f.stat().st_mtime))
                 except OSError as e:
-                    print(f"[DEBUG] Error reading file {f.name}: {e}")
+                    logger.debug(f"Error reading file {f.name}: {e}")
 
         # Trier par date de modification (le plus récent en premier)
         files_with_mtime.sort(key=lambda x: x[1], reverse=True)
         pending_files = [f[0] for f in files_with_mtime]
         
-        print(f"[DEBUG] Found {len(pending_files)} pending photos.")
+        logger.debug(f"Found {len(pending_files)} pending photos.")
 
         # Retourner une réponse structurée et ajouter des en-têtes anti-cache.
         response = jsonify({"success": True, "photos": pending_files})
@@ -634,7 +726,7 @@ def get_pending_photos():
         response.headers["Expires"] = "0"
         return response
     except Exception as e:
-        print(f"[ERROR] get_pending_photos failed: {e}")
+        logger.info(f"[ERROR] get_pending_photos failed: {e}")
         traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500
 
@@ -750,11 +842,11 @@ def configure():
     try:
         if PENDING_UPLOADS_DIR.exists():
             pending_files = [f.name for f in PENDING_UPLOADS_DIR.iterdir() if f.is_file() and not f.name.startswith('.')]
-            print(f"[Configure] Chargement de la page. {len(pending_files)} photo(s) en attente dans {PENDING_UPLOADS_DIR}: {pending_files}")
+            logger.info(f"⚙✅ Chargement de la page. {len(pending_files)} photo(s) en attente dans {PENDING_UPLOADS_DIR}: {pending_files}")
         else:
-            print(f"[Configure] Le dossier {PENDING_UPLOADS_DIR} n'existe pas encore.")
+            logger.warning(f"⚙️ Le dossier {PENDING_UPLOADS_DIR} n'existe pas encore.")
     except Exception as e:
-        print(f"[Configure] Erreur lors du listage des fichiers en attente : {e}")
+        logger.error(f"⚙️ Erreur lors du listage des fichiers en attente : {e}")
 
     config = load_config()
     invitations = load_invitations()
@@ -839,7 +931,7 @@ def configure():
         detected_width, detected_height = get_screen_resolution()
         config['display_width'] = detected_width
         config['display_height'] = detected_height
-        print(f"Résolution d'écran détectée : {detected_width}x{detected_height}. Sauvegarde dans la configuration.")
+        logger.info(f"Résolution d'écran détectée : {detected_width}x{detected_height}. Sauvegarde dans la configuration.")
         # Gérer la clé display_sources (checkboxes)
         # request.form.getlist() retourne une liste vide si aucune checkbox avec ce nom n'est cochée.
         config['display_sources'] = request.form.getlist('display_sources')
@@ -1014,7 +1106,7 @@ def import_smartphone():
                 yield stream_event(update)
 
         except Exception as e:
-            print(f"[Import Smartphone] Erreur : {e}")
+            logger.info(f"[Import Smartphone] Erreur : {e}")
             yield stream_event({"type": "error", "message": f"Erreur critique lors de l'import : {str(e)}"})
 
     return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
@@ -1104,7 +1196,7 @@ def prepare_photos():
                         with open(immich_cache_path, 'r', encoding='utf-8') as f:
                             base_description_map = json.load(f)
                     except Exception as e:
-                        print(f"[App] Avertissement: Impossible de charger le cache de description Immich: {e}")
+                        logger.info(f"[App] Avertissement: Impossible de charger le cache de description Immich: {e}")
 
             # 2. Charger les légendes manuelles de Pimmich
             manual_captions = load_text_states()
@@ -1365,12 +1457,12 @@ def schedule_worker():
     Thread en arrière-plan qui gère le démarrage et l'arrêt du diaporama
     en fonction des heures d'activité configurées.
     """
-    logging.info("== Démarrage du worker de planification du diaporama ==")
+    logger.debug("📅️🔄 Démarrage du worker de planification du diaporama")
     
     # --- Séquence de démarrage unique ---
     # Cette partie ne s'exécute qu'une seule fois au lancement de l'application.
     try:
-        logging.info("[Scheduler] Séquence de démarrage initiale.")
+        logger.info("📅 Séquence de démarrage initiale.")
         # Attendre que le système soit stable avant de manipuler l'affichage
         time.sleep(5)
         config = load_config()
@@ -1378,12 +1470,12 @@ def schedule_worker():
         if output_name:
             width = config.get('display_width', 1920)
             height = config.get('display_height', 1080)
-            logging.info(f"[Scheduler] Forçage de la résolution {width}x{height} sur l'écran '{output_name}' au démarrage.")
+            logger.info(f"📅✅ Forçage de la résolution {width}x{height} sur l'écran '{output_name}' au démarrage.")
             try:
                 subprocess.run(['swaymsg', 'output', output_name, 'mode', f'{width}x{height}'], check=True, timeout=10)
                 time.sleep(2) # Laisser le temps à l'écran de se stabiliser
             except Exception as e:
-                logging.error(f"[Scheduler] Échec du forçage de la résolution au démarrage : {e}")
+                logger.error(f"📅❌ Échec du forçage de la résolution au démarrage : {e}")
         
         # Démarrer le diaporama si on est dans les heures actives au lancement de l'app
         start_str = config.get("active_start", "07:00")
@@ -1395,10 +1487,10 @@ def schedule_worker():
                               (start_time > end_time and (now_time >= start_time or now_time <= end_time))
         
         if in_schedule_at_boot:
-            logging.info("[Scheduler] Heures actives au démarrage, lancement du diaporama.")
+            logger.info(f"📅✅ Entre {start_str} et {end_str} = Heures actives au démarrage, lancement du diaporama.")
             start_slideshow()
     except Exception as e:
-        logging.error(f"[Scheduler] Erreur critique dans la séquence de démarrage : {e}", exc_info=True)
+        logger.error(f"📅❌ Erreur critique dans la séquence de démarrage : {e}", exc_info=True)
 
     while True:
         try:
@@ -1418,10 +1510,10 @@ def schedule_worker():
             slideshow_is_running = is_slideshow_running()
 
             if not in_schedule and slideshow_is_running:
-                logging.info("[Scheduler] Heure inactive détectée et diaporama en cours. Arrêt...")
+                logger.info("📅✅ Heure inactive détectée et diaporama en cours. Arrêt...")
                 stop_slideshow()
             elif in_schedule and not slideshow_is_running:
-                logging.info("[Scheduler] Heure active et diaporama arrêté. Séquence de démarrage...")
+                logger.info("📅✅ Heure active et diaporama arrêté. Séquence de démarrage...")
                 # 1. On s'assure que l'écran est allumé (via DPMS si pas de prise)
                 set_display_power(on=True)
                 # 2. On attend un court instant pour laisser l'environnement d'affichage se stabiliser
@@ -1430,7 +1522,7 @@ def schedule_worker():
                 start_slideshow()
 
         except Exception as e:
-            logging.error(f"[Scheduler] Erreur dans le worker de planification : {e}", exc_info=True)
+            logger.error(f"📅❌ Erreur dans le worker de planification : {e}", exc_info=True)
 
         # Attendre 60 secondes avant la prochaine vérification
         time.sleep(60)
@@ -1439,7 +1531,7 @@ def immich_update_worker():
     """
     Thread en arrière-plan qui vérifie et met à jour l'album Immich périodiquement.
     """
-    logging.info("== Démarrage du worker de mise à jour automatique Immich ==")
+    logger.debug("🖼️🔄 Démarrage du worker de mise à jour automatique Immich")
     while True:
         config = load_config()
         is_enabled = config.get("immich_auto_update", False)
@@ -1448,7 +1540,7 @@ def immich_update_worker():
 
         global _immich_first_run_skipped
         if not _immich_first_run_skipped and skip_initial:
-            logging.info("[Auto-Update Immich] Import initial skipped as per configuration.")
+            logger.info("🖼️🔄 Import initial skipped as per configuration.")
             immich_status_manager.update_status(message="Import initial ignoré.")
             _immich_first_run_skipped = True
             # Calculate next run and sleep, then continue to next iteration
@@ -1462,12 +1554,12 @@ def immich_update_worker():
         
         if is_enabled:
             status_msg = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
-            logging.info(f"[Auto-Update Immich] {status_msg}")
+            logger.info(f"🖼️🔄  {status_msg}")
             immich_status_manager.update_status(message=status_msg)
             
             try:
                 immich_status_manager.update_status(message="Lancement du téléchargement...")
-                logging.info("[Auto-Update Immich] Lancement du téléchargement et de la préparation...")
+                logger.info("🖼️🔄 Lancement du téléchargement et de la préparation...")
                 
                 # Étape 1: Téléchargement
                 download_success = False
@@ -1475,10 +1567,10 @@ def immich_update_worker():
                 for update in download_and_extract_album(config):
                     # NOUVEAU: Afficher les messages de progression du worker dans les logs pour le débogage
                     if update.get("message"):
-                        logging.info(f"[Auto-Update Immich] {update.get('message')}")
+                        logger.info(f"🖼️🔄  {update.get('message')}")
 
                     if update.get("type") == "error":
-                        logging.error(f"[Auto-Update Immich] Erreur lors du téléchargement : {update.get('message')}")
+                        logger.error(f"🖼️🔄❌ Erreur lors du téléchargement : {update.get('message')}")
                         immich_status_manager.update_status(message=f"Erreur téléchargement: {update.get('message')}")
                     immich_status_manager.update_status(message=update.get('message', '')) # Update status with download message
                     if update.get("type") == "done":
@@ -1504,7 +1596,7 @@ def immich_update_worker():
                     for update in prepare_all_photos_with_progress(screen_width=screen_width, screen_height=screen_height, source_type="immich", description_map=final_description_map):
                         immich_status_manager.update_status(message=update.get('message', '')) # Update status with preparation message
                         if update.get("type") == "error":
-                            logging.error(f"[Auto-Update Immich] Erreur lors de la préparation : {update.get('message')}")
+                            logger.error(f"🖼️🔄❌ Erreur lors de la préparation : {update.get('message')}")
                             immich_status_manager.update_status(message=f"Erreur préparation: {update.get('message')}")
                             break # Sortir de la boucle de préparation
                         if update.get("type") == "done":
@@ -1512,7 +1604,7 @@ def immich_update_worker():
                     
                     if prep_successful:
                         immich_status_manager.update_status(message="Mise à jour terminée. Redémarrage du diaporama...")
-                        print("[Auto-Update] Mise à jour terminée avec succès. Redémarrage du diaporama.")
+                        print("🖼️🔄✅ Mise à jour terminée avec succès. Redémarrage du diaporama.")
                         if is_slideshow_running():
                             restart_slideshow_for_update()
                         immich_status_manager.update_status(last_run=datetime.now(), message="Dernière mise à jour réussie.")
@@ -1520,12 +1612,12 @@ def immich_update_worker():
                         immich_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
 
             except Exception as e:
-                logging.error(f"[Auto-Update Immich] Erreur critique dans le worker : {e}", exc_info=True)
+                logger.error(f"🖼️🔄❌ Erreur critique dans le worker : {e}", exc_info=True)
                 immich_status_manager.update_status(message=f"Erreur critique : {e}")
 
         else:
             status_msg = "Mise à jour automatique désactivée."
-            print(f"[Auto-Update Immich] {status_msg}")
+            logger.info(f"🖼️🔄❌ {status_msg}")
             immich_status_manager.update_status(message=status_msg)
         
         # Attendre avant la prochaine vérification
@@ -1540,7 +1632,7 @@ def samba_update_worker():
     """
     Thread en arrière-plan qui vérifie et met à jour le partage Samba périodiquement.
     """
-    print("== Démarrage du worker de mise à jour automatique Samba ==")
+    print("Démarrage du worker de mise à jour automatique Samba")
     while True:
         config = load_config()
         is_enabled = config.get("smb_auto_update", False)
@@ -1563,7 +1655,7 @@ def samba_update_worker():
         
         if is_enabled:
             status_msg = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
-            print(f"[Auto-Update Samba] {status_msg}")
+            logger.info(f"[Auto-Update Samba] {status_msg}")
             samba_status_manager.update_status(message=status_msg)
             
             try:
@@ -1573,7 +1665,7 @@ def samba_update_worker():
                 import_success = False
                 for update in import_samba_photos(config):
                     if update.get("type") == "error":
-                        print(f"[Auto-Update Samba] Erreur lors de l'import : {update.get('message')}")
+                        logger.info(f"[Auto-Update Samba] Erreur lors de l'import : {update.get('message')}")
                         samba_status_manager.update_status(message=f"Erreur import: {update.get('message')}")
                     samba_status_manager.update_status(message=update.get('message', '')) # Update status with import message
                     if update.get("type") == "done":
@@ -1610,7 +1702,7 @@ def samba_update_worker():
                     else:
                         samba_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
             except Exception as e:
-                logging.error(f"[Auto-Update Samba] Erreur critique dans le worker : {e}", exc_info=True)
+                logger.error(f"[Auto-Update Samba] Erreur critique dans le worker : {e}", exc_info=True)
                 samba_status_manager.update_status(message=f"Erreur critique : {e}")
         else:
             samba_status_manager.update_status(message="Mise à jour automatique Samba désactivée.")
@@ -1626,7 +1718,7 @@ def telegram_bot_worker():
     """
     Thread en arrière-plan qui lance et maintient le bot Telegram actif.
     """
-    print("== Démarrage du worker du bot Telegram ==")
+    print("Démarrage du worker du bot Telegram")
     while True: # Boucle pour relancer le bot en cas de crash
         config = load_config()
         is_enabled = config.get("telegram_bot_enabled", False)
@@ -1656,7 +1748,7 @@ def telegram_bot_worker():
                     error_msg = f"Erreur critique du bot : {str(e)[:100]}..."
                 
                 final_error_msg = f"{error_msg} Redémarrage dans 60s."
-                print(f"[Telegram Worker] {final_error_msg}")
+                logger.info(f"[Telegram Worker] {final_error_msg}")
                 telegram_status_manager.update_status(message=error_msg) # On affiche le message concis dans l'UI
         else:
             telegram_status_manager.update_status(message="Bot désactivé ou non configuré.")
@@ -1763,11 +1855,11 @@ def delete_source_photos(source_name):
     try:
         if prepared_dir.is_dir():
             shutil.rmtree(prepared_dir)
-            print(f"Dossier préparé supprimé : {prepared_dir}")
+            logger.info(f"Dossier préparé supprimé : {prepared_dir}")
         
         if backup_dir.is_dir():
             shutil.rmtree(backup_dir)
-            print(f"Dossier de sauvegarde supprimé : {backup_dir}")
+            logger.info(f"Dossier de sauvegarde supprimé : {backup_dir}")
 
         # Supprimer les états de filtre pour cette source
         states = load_filter_states()
@@ -1778,7 +1870,7 @@ def delete_source_photos(source_name):
             save_filter_states(states)
         return jsonify({"success": True, "message": "Photos supprimées."}), 200
     except Exception as e:
-        print(f"Erreur lors de la suppression des photos de la source {source_name}: {e}")
+        logger.info(f"Erreur lors de la suppression des photos de la source {source_name}: {e}")
         return jsonify({"success": False, "message": f"Erreur serveur : {e}"}), 500
 
 @app.route('/shutdown', methods=['POST'])
@@ -1906,7 +1998,7 @@ def play_playlist():
         
         return jsonify({"success": True, "message": f"Lancement du diaporama pour la playlist '{target_playlist.get('name')}'."})
     except Exception as e:
-        print(f"Erreur lors du lancement de la playlist : {e}")
+        logger.info(f"Erreur lors du lancement de la playlist : {e}")
         return jsonify({"success": False, "message": "Erreur interne du serveur."}), 500
 
 @app.route('/api/slideshow/restart_standard', methods=['POST'])
@@ -1928,7 +2020,7 @@ def restart_standard_slideshow():
         start_slideshow()
         return jsonify({"success": True, "message": "Diaporama standard relancé."})
     except Exception as e:
-        print(f"Erreur lors du redémarrage du diaporama standard : {e}")
+        logger.info(f"Erreur lors du redémarrage du diaporama standard : {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 # --- API pour la gestion des Playlists ---
@@ -2061,7 +2153,7 @@ def reorder_playlist(playlist_id):
         return jsonify({"success": True, "message": "Ordre de la playlist sauvegardé."})
 
     except Exception as e:
-        print(f"Erreur lors de la réorganisation de la playlist : {e}")
+        logger.info(f"Erreur lors de la réorganisation de la playlist : {e}")
         return jsonify({"success": False, "message": "Erreur interne du serveur."}), 500
 
 
@@ -2082,7 +2174,7 @@ def get_audio_devices():
         # Renvoyer une erreur JSON claire au lieu de planter ou de renvoyer une liste vide.
         # Cela permet au frontend d'afficher un message d'erreur utile.
         error_message = f"Erreur API Audio: {type(e).__name__} - {e}"
-        print(f"[ERROR] in get_audio_devices: {error_message}") # Log pour le débogage côté serveur
+        logger.info(f"[ERROR] in get_audio_devices: {error_message}") # Log pour le débogage côté serveur
         return jsonify({"success": False, "message": error_message, "devices": []})
 
 @app.route('/api/voice_control/status', methods=['GET'])
@@ -2442,7 +2534,7 @@ def current_photo_status():
                 # Construire l'URL complète pour l'attribut src de l'image
                 return jsonify({"current_photo": url_for('static', filename=photo_path), "status": "running"})
     except Exception as e:
-        print(f"Erreur lecture fichier photo actuelle : {e}")
+        logger.info(f"Erreur lecture fichier photo actuelle : {e}")
         
     return jsonify({"current_photo": None, "status": "running"})
 
@@ -2501,7 +2593,7 @@ def get_wifi_status():
             return {"is_connected": False, "ssid": "Non connecté", "ip_address": "N/A"}
 
     except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired, IndexError, ValueError) as e:
-        print(f"Erreur lors de la récupération du statut Wi-Fi : {e}")
+        logger.info(f"Erreur lors de la récupération du statut Wi-Fi : {e}")
         return {"is_connected": False, "ssid": "Erreur", "ip_address": "N/A"}
 
 @app.route('/api/wifi_status')
@@ -2701,7 +2793,7 @@ def list_logs():
     """Retourne la liste des fichiers de log qui existent réellement."""
     available_logs = []
     # Itérer dans un ordre défini pour une interface utilisateur cohérente
-    log_order = ["app", "slideshow_stdout", "slideshow_stderr", "voice_control_stdout", "voice_control_stderr"]
+    log_order = ["app", "display_HDMI", "slideshow_stdout", "slideshow_stderr", "voice_control_stdout", "voice_control_stderr"]
     for key in log_order:
         info = LOG_FILES_MAP.get(key)
         if info and os.path.exists(info["path"]):
@@ -2952,7 +3044,7 @@ def apply_filter_api():
     except ValueError as e: # Pour les noms de filtres invalides
         return jsonify({"success": False, "message": str(e)}), 400
     except Exception as e:
-        print(f"Erreur lors de l'application du filtre : {e}")
+        logger.info(f"Erreur lors de l'application du filtre : {e}")
         return jsonify({"success": False, "message": f"Erreur interne du serveur : {e}"}), 500
 
 @app.route('/api/set_photo_filter', methods=['POST'])
@@ -3196,7 +3288,7 @@ def toggle_voice_control():
         
         return jsonify({"success": True, "message": message})
     except Exception as e:
-        logging.error(f"Erreur lors du basculement du contrôle vocal : {e}", exc_info=True)
+        logger.error(f"Erreur lors du basculement du contrôle vocal : {e}", exc_info=True)
         return jsonify({"success": False, "message": _("Erreur interne du serveur : %(error)s", error=str(e))}), 500
 
 def migrate_guest_folders():
@@ -3214,7 +3306,7 @@ def migrate_guest_folders():
         # Migration des photos sources
         legacy_photos_dir = base_photos / legacy
         if legacy_photos_dir.exists() and legacy_photos_dir.is_dir():
-            print(f"[Migration] Déplacement des photos de '{legacy}' vers '{target_name}'...")
+            logger.info(f"[Migration] Déplacement des photos de '{legacy}' vers '{target_name}'...")
             for item in legacy_photos_dir.iterdir():
                 dest = base_photos / target_name / item.name
                 if not dest.exists():
@@ -3228,7 +3320,7 @@ def migrate_guest_folders():
         # Migration des photos préparées
         legacy_prepared_dir = base_prepared / legacy
         if legacy_prepared_dir.exists() and legacy_prepared_dir.is_dir():
-            print(f"[Migration] Déplacement des fichiers préparés de '{legacy}' vers '{target_name}'...")
+            logger.info(f"[Migration] Déplacement des fichiers préparés de '{legacy}' vers '{target_name}'...")
             for item in legacy_prepared_dir.iterdir():
                 dest = base_prepared / target_name / item.name
                 if not dest.exists():
@@ -3252,7 +3344,7 @@ def migrate_guest_folders():
     if modified:
         config['display_sources'] = list(new_sources)
         save_config(config)
-        print(f"[Migration] Configuration mise à jour : sources {sources} -> {list(new_sources)}")
+        logger.info(f"[Migration] Configuration mise à jour : sources {sources} -> {list(new_sources)}")
 
 if __name__ == '__main__':
     # Lancer la migration des dossiers invités au démarrage

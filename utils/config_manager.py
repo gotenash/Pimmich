@@ -6,6 +6,7 @@ CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config', 'config.js
 def create_default_config():
     """Crée et retourne un dictionnaire de configuration par défaut. Source unique de vérité."""
     return {
+        "level_log": "INFO",
         "display_duration": 10,
         "active_start": "07:00",
         "active_end": "22:00",
