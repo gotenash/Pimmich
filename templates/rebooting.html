@@ -31,12 +31,6 @@
             max-width: 500px;
         }
         
-        .logo {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 30px;
-        }
-        
         h1 {
             font-size: 2em;
             margin-bottom: 20px;
@@ -45,11 +39,11 @@
         
         .status {
             font-size: 1.2em;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
             opacity: 0.9;
         }
         
-        /* Spinner animé */
+        /* Spinner animé - ORIGINAL */
         .spinner {
             width: 60px;
             height: 60px;
@@ -65,7 +59,7 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Animation de pulsation pour le texte */
+        /* Animation de pulsation pour le texte - ORIGINAL */
         .pulse {
             animation: pulse 2s ease-in-out infinite;
         }
@@ -81,6 +75,7 @@
             margin-top: 30px;
         }
         
+        /* Progress bar à 50s */
         .progress-bar {
             width: 100%;
             height: 4px;
@@ -93,25 +88,38 @@
         .progress-bar-fill {
             height: 100%;
             background: white;
-            animation: progress 40s ease-out forwards;
+            animation: progress 50s ease-out forwards;
         }
         
         @keyframes progress {
             0% { width: 0%; }
             100% { width: 90%; }
         }
+        
+        /* Compteur bien visible */
+        .countdown {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Logo Pimmich -->
+        <!-- Logo Pimmich - ORIGINAL -->
         <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" style="width: 160px; height: auto;">
         
         <h1>Redémarrage en cours</h1>
         
         <div class="spinner"></div>
         
-        <p class="status pulse" id="status">Redémarrage du système...</p>
+        <!-- STATUS + COMPTEUR SÉPARÉS -->
+        <p class="status" id="statusText">Redémarrage du système</p>
+        <div id="countdown" class="countdown">50s</div>
         
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
@@ -124,73 +132,104 @@
     </div>
 
     <script>
-        let checkInterval;
+        let countdownInterval = null;
+        let checkInterval = null;
         let rebootTriggered = false;
-        let checkStartTime = null;
+        let remainingTime = 40;
+        let serverReady = false;  // ✅ État serveur prêt
         
-        // Déclencher le redémarrage immédiatement après le chargement de la page
-        window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(triggerReboot, 100); // Petit délai pour s'assurer que la page est affichée
+        const statusText = document.getElementById('statusText');
+        const countdownEl = document.getElementById('countdown');
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(triggerReboot, 100);
         });
         
         function triggerReboot() {
             if (rebootTriggered) return;
             rebootTriggered = true;
             
+            // Déclencher reboot API
             fetch('/api/trigger_reboot', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Redémarrage déclenché:', data);
-                // Attendre 10 secondes avant de commencer à vérifier (le temps que le système redémarre)
-                setTimeout(startChecking, 10000);
-            })
-            .catch(error => {
-                console.log('Erreur lors du déclenchement (normal, le serveur redémarre):', error);
-                // Même en cas d'erreur, on commence à vérifier après 10 secondes
-                setTimeout(startChecking, 10000);
-            });
+                headers: {'Content-Type': 'application/json'}
+            }).catch(() => console.log('Reboot command sent'));
+            
+            // Démarrer compte à rebours + vérifications
+            startCountdownAndChecks();
         }
         
-        function startChecking() {
-            checkStartTime = Date.now();
-            updateStatus('Attente du redémarrage du système...');
+        function startCountdownAndChecks() {
+            updateDisplay(); // Affichage initial
             
-            // Vérifier toutes les 5 secondes
-            checkInterval = setInterval(checkServerAvailability, 5000);
+            // ✅ COMPTEUR
+            countdownInterval = setInterval(() => {
+                remainingTime--;
+                if (!serverReady) {  // N'afficher que si pas prêt
+                    updateDisplay();
+                }
+                if (remainingTime <= 0 && !serverReady) {
+                    switchToCheckingMode();
+                }
+            }, 1000);
+            
+            // ✅ PING TOUTES LES 2s (dès le début)
+            checkInterval = setInterval(checkServerAvailability, 2000);
         }
         
         function checkServerAvailability() {
-            const elapsedSeconds = Math.floor((Date.now() - checkStartTime) / 1000);
-            updateStatus(`Vérification de la disponibilité du serveur... (${elapsedSeconds}s)`);
-            
-            fetch('/api/ping', {
-                method: 'GET',
-                cache: 'no-cache'
+            console.log('🔍 Ping test...');
+            fetch('/api/ping', { 
+                method: 'GET', 
+                cache: 'no-cache',
+                keepalive: true
             })
             .then(response => {
+                console.log('✅ Ping OK:', response.status);
                 if (response.ok) {
-                    clearInterval(checkInterval);
-                    updateStatus('Système prêt ! Redirection...');
-                    
-                    // Rediriger vers la racine après 1 seconde
-                    setTimeout(() => {
-                        window.location.href = '/configure';
-                    }, 1000);
+                    serverReady = true;
+                    stopCountdown();
+                    showServerReady();
                 }
             })
             .catch(error => {
-                // Serveur pas encore disponible, on continue à vérifier
-                console.log('Serveur pas encore disponible, nouvelle tentative dans 5s...');
+                console.log('❌ Ping failed:', error);
             });
         }
         
-        function updateStatus(message) {
-            document.getElementById('status').textContent = message;
+        function stopCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+        }
+        
+        function switchToCheckingMode() {
+            stopCountdown();
+            statusText.textContent = '🔄 Vérification intensive...';
+            countdownEl.textContent = '⏳';
+            // Continue les pings existants
+        }
+        
+        function showServerReady() {
+            statusText.textContent = '✅ Serveur disponible !';
+            countdownEl.textContent = 'Redirection...';
+            
+            // Arrêter tous les timers
+            if (checkInterval) {
+                clearInterval(checkInterval);
+                checkInterval = null;
+            }
+            
+            // Rediriger après 1s
+            setTimeout(() => {
+                window.location.href = '/configure';
+            }, 1000);
+        }
+        
+        function updateDisplay() {
+            statusText.textContent = 'Redémarrage du système';
+            countdownEl.textContent = remainingTime + 's';
         }
     </script>
 </body>
