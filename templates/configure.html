@@ -4235,7 +4235,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mettre à jour les infos système (intervalles plus longs pour réduire la charge)
     setInterval(fetchSystemInfo, 10000); // 10 secondes
-    setInterval(fetchWifiStatus, 30000); // 30 secondes
+		setTimeout(() => {
+			fetchWifiStatus();  // Premier ping après 15s
+			setInterval(fetchWifiStatus, 3000);  // Puis toutes les 3s
+		}, 15000);
+		
+		
     setInterval(() => fetchInterfaceStatus('eth0'), 30000); // 30 secondes
     // Mettre à jour les logs toutes les 15 secondes (ou sur demande)
     setInterval(fetchLogs, 15000); // 15 secondes
