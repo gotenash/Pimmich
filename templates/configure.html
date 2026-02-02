@@ -4409,9 +4409,25 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const overlay = document.createElement('div');
                 overlay.className = "fixed inset-0 bg-gray-800 bg-opacity-90 text-white flex flex-col items-center justify-center text-center p-4 z-50";
-                overlay.innerHTML = `<i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p>`;
+                overlay.innerHTML = `<i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2" id="reload-status-text">{{ _("Attente du redémarrage du serveur...") }}</p>`;
                 document.body.appendChild(overlay);
-                setInterval(() => { location.reload(true); }, 3000);
+                
+                // Vérifier la disponibilité du serveur avant de recharger
+                let checkInterval = setInterval(() => {
+                    fetch('/api/ping', { method: 'GET', cache: 'no-cache' })
+                        .then(response => {
+                            if (response.ok) {
+                                clearInterval(checkInterval);
+                                document.getElementById('reload-status-text').textContent = "{{ _('Serveur prêt ! Rechargement...') }}";
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1000);
+                            }
+                        })
+                        .catch(() => {
+                            // Serveur indisponible, on attend
+                        });
+                }, 2000);
             }, 2000);
         }
 

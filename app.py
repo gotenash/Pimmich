@@ -3347,25 +3347,33 @@ def migrate_guest_folders():
         logger.info(f"[Migration] Configuration mise à jour : sources {sources} -> {list(new_sources)}")
 
 if __name__ == '__main__':
-    # Lancer la migration des dossiers invités au démarrage
-    migrate_guest_folders()
+    # Vérifier si nous sommes dans le processus principal ou le reloader
+    # Si le mode debug est activé, Flask lance deux processus : un parent (reloader) et un enfant (worker).
+    # Nous ne voulons lancer les threads d'arrière-plan que dans le processus enfant (celui qui sert l'app),
+    # ou dans le processus unique si le reloader n'est pas actif.
+    use_reloader = os.environ.get("FLASK_DEBUG") == "1" or app.debug
+    is_reloader_child = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
 
-    # Démarrer les workers de mise à jour dans des threads séparés
-    immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
-    immich_thread.start()
-    samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
-    samba_thread.start()
-    telegram_thread = threading.Thread(target=telegram_bot_worker, daemon=True)
-    telegram_thread.start()
-    
-    # Démarrer le worker de planification du diaporama
-    scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
-    scheduler_thread.start()
+    if not use_reloader or is_reloader_child:
+        # Lancer la migration des dossiers invités au démarrage
+        migrate_guest_folders()
 
-    # --- NOUVEAU: Démarrage du contrôle vocal si activé ---
-    config = load_config()
-    if config.get('voice_control_enabled'):
-        print("Le contrôle vocal est activé, démarrage du service...")
-        start_voice_control()
+        # Démarrer les workers de mise à jour dans des threads séparés
+        immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
+        immich_thread.start()
+        samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
+        samba_thread.start()
+        telegram_thread = threading.Thread(target=telegram_bot_worker, daemon=True)
+        telegram_thread.start()
+        
+        # Démarrer le worker de planification du diaporama
+        scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
+        scheduler_thread.start()
+
+        # --- NOUVEAU: Démarrage du contrôle vocal si activé ---
+        config = load_config()
+        if config.get('voice_control_enabled'):
+            print("Le contrôle vocal est activé, démarrage du service...")
+            start_voice_control()
 
     app.run(host='0.0.0.0', port=5000)
