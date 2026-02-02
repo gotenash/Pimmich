@@ -203,6 +203,7 @@ LOG_FILES_MAP = {
     "slideshow_stdout": {"path": "logs/slideshow.log", "name_key": "Diaporama"},
     "voice_control_stdout": {"path": "logs/voice_control_stdout.log", "name_key": "voice_control.py (Contrôle Vocal - Sortie Standard)"},
     "voice_control_stderr": {"path": "logs/voice_control_stderr.log", "name_key": "voice_control.py (Contrôle Vocal - Erreurs)"},
+    "update_pip": {"path": "logs/update_pip.log", "name_key": "Mise à jour (pip install)"},
 }
 
 class WorkerStatus:
@@ -2793,7 +2794,7 @@ def list_logs():
     """Retourne la liste des fichiers de log qui existent réellement."""
     available_logs = []
     # Itérer dans un ordre défini pour une interface utilisateur cohérente
-    log_order = ["app", "display_HDMI", "slideshow_stdout", "slideshow_stderr", "voice_control_stdout", "voice_control_stderr"]
+    log_order = ["app", "display_HDMI", "slideshow_stdout", "slideshow_stderr", "voice_control_stdout", "voice_control_stderr", "update_pip"]
     for key in log_order:
         info = LOG_FILES_MAP.get(key)
         if info and os.path.exists(info["path"]):
