@@ -201,6 +201,7 @@ LOG_FILES_MAP = {
     "app": {"path": "logs/pimmich.log", "name_key": "Pimmich (Serveur Web & Supervisor)"},
     "voice_control_stdout": {"path": "logs/voice_control_stdout.log", "name_key": "voice_control.py (Contrôle Vocal - Sortie Standard)"},
     "voice_control_stderr": {"path": "logs/voice_control_stderr.log", "name_key": "voice_control.py (Contrôle Vocal - Erreurs)"},
+    "update_pip": {"path": "logs/update_pip.log", "name_key": "Mise à jour (pip install)"},
 }
 
 class WorkerStatus:
@@ -2812,7 +2813,7 @@ def get_system_info_api():
 def list_logs():
     """Retourne la liste des fichiers de log qui existent réellement."""
     available_logs = []
-    # Itérer dans un ordre défini pour une interface utilisateur cohérente
+    # Itérer dans un ordre défini pour une interface utilisateur cohérent
     log_order = ["app", "voice_control_stdout", "voice_control_stderr"]
     for key in log_order:
         info = LOG_FILES_MAP.get(key)
@@ -3367,25 +3368,33 @@ def migrate_guest_folders():
         logger.info(f"[Migration] Configuration mise à jour : sources {sources} -> {list(new_sources)}")
 
 if __name__ == '__main__':
-    # Lancer la migration des dossiers invités au démarrage
-    migrate_guest_folders()
+    # Vérifier si nous sommes dans le processus principal ou le reloader
+    # Si le mode debug est activé, Flask lance deux processus : un parent (reloader) et un enfant (worker).
+    # Nous ne voulons lancer les threads d'arrière-plan que dans le processus enfant (celui qui sert l'app),
+    # ou dans le processus unique si le reloader n'est pas actif.
+    use_reloader = os.environ.get("FLASK_DEBUG") == "1" or app.debug
+    is_reloader_child = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
 
-    # Démarrer les workers de mise à jour dans des threads séparés
-    immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
-    immich_thread.start()
-    samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
-    samba_thread.start()
-    telegram_thread = threading.Thread(target=telegram_bot_worker, daemon=True)
-    telegram_thread.start()
-    
-    # Démarrer le worker de planification du diaporama
-    scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
-    scheduler_thread.start()
+    if not use_reloader or is_reloader_child:
+        # Lancer la migration des dossiers invités au démarrage
+        migrate_guest_folders()
 
-    # --- NOUVEAU: Démarrage du contrôle vocal si activé ---
-    config = load_config()
-    if config.get('voice_control_enabled'):
-        print("Le contrôle vocal est activé, démarrage du service...")
-        start_voice_control()
+        # Démarrer les workers de mise à jour dans des threads séparés
+        immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
+        immich_thread.start()
+        samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
+        samba_thread.start()
+        telegram_thread = threading.Thread(target=telegram_bot_worker, daemon=True)
+        telegram_thread.start()
+        
+        # Démarrer le worker de planification du diaporama
+        scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
+        scheduler_thread.start()
+
+        # --- NOUVEAU: Démarrage du contrôle vocal si activé ---
+        config = load_config()
+        if config.get('voice_control_enabled'):
+            print("Le contrôle vocal est activé, démarrage du service...")
+            start_voice_control()
 
     app.run(host='0.0.0.0', port=5000)

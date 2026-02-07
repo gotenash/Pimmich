@@ -52,7 +52,7 @@ source venv/bin/activate
 
 # Rediriger la sortie de pip vers un fichier de log pour le débogage
 # et vérifier le code de retour manuellement pour ne pas bloquer le redémarrage.
-if ! pip install -r requirements.txt > logs/update_pip.log 2>&1; then
+if ! pip install --timeout 60 -r requirements.txt > logs/update_pip.log 2>&1; then
     echo "STEP:WARNING:--- AVERTISSEMENT: La mise à jour des dépendances a échoué. ---"
     echo "STEP:WARNING:L'application va quand même redémarrer, mais pourrait être instable."
     echo "STEP:WARNING:Consultez le fichier 'logs/update_pip.log' depuis l'onglet Système pour les détails."
