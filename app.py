@@ -104,12 +104,12 @@ root_logger.setLevel(level)
 file_handler = RotatingFileHandler(
     LOGS_DIR / "pimmich.log",
     maxBytes=10 * 1024 * 1024,
-    backupCount=5,
+    backupCount=3,
     encoding="utf-8"
 )
 file_handler.setLevel(level)
 file_formatter = CleanWerkzeugFormatter(
-    '%(asctime)s %(emoji)s %(message)s',
+    '%(emoji)s🟨%(asctime)s %(message)s',
     datefmt='%d-%m %H:%M:%S'
 )
 file_handler.setFormatter(file_formatter)
@@ -199,8 +199,6 @@ PREPARED_DIR = BASE_DIR / "static" / "prepared"
 # Dictionnaire central pour les fichiers de log
 LOG_FILES_MAP = {
     "app": {"path": "logs/pimmich.log", "name_key": "Pimmich (Serveur Web & Supervisor)"},
-    "display_HDMI": {"path": "logs/display_HDMI.log", "name_key": "Affichage HDMI"},
-    "slideshow_stdout": {"path": "logs/slideshow.log", "name_key": "Diaporama"},
     "voice_control_stdout": {"path": "logs/voice_control_stdout.log", "name_key": "voice_control.py (Contrôle Vocal - Sortie Standard)"},
     "voice_control_stderr": {"path": "logs/voice_control_stderr.log", "name_key": "voice_control.py (Contrôle Vocal - Erreurs)"},
     "update_pip": {"path": "logs/update_pip.log", "name_key": "Mise à jour (pip install)"},
@@ -262,7 +260,7 @@ def get_screen_resolution():
             if socks:
                 os.environ["SWAYSOCK"] = socks[0]
             else:
-                print("SWAYSOCK non trouvé, utilisation de la résolution de secours depuis la config.")
+                logger.warning("SWAYSOCK non trouvé, utilisation de la résolution de secours depuis la config.")
                 return default_width, default_height
 
         # Utiliser HDMI_OUTPUT du slideshow_manager pour cibler la bonne sortie
@@ -843,7 +841,7 @@ def configure():
     try:
         if PENDING_UPLOADS_DIR.exists():
             pending_files = [f.name for f in PENDING_UPLOADS_DIR.iterdir() if f.is_file() and not f.name.startswith('.')]
-            logger.info(f"⚙✅ Chargement de la page. {len(pending_files)} photo(s) en attente dans {PENDING_UPLOADS_DIR}: {pending_files}")
+            logger.info(f"⚙ {len(pending_files)} photo(s) des invités en attente dans {PENDING_UPLOADS_DIR}: {pending_files}")
         else:
             logger.warning(f"⚙️ Le dossier {PENDING_UPLOADS_DIR} n'existe pas encore.")
     except Exception as e:
@@ -1443,6 +1441,8 @@ def download_photos():
         # Note: download_and_extract_album is now a generator. This call will do nothing.
         # This route seems to be a simple POST fallback and might need to be updated or removed. (Translated comment)
         flash("Photos téléchargées avec succès", "success")
+        logger.info(f"Photos téléchargées avec succès.")
+
     except Exception as e:
         flash(f"Erreur téléchargement : {e}", "danger")
     return redirect(url_for("configure"))
@@ -1473,8 +1473,15 @@ def schedule_worker():
             height = config.get('display_height', 1080)
             logger.info(f"📅✅ Forçage de la résolution {width}x{height} sur l'écran '{output_name}' au démarrage.")
             try:
-                subprocess.run(['swaymsg', 'output', output_name, 'mode', f'{width}x{height}'], check=True, timeout=10)
-                time.sleep(2) # Laisser le temps à l'écran de se stabiliser
+                # ⭐ NOUVEAU FIX : Forcer la résolution via swaymsg au démarrage
+                subprocess.run(
+                    ['swaymsg', 'output', output_name, 'mode', f'{width}x{height}'],
+                    check=True,
+                    timeout=10,
+                    env=os.environ  # Important pour SWAYSOCK
+                )
+                time.sleep(2)  # Laisser le temps à l'écran de se stabiliser
+                logger.info(f"📅✅ Résolution {width}x{height} appliquée avec succès sur {output_name}")
             except Exception as e:
                 logger.error(f"📅❌ Échec du forçage de la résolution au démarrage : {e}")
         
@@ -1514,7 +1521,7 @@ def schedule_worker():
                 logger.info("📅✅ Heure inactive détectée et diaporama en cours. Arrêt...")
                 stop_slideshow()
             elif in_schedule and not slideshow_is_running:
-                logger.info("📅✅ Heure active et diaporama arrêté. Séquence de démarrage...")
+                logger.info("📅✅ Heure active mais le diaporama est arrêté. Séquence de démarrage...")
                 # 1. On s'assure que l'écran est allumé (via DPMS si pas de prise)
                 set_display_power(on=True)
                 # 2. On attend un court instant pour laisser l'environnement d'affichage se stabiliser
@@ -1541,7 +1548,7 @@ def immich_update_worker():
 
         global _immich_first_run_skipped
         if not _immich_first_run_skipped and skip_initial:
-            logger.info("🖼️🔄 Import initial skipped as per configuration.")
+            logger.debug("🖼️🔄 Import initial skipped as per configuration.")
             immich_status_manager.update_status(message="Import initial ignoré.")
             _immich_first_run_skipped = True
             # Calculate next run and sleep, then continue to next iteration
@@ -1890,6 +1897,19 @@ def reboot():
 @login_required
 def system_reboot():
     """Affiche la page de redémarrage et lance le reboot après 1 seconde."""
+    # Supprimer le fichier log si coché
+    if request.form.get('delete_logs'):
+        log_file = '/home/pi/pimmich/logs/pimmich.log'
+        if os.path.exists(log_file):
+            try:
+                os.remove(log_file)
+                print("pimmich.log supprimé")
+            except Exception as e:
+                print(f"Erreur suppression log: {e}")    
+    
+    
+    
+    
     return render_template('rebooting.html')
 
 @app.route('/api/trigger_reboot', methods=['POST'])
@@ -2793,8 +2813,8 @@ def get_system_info_api():
 def list_logs():
     """Retourne la liste des fichiers de log qui existent réellement."""
     available_logs = []
-    # Itérer dans un ordre défini pour une interface utilisateur cohérente
-    log_order = ["app", "display_HDMI", "slideshow_stdout", "slideshow_stderr", "voice_control_stdout", "voice_control_stderr", "update_pip"]
+    # Itérer dans un ordre défini pour une interface utilisateur cohérent
+    log_order = ["app", "voice_control_stdout", "voice_control_stderr"]
     for key in log_order:
         info = LOG_FILES_MAP.get(key)
         if info and os.path.exists(info["path"]):

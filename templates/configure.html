@@ -1129,10 +1129,19 @@
             </button>
         </form>
 				<!-- Formulaire pour le redémarrage -->
-				<form id="rebootForm" action="/system_reboot" method="POST" style="display:inline;">
-						<button type="button" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded" onclick="confirmReboot()">
-								<i class="fas fa-sync-alt"></i> {{ _("Redémarrer le système") }}
+				<form id="rebootForm" action="/system_reboot" method="POST" 
+							class="flex items-center gap-3 mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
+							onsubmit="return confirm('Êtes-vous sûr de vouloir redémarrer le système ?');">
+						<button type="submit" class="system-button bg-yellow-500 hover:bg-yellow-700 text-gray-800 font-bold py-2 px-4 rounded flex-1">
+								<i class="fas fa-sync-alt mr-1"></i>{{ _("Redémarrer le système") }}
 						</button>
+						<div class="flex items-center bg-yellow-100 px-3 py-2 rounded-md border border-yellow-300">
+								<input type="checkbox" name="delete_logs" id="delete_logs" class="mr-2 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded">
+								<label for="delete_logs" class="text-sm font-medium text-gray-800 cursor-pointer select-none whitespace-nowrap flex items-center">
+										<i class="fas fa-trash-alt mr-1 text-yellow-600 text-xs"></i>
+										<span>{{ _("Supprimer les logs") }}</span>
+								</label>
+						</div>
 				</form>
         <form method="POST" action="/shutdown" onsubmit="return confirm('{{ _('Êtes-vous sûr de vouloir ÉTEINDRE le système ?') }}');">
             <button type="submit" class="system-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
@@ -1785,11 +1794,6 @@
     selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
   };
 
-	function confirmReboot() {
-			if (confirm('Êtes-vous sûr de vouloir redémarrer le système ?')) {
-					document.getElementById('rebootForm').submit();
-			}
-	}
 
   // Ajouter les traductions pour l'onglet Telegram
   i18n.testing = "{{ _('Test en cours...') }}";
