@@ -68,9 +68,9 @@ class EmojiFormatter(logging.Formatter):
 config = load_config()
 
 file_handler = RotatingFileHandler(
-    LOGS_DIR / "slideshow.log",
+    LOGS_DIR / "pimmich.log",
     maxBytes=10 * 1024 * 1024,
-    backupCount=5,
+    backupCount=3,
     encoding="utf-8"
 )
 level_name = config.get("level_log", "INFO")
@@ -79,7 +79,7 @@ level = getattr(logging, level_name.upper(), logging.INFO)
 file_handler.setLevel(level)
 
 file_formatter = EmojiFormatter(
-    '%(asctime)s %(emoji)s %(message)s',
+    '%(emoji)s🟦%(asctime)s %(message)s',
     datefmt='%d-%m %H:%M:%S'
 )
 file_handler.setFormatter(file_formatter)
@@ -93,9 +93,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Messages de démarrage
-logger.debug("----------------------------------------------------------------")
-logger.info("----------------Initialisation local_Slideshow  ----------------")
-logger.info("----------------------------------------------------------------")
+logger.debug("----------------Initialisation local_Slideshow  ----------------")
 
 
 
@@ -140,19 +138,19 @@ VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
 def reinit_pygame():
     """Quitte et réinitialise complètement Pygame et les ressources associées."""
-    logger.info(f"📸 Réinitialisation complète de Pygame...")
+    logger.debug(f"📸 Réinitialisation complète de Pygame...")
     pygame.quit()
     pygame.init()
 
     global _icon_cache
     _icon_cache = {}
-    logger.info(f"📸 Cache des icônes météo vidé.")
+    logger.debug(f"📸 Cache des icônes météo vidé.")
 
     info = pygame.display.Info()
     width, height = info.current_w, info.current_h
     screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
     pygame.mouse.set_visible(False)
-    logger.info(f"📸 Pygame entièrement réinitialisé à {width}x{height}.")
+    logger.debug(f"📸 Pygame entièrement réinitialisé à {width}x{height}.")
     return screen, width, height
 
 def load_filter_states():
@@ -1331,7 +1329,7 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
         pan_zoom_enabled = config.get("pan_zoom_enabled", False)
         display_duration = config.get("display_duration", 10)
-        logger.info(f"📸 Using display_duration: {display_duration} seconds.") # Debug print
+        logger.info(f"⏳ Pause de {display_duration} secondes.") # Debug print
         
         # Always blit the base image first (this will be overwritten by animation if enabled)
         pygame_image_base = pygame.image.fromstring(pil_image.tobytes(), pil_image.size, pil_image.mode)
@@ -1547,26 +1545,61 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
 
 # Boucle principale du diaporama
 def start_slideshow():
-    try: # Global try-except block for robust error handling
-        logger.info(f"📸 Starting slideshow initialization.")
-        config = load_config() # Utilise le gestionnaire centralisé
-        logger.info(f"📸 Config loaded. show_clock: {config.get('show_clock')}, show_weather: {config.get('show_weather')}")
-
+    try:
+        logger.debug(f"📸 Starting slideshow initialization.")
+        config = load_config()
+        logger.debug(f"📸 Config loaded. show_clock: {config.get('show_clock')}, show_weather: {config.get('show_weather')}")
+        
+      
+        
+        time.sleep(2)
+        logger.debug(f"📸 Attente de 2s pour stabilisation ")
+        
+        # ✅ NOUVEAU : Initialiser pygame et le module display explicitement
         pygame.init()
-        logger.info(f"📸 Pygame initialized.")
+        logger.debug(f"📸 Pygame initialized.")
+        
+        # ✅ FORCER l'initialisation du module display
+        pygame.display.init()
+        logger.debug(f"📸 pygame.display.init() appelé explicitement")
+        
+        # Vérifier les infos d'environnement
+        logger.debug(f"📸 Environment check:")
+        logger.debug(f"   DISPLAY={os.environ.get('DISPLAY', 'NOT SET')}")
+        logger.debug(f"   WAYLAND_DISPLAY={os.environ.get('WAYLAND_DISPLAY', 'NOT SET')}")
+        logger.debug(f"   XDG_RUNTIME_DIR={os.environ.get('XDG_RUNTIME_DIR', 'NOT SET')}")
+        logger.debug(f"   SDL_VIDEODRIVER={os.environ.get('SDL_VIDEODRIVER', 'NOT SET')}")
+        
+        # ✅ NOUVEAU : Vérifier que pygame.display.get_driver() fonctionne
+        try:
+            driver = pygame.display.get_driver()
+            logger.debug(f"📸 Driver vidéo détecté: {driver}")
+        except Exception as e:
+            logger.error(f"❌ Impossible de détecter le driver: {e}")
+        
         info = pygame.display.Info()
         SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
-        logger.info(f"📸 Screen resolution: {SCREEN_WIDTH}x{SCREEN_HEIGHT}")
+        logger.debug(f"📸 Screen resolution detected: {SCREEN_WIDTH}x{SCREEN_HEIGHT}")
+        
+        # Si résolution invalide, forcer 1920x1080
+        if SCREEN_WIDTH == 0 or SCREEN_HEIGHT == 0:
+            logger.warning(f"❌ Résolution invalide détectée (0x0), utilisation de 1920x1080 par défaut")
+            SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
+        
+        # Création de l'écran
+        logger.debug(f"📸 Tentative de création de l'écran {SCREEN_WIDTH}x{SCREEN_HEIGHT}...")
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-        logger.info(f"📸 Pygame display set to FULLSCREEN.")
+        logger.info(f"✅ Écran créé avec succès : {screen.get_size()}")
+        
         pygame.mouse.set_visible(False)
-        logger.info(f"📸 Mouse cursor hidden.")
+        logger.debug(f"📸 Mouse cursor hidden.")       
+
 
         # --- Enregistrement des gestionnaires de signaux ---
         signal.signal(signal.SIGUSR1, signal_handler_next)      # Pour "suivant"
         signal.signal(signal.SIGUSR2, signal_handler_previous)   # Pour "précédent"
         signal.signal(signal.SIGTSTP, signal_handler_pause_toggle) # Pour "pause/reprendre"
-        logger.info(f"📸 Signal handlers registered.")
+        logger.debug(f"📸 Signal handlers registered.")
 
         # Initialiser le fichier de statut
         update_status_file({"paused": False})
@@ -1574,11 +1607,11 @@ def start_slideshow():
         try:
             import locale
             locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
-            logger.info(f"📸 Locale set to fr_FR.UTF-8.")
+            logger.debug(f"📸 Locale set to fr_FR.UTF-8.")
         except locale.Error:
-            logger.info(f"Avertissement: locale fr_FR.UTF-8 non disponible. Les dates seront en anglais.")
+            logger.warning(f"Avertissement: locale fr_FR.UTF-8 non disponible. Les dates seront en anglais.")
 
-        logger.info(f"📸 Entering main slideshow loop.")
+        logger.debug(f"📸 Entering main slideshow loop.")
         
         # --- Initialisation de la surface précédente pour la transition ---
         previous_photo_surface = None
@@ -1823,7 +1856,7 @@ def start_slideshow():
                 next_photo_requested = False
                 previous_photo_requested = False
 
-                logger.info(f"📸 Preparing to display: {photo_path}")
+                logger.info(f"🖼️ Affichage de la photo: {photo_path}")
                 
                 # --- Contrôle du ventilateur ---
                 if GPIO_AVAILABLE:
@@ -1831,11 +1864,11 @@ def start_slideshow():
                         temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
                         control_fan(temp)
                     except Exception as e:
-                        logger.info(f"Erreur lors de la lecture de la température ou du contrôle du ventilateur : {e}")
+                        logger.debug(f"Erreur lors de la lecture de la température ou du contrôle du ventilateur : {e}")
 
                 # --- CORRECTIF: Vérifier si le fichier existe avant de tenter de l'afficher ---
                 if not os.path.exists(photo_path):
-                    logger.info(f"📸 Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
+                    logger.warning(f"🖼️ Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
                     playlist_index += 1
                     continue
 
@@ -1884,7 +1917,7 @@ def start_slideshow():
                             draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, None)
                             pygame.display.flip()
                     except Exception as e:
-                        logger.info(f"📸 Error loading or transitioning to photo {photo_path}: {e}")
+                        logger.info(f"🖼️ Error loading or transitioning to photo {photo_path}: {e}")
                         traceback.print_exc()
                         current_pil_image = None # Explicitly set to None on error
                         playlist_index += 1
@@ -1894,7 +1927,7 @@ def start_slideshow():
                         display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, photo_path)
                         previous_photo_surface = screen.copy()
                     else:
-                        logger.info(f"📸 Skipping photo {photo_path} due to loading error.")
+                        logger.info(f"🖼️ Skipping photo {photo_path} due to loading error.")
 
                 # --- Logique de navigation ---
                 if next_photo_requested:
@@ -1910,7 +1943,7 @@ def start_slideshow():
 
             # --- Logique de fin de playlist personnalisée ---
             if is_custom_run:
-                logger.info(f"📸 Playlist personnalisée terminée. Retour au diaporama standard.")
+                logger.info(f"🖼️ Playlist personnalisée terminée. Retour au diaporama standard.")
                 is_custom_run = False # Le prochain tour de boucle while True construira la playlist par défaut.
                 playlist = [] # Vider la playlist pour forcer la reconstruction.
     except KeyboardInterrupt:
@@ -1935,7 +1968,7 @@ def start_slideshow():
         pygame.quit()
         if GPIO_AVAILABLE:
             GPIO.cleanup()
-        logger.info(f"📸 Pygame exited cleanly.")
+        logger.info(f"🖼️ Pygame exited cleanly.")
 
 if __name__ == "__main__":
     start_slideshow()

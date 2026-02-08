@@ -7,8 +7,12 @@ from utils.config import load_config
 import piexif
 from utils.image_filters import create_polaroid_effect, create_postcard_effect
 from utils.exif import get_rotation_angle
+import logging
 import re
 from pathlib import Path
+from logging.handlers import RotatingFileHandler
+
+from .config_manager import load_config
 
 # Configuration
 SOURCE_DIR = "static/photos"
@@ -25,6 +29,103 @@ DESCRIPTION_MAP_CACHE_FILE = Path("cache") / "immich_description_map.json"
 USER_TEXT_MAP_CACHE_FILE = Path("cache") / "user_texts.json"
 
 CANCEL_FLAG = Path('/tmp/pimmich_cancel_import.flag')
+
+
+# ============================================================
+# Configuration du logging avec émojis
+# ============================================================
+LOGSDIR = Path(__file__).resolve().parent.parent / "logs"
+LOGSDIR.mkdir(exist_ok=True)
+
+class EmojiFormatter(logging.Formatter):
+    """Formatter personnalisé avec émojis selon le niveau."""
+    EMOJI_MAP = {
+        "DEBUG": "🔍",
+        "INFO": "ℹ️",
+        "WARNING": "😒",
+        "ERROR": "❌",
+        "CRITICAL": "🔥"
+    }
+
+    def format(self, record):
+        emoji = self.EMOJI_MAP.get(record.levelname, "")
+        record.emoji = emoji
+        return super().format(record)
+
+# Charger la configuration
+config = load_config()
+
+# Créer un logger spécifique pour ce module
+logger = logging.getLogger("pimmich.prepare_all_photos")
+
+# Récupérer le niveau de log depuis la configuration
+level_name = config.get("level_log", "INFO")
+level = getattr(logging, level_name.upper(), logging.INFO)
+logger.setLevel(level)
+logger.propagate = False
+
+# Handler fichier avec rotation (10 Mo max, 3 backups)
+file_handler = RotatingFileHandler(
+    LOGSDIR / "pimmich.log",
+    maxBytes=10 * 1024 * 1024,
+    backupCount=3,
+    encoding="utf-8"
+)
+file_handler.setLevel(level)
+
+# Format modernisé avec emoji en début de ligne
+file_formatter = EmojiFormatter(
+    '%(emoji)s🔄%(asctime)s %(message)s',
+    datefmt='%d-%m %H:%M:%S'
+)
+file_handler.setFormatter(file_formatter)
+
+# Ajouter les handlers (éviter doublons si module réimporté)
+if not logger.handlers:
+    logger.addHandler(file_handler)
+
+# Messages de démarrage
+logger.debug("----------------Initialisation Prepare All Photos----------------")
+# Mappage des types de messages vers les niveaux de log
+TYPE_TO_LOGGER = {
+    "progress": logger.info,
+    "info": logger.info,
+    "warning": logger.warning,
+    "error": logger.error,
+    "done": logger.info,
+    "stats": logger.info,
+}
+
+def yield_and_log(msg_type: str, message: str, stage=None, percent=None, extra=None):
+    """
+    Fonction utilitaire qui construit un dict pour yield ET envoie le log correspondant.
+    
+    Args:
+        msg_type: Type de message ("progress", "info", "warning", "error", "done", "stats")
+        message: Le message à afficher
+        stage: Étape optionnelle (ex: "CLEANING", "PREPARING_PHOTO")
+        percent: Pourcentage optionnel de progression
+        extra: Dictionnaire optionnel de champs supplémentaires
+    
+    Returns:
+        Dict prêt pour yield contenant tous les champs nécessaires
+    """
+    result = {"type": msg_type, "message": message}
+    
+    if stage is not None:
+        result["stage"] = stage
+    if percent is not None:
+        result["percent"] = percent
+    if extra:
+        result.update(extra)
+    
+    # Log avec le bon niveau selon le type
+    log_func = TYPE_TO_LOGGER.get(msg_type, logger.info)
+    log_func(f"🔄{message}")
+    
+    return result
+
+
 
 def get_pi_model():
     """Détecte le modèle du Raspberry Pi."""
@@ -63,11 +164,12 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
         rotation_angle = get_rotation_angle(img)
         if rotation_angle != 0:
             img = img.rotate(rotation_angle, expand=True)
-            # Remove EXIF data after rotation
-            if "exif" in img.info:
-                img.info.pop("exif")
-            if "icc_profile" in img.info:
-                img.info.pop("icc_profile")
+        
+        # Remove EXIF data after rotation
+        if "exif" in img.info:
+            img.info.pop("exif")
+        if "icc_profile" in img.info:
+            img.info.pop("icc_profile")
         
         # Convert to RGB if necessary
         if img.mode in ('RGBA', 'LA', 'P'):
@@ -131,6 +233,7 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
             polaroid_content = create_polaroid_effect(img_content.copy())
             polaroid_final_img = final_img.copy()
             polaroid_final_img.paste(polaroid_content, (x_offset, y_offset))
+            
             dest_path_obj = Path(dest_path)
             polaroid_dest_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_polaroid.jpg")
             polaroid_final_img.save(polaroid_dest_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes_to_add)
@@ -145,11 +248,13 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
                 (int(output_width * scale_factor), int(output_height * scale_factor)),
                 Image.Resampling.LANCZOS
             )
+            
             postcard_content = create_postcard_effect(postcard_img_content, caption=caption)
             postcard_final_img = final_img.copy()
             postcard_x_offset = (output_width - postcard_content.width) // 2
             postcard_y_offset = (output_height - postcard_content.height) // 2
             postcard_final_img.paste(postcard_content, (postcard_x_offset, postcard_y_offset), postcard_content)
+            
             dest_path_obj = Path(dest_path)
             postcard_dest_path = dest_path_obj.with_name(f"{dest_path_obj.stem}_postcard.jpg")
             postcard_final_img.save(postcard_dest_path, 'JPEG', quality=90, optimize=True, exif=exif_bytes_to_add)
@@ -202,14 +307,16 @@ def prepare_video(source_path, dest_path, output_width, output_height):
         command = [
             'ffmpeg', '-i', source_path, '-vf', f"scale='min({output_width},iw)':'min({output_height},ih)':force_original_aspect_ratio=decrease,pad={output_width}:{output_height}:(ow-iw)/2:(oh-ih)/2",
             '-c:v', encoder, *encoder_params,
-            '-pix_fmt', 'yuv420p', # Ajout pour une meilleure compatibilité
+            '-pix_fmt', 'yuv420p',  # Ajout pour une meilleure compatibilité
             '-c:a', 'aac', '-b:a', '128k',
             '-y', dest_path
         ]
+        
         result = subprocess.run(command, check=False, capture_output=True, text=True, encoding='utf-8')
+        
         if result.returncode != 0:
             raise Exception(f"ffmpeg a échoué avec le code {result.returncode}. Erreur: {result.stderr.strip()}")
-
+    
     except Exception as video_e:
         raise Exception(f"Erreur lors du traitement de la vidéo '{os.path.basename(source_path)}': {video_e}")
     
@@ -245,7 +352,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     PREPARED_SOURCE_DIR = Path("static") / "prepared" / source_type
     
     if not SOURCE_DIR_FOR_PREP.is_dir():
-        yield {"type": "error", "message": f"Le dossier source '{SOURCE_DIR_FOR_PREP}' n'existe pas."}
+        yield yield_and_log("error", f"Le dossier source '{SOURCE_DIR_FOR_PREP}' n'existe pas.")
         return
     
     PREPARED_SOURCE_DIR.mkdir(parents=True, exist_ok=True)
@@ -265,21 +372,28 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     basenames_to_delete = set()
     if source_type != "smartphone":
         basenames_to_delete = prepared_basenames - source_basenames
-        if basenames_to_delete:
-            yield {"type": "progress", "stage": "CLEANING", "percent": 25, "message": f"Suppression de {len(basenames_to_delete)} médias obsolètes..."}
-            for basename in basenames_to_delete:
-                for file_to_delete in PREPARED_SOURCE_DIR.glob(f"{basename}*"):
-                    try:
-                        if file_to_delete.is_file():
-                            file_to_delete.unlink()
-                    except OSError as e:
-                        yield {"type": "warning", "message": f"Impossible de supprimer {file_to_delete.name} : {e}"}
-                
-                backup_dir = PREPARED_SOURCE_DIR.parent.parent / '.backups' / source_type
-                if backup_dir.exists():
-                    for backup_file_to_delete in backup_dir.glob(f"{basename}*"):
-                        if backup_file_to_delete.is_file():
-                            backup_file_to_delete.unlink()
+    
+    if basenames_to_delete:
+        yield yield_and_log(
+            "progress",
+            f"Suppression de {len(basenames_to_delete)} médias obsolètes...",
+            stage="CLEANING",
+            percent=25
+        )
+        
+        for basename in basenames_to_delete:
+            for file_to_delete in PREPARED_SOURCE_DIR.glob(f"{basename}*"):
+                try:
+                    if file_to_delete.is_file():
+                        file_to_delete.unlink()
+                except OSError as e:
+                    yield yield_and_log("warning", f"Impossible de supprimer {file_to_delete.name} : {e}")
+            
+            backup_dir = PREPARED_SOURCE_DIR.parent.parent / '.backups' / source_type
+            if backup_dir.exists():
+                for backup_file_to_delete in backup_dir.glob(f"{basename}*"):
+                    if backup_file_to_delete.is_file():
+                        backup_file_to_delete.unlink()
     
     # Determine files to prepare (new ones)
     basenames_to_prepare = source_basenames - prepared_basenames
@@ -287,16 +401,27 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     total = len(files_to_prepare)
     
     if total == 0:
-        yield {"type": "info", "message": "Aucune nouvelle photo à préparer. Le dossier est à jour."}
-        yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Aucune nouvelle photo à préparer."}
+        yield yield_and_log("info", "Aucune nouvelle photo à préparer. Le dossier est à jour.")
+        yield yield_and_log(
+            "done",
+            "Aucune nouvelle photo à préparer.",
+            stage="PREPARING_COMPLETE",
+            percent=100
+        )
         return
     
-    yield {"type": "stats", "stage": "PREPARING_START", "percent": 22, "message": f"Début de la préparation de {total} nouvelles photos...", "total": total}
+    yield yield_and_log(
+        "stats",
+        f"Début de la préparation de {total} nouvelles photos...",
+        stage="PREPARING_START",
+        percent=22,
+        extra={"total": total}
+    )
     
     for i, filename in enumerate(files_to_prepare, start=1):
         # Check for cancellation
         if CANCEL_FLAG.exists():
-            yield {"type": "warning", "message": "Préparation annulée par l'utilisateur."}
+            yield yield_and_log("warning", "Préparation annulée par l'utilisateur.")
             return
         
         src_path = os.path.join(SOURCE_DIR_FOR_PREP, filename)
@@ -331,21 +456,29 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
                 
                 prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height, source_type=source_type, caption=caption)
                 message_type = "photo"
-                
+            
             if i == 1:
                 percent = 25  # Modif Sigalou, Début boucle après cleaning 21%
             else:
-                percent = 25 + int(((i - 1) / total) * 75) #Modif Sigalou 25 à 100% 
-            yield {
-                "type": "progress", "stage": "PREPARING_PHOTO", "percent": percent, 
-                "message": f"Nouveau média préparé ({message_type}) : {filename} ({i}/{total})",
-                "current": i, "total": total
-            }
+                percent = 25 + int(((i - 1) / total) * 75)  # Modif Sigalou 25 à 100%
+            
+            yield yield_and_log(
+                "progress",
+                f"Nouveau média préparé ({message_type}) : {filename} ({i}/{total})",
+                stage="PREPARING_PHOTO",
+                percent=percent,
+                extra={"current": i, "total": total}
+            )
         
         except Exception as e:
-            yield {"type": "warning", "message": f"Erreur lors de la préparation de {filename}: {e}"}
+            yield yield_and_log("warning", f"Erreur lors de la préparation de {filename}: {e}")
     
-    yield {"type": "done", "stage": "PREPARING_COMPLETE", "percent": 100, "message": "Préparation des nouvelles photos terminée."}
+    yield yield_and_log(
+        "done",
+        "Préparation des nouvelles photos terminée.",
+        stage="PREPARING_COMPLETE",
+        percent=100
+    )
 
 def prepare_all_photos(status_callback=None):
     """Version originale avec callback pour compatibilité"""

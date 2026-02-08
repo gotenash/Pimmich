@@ -13,7 +13,7 @@ cd "$(dirname "$0")" || exit 1
 mkdir -p logs
 
 cleanup() {
-    echo "$(date +'%d-%m %H:%M:%S') ℹ️ 🧹 Nettoyage des processus Pimmich existants..." >> logs/pimmich.log
+    echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 🧹 Nettoyage des processus Pimmich existants..." >> logs/pimmich.log
     # Tuer le processus de contrôle vocal s'il est en cours
     if [ -f /tmp/pimmich_voice_control.pid ]; then
         pkill -F /tmp/pimmich_voice_control.pid 2>/dev/null || true
@@ -35,9 +35,9 @@ while true; do
     # Nettoyer avant chaque lancement
     cleanup
 
-		echo "$(date +'%d-%m %H:%M:%S') ℹ️ ================================================================" >> logs/pimmich.log
-		echo "$(date +'%d-%m %H:%M:%S') ℹ️ 🚀 Lancement de l'application Pimmich... 🚀🚀🚀🚀🚀🚀🚀🚀🚀" >> logs/pimmich.log
-		echo "$(date +'%d-%m %H:%M:%S') ℹ️ ================================================================" >> logs/pimmich.log
+		echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 ================================================================" >> logs/pimmich.log
+		echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 🚀 Lancement de l'application Pimmich... 🚀🚀🚀🚀🚀🚀🚀🚀🚀" >> logs/pimmich.log
+		echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 ================================================================" >> logs/pimmich.log
     
     # Vérifier et activer l'environnement virtuel
     if [ -f "venv/bin/activate" ]; then
@@ -52,15 +52,15 @@ while true; do
     python3 -u app.py #>> logs/pimmich.log 2>&1
 
     exit_code=$?
-    echo "$(date +'%d-%m %H:%M:%S') ℹ️ 🛑 Application terminée avec code $exit_code" >> logs/pimmich.log
+    echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 🛑 Application terminée avec code $exit_code" >> logs/pimmich.log
 
     if [ $exit_code -eq 0 ]; then
-        echo "$(date +'%d-%m %H:%M:%S') ℹ️ ✅ Arrêt normal (Code 0)" >> logs/pimmich.log
+        echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 ✅ Arrêt normal (Code 0)" >> logs/pimmich.log
         break
     fi
 
     if [ $exit_code -ne $RESTART_CODE ]; then
-        echo "$(date +'%d-%m %H:%M:%S') ℹ️ 🔄 Redémarrage demandé dans 5s..." >> logs/pimmich.log
+        echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 🔄 Redémarrage demandé dans 5s..." >> logs/pimmich.log
         sleep 5 # Pause de sécurité pour éviter une boucle rapide en cas de crash
         continue
     fi

@@ -54,6 +54,55 @@ legend {
   color: #333;
 }
 
+/* Effet BOIS réaliste pour cadres */
+.cadre-bois {
+    /* Texture bois premium */
+    background: 
+        /* Dégradé bois chêne */
+        radial-gradient(ellipse 80% 50% at 30% 20%, #d4b68c 0%, #c19a6b 30%, #b89452 70%, #a87c3a 100%),
+        /* Veines fines */
+        radial-gradient(circle at 15% 25%, rgba(160,120,80,0.4) 1px, transparent 2px),
+        radial-gradient(circle at 70% 60%, rgba(139,100,60,0.3) 1px, transparent 2px),
+        radial-gradient(circle at 40% 80%, rgba(120,90,50,0.2) 0.5px, transparent 1.5px),
+        /* Grain sable */
+        linear-gradient(90deg, transparent 49%, rgba(0,0,0,0.02) 50%, transparent 51%);
+
+    /* Ombres multicouche */
+    box-shadow: 
+        /* Ombre portée profonde */
+        0 30px 60px -15px rgba(0,0,0,0.35),
+        0 15px 30px -10px rgba(0,0,0,0.25),
+        /* Reflet interne supérieur */
+        inset 0 4px 20px rgba(255,255,255,0.45),
+        /* Ombre interne inférieure */
+        inset 0 -3px 15px rgba(0,0,0,0.15),
+        /* Biseautage brillant */
+        0 0 0 2px rgba(255,255,255,0.85),
+        0 0 0 5px rgba(212,175,55,0.3),
+        0 0 0 8px rgba(0,0,0,0.12);
+    
+    position: relative;
+    border-radius: 24px;
+}
+
+.cadre-bois::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    background: 
+        conic-gradient(from 225deg, rgba(255,255,255,0.6), transparent 40%);
+    border-radius: 27px;
+    z-index: -1;
+    filter: blur(2px);
+    animation: reflet 8s ease-in-out infinite alternate;
+}
+
+@keyframes reflet {
+    0% { opacity: 0.7; transform: rotate(0deg); }
+    100% { opacity: 0.9; transform: rotate(1deg); }
+}
+
+
 
 .tabcontent input[type="number"],
 .tabcontent input[type="password"],
@@ -131,16 +180,16 @@ button:hover {
 /* --- Système d'onglets --- */
 .tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #ccc;
+  gap: 8px;
+  margin-bottom: -9px;
+ /* border-bottom: 2px solid #ccc;*/
   flex-wrap: nowrap;
 }
 
 .tablink {
   background-color: #0078d7;
   color: #fff;
-  border: 1px solid #005a9e;
+  /*border: 1px solid #005a9e;*/
   border-bottom: none;
   padding: 10px 20px;
   cursor: pointer;
