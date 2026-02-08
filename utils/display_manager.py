@@ -30,21 +30,30 @@ class EmojiFormatter(logging.Formatter):
         record.emoji = emoji
         return super().format(record)
 
+
+# Charger la configuration
+config = load_config()
+
 # Créer un logger spécifique pour ce module
 logger = logging.getLogger("pimmich.display_manager")
-logger.setLevel(logging.DEBUG)
+
+# Récupérer le niveau de log depuis la configuration
+level_name = config.get("level_log", "INFO")
+level = getattr(logging, level_name.upper(), logging.INFO)
+logger.setLevel(level)
+logger.propagate = False
 
 # Handler fichier avec rotation (10 Mo max, 3 backups)
 from logging.handlers import RotatingFileHandler
 file_handler = RotatingFileHandler(
-    LOGSDIR / "display_HDMI.log",
+    LOGSDIR / "pimmich.log",
     maxBytes=10 * 1024 * 1024,
     backupCount=3,
     encoding="utf-8"
 )
-file_handler.setLevel(logging.DEBUG)
+file_handler.setLevel(level)
 file_formatter = EmojiFormatter(
-    '%(asctime)s %(emoji)s %(message)s',
+    '%(emoji)s🟩%(asctime)s %(message)s',
     datefmt='%d-%m %H:%M:%S'
 )
 file_handler.setFormatter(file_formatter)
@@ -54,9 +63,16 @@ if not logger.handlers:
     logger.addHandler(file_handler)
 
 # Messages de démarrage
-logger.info("----------------------------------------------------------------")
-logger.info("--------------------✅Lancement de Pimmich----------------------")
-logger.info("----------------------------------------------------------------")
+logger.debug("--------------------Lancement de Display_Manager----------------------")
+logger.info(f"Le mode de log actif est : {level_name}")
+logger.debug("🔍=Debug")
+logger.info("ℹ️=Info")
+logger.warning("😒=Warning")
+logger.error("❌=Error")
+logger.info("🟨=App")
+logger.info("🟪=Slideshow_Manager")
+logger.info("🟦=Local_Slideshow")
+logger.info("🟩=Display_Manager")
 
 # ============================================================
 # Fonctions du module
@@ -68,7 +84,7 @@ def get_display_output_name():
     
     try:
         # Test wlr-randr (Wayfire/Pi OS)
-        logger.info("🖥 Test wlr-randr...")
+        logger.debug("🖥 Test wlr-randr...")
         result = subprocess.run(
             ["wlr-randr"],
             capture_output=True,
@@ -76,7 +92,7 @@ def get_display_output_name():
             check=False,
             timeout=5
         )
-        logger.debug(f"🖥 wlr-randr RC={result.returncode} STDOUT={result.stdout}")
+        #logger.debug(f"🖥 wlr-randr RC={result.returncode} STDOUT={result.stdout}")
         
         if result.returncode == 0:
             for line in result.stdout.splitlines():
@@ -87,7 +103,7 @@ def get_display_output_name():
                     return output
         
         # Fallback Sway
-        logger.info("🖥 Fallback sway...")
+        logger.debug("🖥 Fallback sway...")
         env = os.environ.copy()
         if "SWAYSOCK" not in env:
             uid = os.getuid()
