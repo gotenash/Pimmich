@@ -201,7 +201,6 @@ LOG_FILES_MAP = {
     "app": {"path": "logs/pimmich.log", "name_key": "Pimmich (Serveur Web & Supervisor)"},
     "voice_control_stdout": {"path": "logs/voice_control_stdout.log", "name_key": "voice_control.py (Contrôle Vocal - Sortie Standard)"},
     "voice_control_stderr": {"path": "logs/voice_control_stderr.log", "name_key": "voice_control.py (Contrôle Vocal - Erreurs)"},
-    "update_pip": {"path": "logs/update_pip.log", "name_key": "Mise à jour (pip install)"},
 }
 
 class WorkerStatus:
@@ -841,11 +840,11 @@ def configure():
     try:
         if PENDING_UPLOADS_DIR.exists():
             pending_files = [f.name for f in PENDING_UPLOADS_DIR.iterdir() if f.is_file() and not f.name.startswith('.')]
-            logger.info(f"⚙ {len(pending_files)} photo(s) des invités en attente dans {PENDING_UPLOADS_DIR}: {pending_files}")
+            logger.info(f"🔳 {len(pending_files)} photo(s) des invités en attente dans {PENDING_UPLOADS_DIR}: {pending_files}")
         else:
-            logger.warning(f"⚙️ Le dossier {PENDING_UPLOADS_DIR} n'existe pas encore.")
+            logger.warning(f"🔳️ Le dossier {PENDING_UPLOADS_DIR} n'existe pas encore.")
     except Exception as e:
-        logger.error(f"⚙️ Erreur lors du listage des fichiers en attente : {e}")
+        logger.error(f"🔳️ Erreur lors du listage des fichiers en attente : {e}")
 
     config = load_config()
     invitations = load_invitations()
@@ -1471,7 +1470,7 @@ def schedule_worker():
         if output_name:
             width = config.get('display_width', 1920)
             height = config.get('display_height', 1080)
-            logger.info(f"📅✅ Forçage de la résolution {width}x{height} sur l'écran '{output_name}' au démarrage.")
+            logger.info(f"📅 Forçage de la résolution {width}x{height} sur l'écran '{output_name}' au démarrage.")
             try:
                 # ⭐ NOUVEAU FIX : Forcer la résolution via swaymsg au démarrage
                 subprocess.run(
@@ -1481,9 +1480,9 @@ def schedule_worker():
                     env=os.environ  # Important pour SWAYSOCK
                 )
                 time.sleep(2)  # Laisser le temps à l'écran de se stabiliser
-                logger.info(f"📅✅ Résolution {width}x{height} appliquée avec succès sur {output_name}")
+                logger.info(f"📅 Résolution {width}x{height} appliquée avec succès sur {output_name}")
             except Exception as e:
-                logger.error(f"📅❌ Échec du forçage de la résolution au démarrage : {e}")
+                logger.error(f"❌ Échec du forçage de la résolution au démarrage : {e}")
         
         # Démarrer le diaporama si on est dans les heures actives au lancement de l'app
         start_str = config.get("active_start", "07:00")
@@ -1495,10 +1494,10 @@ def schedule_worker():
                               (start_time > end_time and (now_time >= start_time or now_time <= end_time))
         
         if in_schedule_at_boot:
-            logger.info(f"📅✅ Entre {start_str} et {end_str} = Heures actives au démarrage, lancement du diaporama.")
+            logger.info(f"📅 Entre {start_str} et {end_str} = Heures actives au démarrage, lancement du diaporama.")
             start_slideshow()
     except Exception as e:
-        logger.error(f"📅❌ Erreur critique dans la séquence de démarrage : {e}", exc_info=True)
+        logger.error(f"❌ Erreur critique dans la séquence de démarrage : {e}", exc_info=True)
 
     while True:
         try:
@@ -1518,10 +1517,10 @@ def schedule_worker():
             slideshow_is_running = is_slideshow_running()
 
             if not in_schedule and slideshow_is_running:
-                logger.info("📅✅ Heure inactive détectée et diaporama en cours. Arrêt...")
+                logger.info("📅 Heure inactive détectée et diaporama en cours. Arrêt...")
                 stop_slideshow()
             elif in_schedule and not slideshow_is_running:
-                logger.info("📅✅ Heure active mais le diaporama est arrêté. Séquence de démarrage...")
+                logger.info("📅 Heure active mais le diaporama est arrêté. Séquence de démarrage...")
                 # 1. On s'assure que l'écran est allumé (via DPMS si pas de prise)
                 set_display_power(on=True)
                 # 2. On attend un court instant pour laisser l'environnement d'affichage se stabiliser
@@ -2813,7 +2812,7 @@ def get_system_info_api():
 def list_logs():
     """Retourne la liste des fichiers de log qui existent réellement."""
     available_logs = []
-    # Itérer dans un ordre défini pour une interface utilisateur cohérent
+    # Itérer dans un ordre défini pour une interface utilisateur cohérente
     log_order = ["app", "voice_control_stdout", "voice_control_stderr"]
     for key in log_order:
         info = LOG_FILES_MAP.get(key)
@@ -3368,33 +3367,25 @@ def migrate_guest_folders():
         logger.info(f"[Migration] Configuration mise à jour : sources {sources} -> {list(new_sources)}")
 
 if __name__ == '__main__':
-    # Vérifier si nous sommes dans le processus principal ou le reloader
-    # Si le mode debug est activé, Flask lance deux processus : un parent (reloader) et un enfant (worker).
-    # Nous ne voulons lancer les threads d'arrière-plan que dans le processus enfant (celui qui sert l'app),
-    # ou dans le processus unique si le reloader n'est pas actif.
-    use_reloader = os.environ.get("FLASK_DEBUG") == "1" or app.debug
-    is_reloader_child = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+    # Lancer la migration des dossiers invités au démarrage
+    migrate_guest_folders()
 
-    if not use_reloader or is_reloader_child:
-        # Lancer la migration des dossiers invités au démarrage
-        migrate_guest_folders()
+    # Démarrer les workers de mise à jour dans des threads séparés
+    immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
+    immich_thread.start()
+    samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
+    samba_thread.start()
+    telegram_thread = threading.Thread(target=telegram_bot_worker, daemon=True)
+    telegram_thread.start()
+    
+    # Démarrer le worker de planification du diaporama
+    scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
+    scheduler_thread.start()
 
-        # Démarrer les workers de mise à jour dans des threads séparés
-        immich_thread = threading.Thread(target=immich_update_worker, daemon=True)
-        immich_thread.start()
-        samba_thread = threading.Thread(target=samba_update_worker, daemon=True)
-        samba_thread.start()
-        telegram_thread = threading.Thread(target=telegram_bot_worker, daemon=True)
-        telegram_thread.start()
-        
-        # Démarrer le worker de planification du diaporama
-        scheduler_thread = threading.Thread(target=schedule_worker, daemon=True)
-        scheduler_thread.start()
-
-        # --- NOUVEAU: Démarrage du contrôle vocal si activé ---
-        config = load_config()
-        if config.get('voice_control_enabled'):
-            print("Le contrôle vocal est activé, démarrage du service...")
-            start_voice_control()
+    # --- NOUVEAU: Démarrage du contrôle vocal si activé ---
+    config = load_config()
+    if config.get('voice_control_enabled'):
+        print("Le contrôle vocal est activé, démarrage du service...")
+        start_voice_control()
 
     app.run(host='0.0.0.0', port=5000)

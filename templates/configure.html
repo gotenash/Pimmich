@@ -136,17 +136,23 @@
             <a href="/logout">{{ _('Se déconnecter') }}</a>
         </div>
     </div>
-    <div class="flex justify-between items-center mb-6">
+<div class="flex justify-between items-center mb-2 h-36">
+    <div class="flex items-center gap-4">
         <a href="https://github.com/gotenash" target="_blank" rel="noopener noreferrer">
-            <img src="{{ url_for('static', filename='gotenash.jpg') }}" alt="Avatar Gotenash" class="h-20 w-20 rounded-full object-cover shadow-md">
+            <img src="{{ url_for('static', filename='gotenash.jpg') }}" alt="Avatar Gotenash" class="h-16 w-16 rounded-full object-cover shadow-md">
         </a>
-        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="h-20">
         <a href="https://www.gadgetaulab.fr" target="_blank" rel="noopener noreferrer">
-            <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" alt="Logo Gadgetaulab" class="h-20">
+            <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" alt="Logo Gadgetaulab" class="h-16">
         </a>
     </div>
-    <h2 class="text-center text-2xl font-semibold mb-4">{{ _('Configuration du cadre photo connecté') }}</h2>
-        
+    
+    <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="h-16">
+    
+    <div id="live-preview-container" class="cadre-bois p-4">
+        <p id="live-preview-status" class="text-gray-500 italic hidden">{{ _("Le diaporama est arrêté.") }}</p>
+        <img id="live-preview-image" src="" alt="{{ _('Photo en cours') }}" class="mt-1 mx-auto max-w-xs max-h-32 rounded shadow hidden">
+    </div>
+</div>
 
 <!-- Nouvelle navigation par groupes -->
 <div id="main-nav" class="flex justify-center space-x-1 sm:space-x-2 p-1 bg-transparent rounded-lg mb-4">
@@ -861,14 +867,6 @@
 <div id="tab-actions" class="tabcontent">
     <fieldset>
     <legend><h3>{{ _("Actions") }}</h3></legend>
-
-        <div class="action-group">
-            <h4>{{ _("Aperçu en direct") }}</h4>
-            <div id="live-preview-container" class="mt-2 p-3 bg-gray-100 rounded-lg border text-center">
-                <p id="live-preview-status" class="text-gray-500 italic">{{ _("Le diaporama est arrêté.") }}</p>
-                <img id="live-preview-image" src="" alt="{{ _('Photo en cours') }}" class="hidden mt-2 mx-auto max-w-xs max-h-48 rounded shadow">
-            </div>
-        </div>
 
         <div class="action-group">
             <h4>{{ _("Gestion du diaporama") }}</h4>
@@ -4185,7 +4183,6 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fetchLogs() {
         const logSelector = document.getElementById('log-selector');
         const logContentElement = document.getElementById('log-content');
-
         // Gérer le cas où il n'y a pas de logs à afficher
         if (logSelector.options.length === 0 || !logSelector.value) {
             logContentElement.textContent = "{{ _('Aucun fichier de log disponible ou sélectionné.') }}";
@@ -4413,25 +4410,9 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const overlay = document.createElement('div');
                 overlay.className = "fixed inset-0 bg-gray-800 bg-opacity-90 text-white flex flex-col items-center justify-center text-center p-4 z-50";
-                overlay.innerHTML = `<i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2" id="reload-status-text">{{ _("Attente du redémarrage du serveur...") }}</p>`;
+                overlay.innerHTML = `<i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p>`;
                 document.body.appendChild(overlay);
-                
-                // Vérifier la disponibilité du serveur avant de recharger
-                let checkInterval = setInterval(() => {
-                    fetch('/api/ping', { method: 'GET', cache: 'no-cache' })
-                        .then(response => {
-                            if (response.ok) {
-                                clearInterval(checkInterval);
-                                document.getElementById('reload-status-text').textContent = "{{ _('Serveur prêt ! Rechargement...') }}";
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1000);
-                            }
-                        })
-                        .catch(() => {
-                            // Serveur indisponible, on attend
-                        });
-                }, 2000);
+                setInterval(() => { location.reload(true); }, 3000);
             }, 2000);
         }
 

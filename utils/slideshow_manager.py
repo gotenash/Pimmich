@@ -42,6 +42,7 @@ logger = logging.getLogger("pimmich.slideshow_manager")
 level_name = config.get("level_log", "INFO")
 level = getattr(logging, level_name.upper(), logging.INFO)
 logger.setLevel(level)
+logger.propagate = False
 
 # Handler fichier avec rotation (10 Mo max, 3 backups)
 file_handler = RotatingFileHandler(
@@ -228,7 +229,7 @@ def restart_slideshow_for_update():
 
     # 2. Démarrer un nouveau processus
     start_slideshow()
-    logger.info("📟 ✅ Diaporama redémarré pour mise à jour")
+    logger.info("📟 Diaporama redémarré pour mise à jour")
 
 def restart_slideshow_process():
     """

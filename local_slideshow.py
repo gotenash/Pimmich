@@ -1856,7 +1856,7 @@ def start_slideshow():
                 next_photo_requested = False
                 previous_photo_requested = False
 
-                logger.info(f"📸 Préparation de la photo: {photo_path}")
+                logger.info(f"🖼️ Affichage de la photo: {photo_path}")
                 
                 # --- Contrôle du ventilateur ---
                 if GPIO_AVAILABLE:
@@ -1868,7 +1868,7 @@ def start_slideshow():
 
                 # --- CORRECTIF: Vérifier si le fichier existe avant de tenter de l'afficher ---
                 if not os.path.exists(photo_path):
-                    logger.warning(f"📸 Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
+                    logger.warning(f"🖼️ Fichier non trouvé (probablement supprimé) : {photo_path}. Passage au suivant.")
                     playlist_index += 1
                     continue
 
@@ -1917,7 +1917,7 @@ def start_slideshow():
                             draw_overlay(screen, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, None)
                             pygame.display.flip()
                     except Exception as e:
-                        logger.info(f"📸 Error loading or transitioning to photo {photo_path}: {e}")
+                        logger.info(f"🖼️ Error loading or transitioning to photo {photo_path}: {e}")
                         traceback.print_exc()
                         current_pil_image = None # Explicitly set to None on error
                         playlist_index += 1
@@ -1927,7 +1927,7 @@ def start_slideshow():
                         display_photo_with_pan_zoom(screen, current_pil_image, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, photo_path)
                         previous_photo_surface = screen.copy()
                     else:
-                        logger.info(f"📸 Skipping photo {photo_path} due to loading error.")
+                        logger.info(f"🖼️ Skipping photo {photo_path} due to loading error.")
 
                 # --- Logique de navigation ---
                 if next_photo_requested:
@@ -1943,7 +1943,7 @@ def start_slideshow():
 
             # --- Logique de fin de playlist personnalisée ---
             if is_custom_run:
-                logger.info(f"📸 Playlist personnalisée terminée. Retour au diaporama standard.")
+                logger.info(f"🖼️ Playlist personnalisée terminée. Retour au diaporama standard.")
                 is_custom_run = False # Le prochain tour de boucle while True construira la playlist par défaut.
                 playlist = [] # Vider la playlist pour forcer la reconstruction.
     except KeyboardInterrupt:
@@ -1968,7 +1968,7 @@ def start_slideshow():
         pygame.quit()
         if GPIO_AVAILABLE:
             GPIO.cleanup()
-        logger.info(f"📸 Pygame exited cleanly.")
+        logger.info(f"🖼️ Pygame exited cleanly.")
 
 if __name__ == "__main__":
     start_slideshow()

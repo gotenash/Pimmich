@@ -41,7 +41,7 @@ logger = logging.getLogger("pimmich.display_manager")
 level_name = config.get("level_log", "INFO")
 level = getattr(logging, level_name.upper(), logging.INFO)
 logger.setLevel(level)
-
+logger.propagate = False
 
 # Handler fichier avec rotation (10 Mo max, 3 backups)
 from logging.handlers import RotatingFileHandler

@@ -3,7 +3,6 @@ from pathlib import Path
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes, CommandHandler
 from telegram import constants
-from telegram.error import Conflict
 import asyncio
 import re
 
@@ -42,7 +41,6 @@ class PimmichBot:
         self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.text_message_handler))
         # A fallback for any other message type
         self.app.add_handler(MessageHandler(~filters.COMMAND & ~filters.PHOTO & ~filters.TEXT, self.unsupported_message_handler))
-        self.app.add_error_handler(self.error_handler)
 
     def _is_user_authorized(self, user_id):
         """Checks if a user is either an admin or an authorized guest."""
@@ -150,13 +148,6 @@ class PimmichBot:
             await update.message.reply_text("🤔 Je ne sais pas quoi faire avec ça. Essayez de m'envoyer une photo !")
         else:
             await update.message.reply_text("🚫 Pour commencer, veuillez m'envoyer votre code d'invitation.")
-
-    async def error_handler(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Gère les erreurs du bot pour éviter les logs verbeux en cas de conflit."""
-        if isinstance(context.error, Conflict):
-            logger.warning("⚠️ Conflit Telegram : Une autre instance est active. Arrêt temporaire.")
-        else:
-            logger.error(f"❌ Erreur Bot Telegram : {context.error}", exc_info=context.error)
 
     def run(self):
         """
