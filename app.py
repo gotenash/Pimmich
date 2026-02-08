@@ -3210,14 +3210,19 @@ def delete_telegram_invitation(code):
 def scan_wifi():
     """Scanne les réseaux Wi-Fi disponibles et les retourne en JSON."""
     try:
-        # La commande nmcli est plus moderne et gérée par NetworkManager
-        # --terse pour un output facile à parser
-        # --fields pour ne sélectionner que les champs utiles
-        # --rescan yes pour forcer une nouvelle recherche
-        cmd = ['sudo', 'nmcli', '--terse', '--fields', 'SSID,SIGNAL,SECURITY', 'dev', 'wifi', 'list', '--rescan', 'yes']
+        # --- AMÉLIORATION POUR PI ZERO 2W ---
+        # Étape 1: Forcer un nouveau scan de manière plus robuste.
+        # Cette commande ne retourne rien mais déclenche le scan en arrière-plan.
+        # On ignore les erreurs au cas où un scan serait déjà en cours.
+        # C'est plus fiable sur du matériel moins performant comme le Pi Zero 2W.
+        subprocess.run(['sudo', 'nmcli', 'device', 'wifi', 'rescan'], timeout=15, check=False)
         
-        # Utiliser un timeout pour éviter que la requête ne bloque indéfiniment
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=20)
+        # Attendre un peu que le scan se termine. 5 secondes est un bon compromis.
+        time.sleep(5)
+
+        # Étape 2: Lister les résultats du scan qui vient d'être fait.
+        cmd = ['sudo', 'nmcli', '--terse', '--fields', 'SSID,SIGNAL,SECURITY', 'dev', 'wifi', 'list']
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=10)
         
         output = result.stdout.strip()
         
