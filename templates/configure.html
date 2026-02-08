@@ -136,11 +136,11 @@
             <a href="/logout">{{ _('Se déconnecter') }}</a>
         </div>
     </div>
-    <div class="flex justify-between items-center mb-6">
+<div class="flex justify-between items-center mb-2 h-36">
+    <div class="flex items-center gap-4">
         <a href="https://github.com/gotenash" target="_blank" rel="noopener noreferrer">
-            <img src="{{ url_for('static', filename='gotenash.jpg') }}" alt="Avatar Gotenash" class="h-20 w-20 rounded-full object-cover shadow-md">
+            <img src="{{ url_for('static', filename='gotenash.jpg') }}" alt="Avatar Gotenash" class="h-16 w-16 rounded-full object-cover shadow-md">
         </a>
-        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="h-20">
         <a href="https://www.gadgetaulab.fr" target="_blank" rel="noopener noreferrer">
             <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" alt="Logo Gadgetaulab" class="h-16">
         </a>
@@ -1206,12 +1206,8 @@
     <fieldset class="mt-6">
         <legend><h3>{{ _("Crédits") }}</h3></legend>
         <div class="credits">
-            <div class="flex justify-center items-center gap-4 mb-2">
-                <a href="https://github.com/gotenash" target="_blank" rel="noopener noreferrer"><img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120" alt="Auteur Gotenash" class="rounded-full shadow-md"></a>
-                <a href="https://github.com/sigalou" target="_blank" rel="noopener noreferrer"><img src="{{ url_for('static', filename='sigalou.png') }}" width="120" alt="Contributeur Sigalou" class="rounded-full shadow-md"></a>
-            </div>
+            <img src="{{ url_for('static', filename='gotenash.jpg') }}" width="120" alt="Auteur Gotenash">
             <p>{{ _("Auteurs : Gotenash et Shenron") }}</p>
-            <p>{{ _("Contributeur principal : Sigalou") }}</p>
             <a href="https://www.gadgetaulab.fr">
                 <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" width="120" alt="Logo Gadgetaulab">
             </a>
