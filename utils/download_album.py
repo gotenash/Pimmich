@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
-from utils.archive_manager import download_album_archive, unzip_archive, clean_archive
+from utils.archive_manager import unzip_archive, clean_archive
 from .config_manager import load_config
 
 # Définir le chemin du cache pour le mappage des descriptions
@@ -110,6 +110,46 @@ def yield_and_log(
     log_func(message)
 
     return data
+
+
+def download_album_archive_local(server_url, api_key, asset_ids, zip_path):
+    """
+    Télécharge l'archive ZIP contenant les assets demandés.
+    Remplace la fonction de utils.archive_manager pour plus de contrôle et de logs.
+    """
+    # Endpoint standard pour les versions récentes d'Immich
+    url = f"{server_url}/api/download/archive"
+    
+    headers = {
+        'Accept': 'application/octet-stream',
+        'Content-Type': 'application/json',
+        'x-api-key': api_key
+    }
+    
+    payload = {
+        "assetIds": asset_ids
+    }
+    
+    try:
+        # On augmente le timeout à 60s pour la connexion et 300s (5min) pour la lecture
+        # car la génération du zip côté serveur peut être longue pour beaucoup de photos
+        with requests.post(url, json=payload, headers=headers, stream=True, timeout=(60, 300)) as response:
+            if response.status_code != 200:
+                logger.error(f"Erreur API Immich ({response.status_code}): {response.text}")
+                return False, f"Erreur API: {response.status_code}"
+            
+            with open(zip_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192): 
+                    f.write(chunk)
+        
+        return True, "OK"
+        
+    except requests.exceptions.Timeout:
+        logger.error("Timeout lors du téléchargement de l'archive Immich.")
+        return False, "Timeout serveur (trop long)"
+    except Exception as e:
+        logger.error(f"Exception lors du téléchargement: {e}")
+        return False, str(e)
 
 
 def download_and_extract_album(config):
@@ -323,10 +363,11 @@ def download_and_extract_album(config):
     zip_path = "temp_album.zip"
 
     try:
-        if not download_album_archive(server_url, api_key, asset_ids, zip_path):
+        success, error_msg = download_album_archive_local(server_url, api_key, asset_ids, zip_path)
+        if not success:
             yield yield_and_log(
                 msg_type="error",
-                message="Échec du téléchargement de l'archive.",
+                message=f"Échec du téléchargement de l'archive : {error_msg}",
             )
             return
 
