@@ -134,6 +134,30 @@ def signal_handler_pause_toggle(signum, frame):
     global paused
     paused = not paused
     update_status_file({"paused": paused})
+
+# NOUVELLE FONCTION POUR GERER LES EVENEMENTS (QUIT, TACTILE)
+def handle_slideshow_events(screen_width):
+    """Gère les événements Pygame comme QUIT et les clics de souris pour le contrôle tactile."""
+    global paused, next_photo_requested, previous_photo_requested
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        # --- NOUVEAU : Gestion des clics pour le contrôle tactile ---
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            # On ne gère que le clic gauche (bouton 1), qui correspond à un appui sur l'écran tactile
+            if event.button == 1:
+                pos = pygame.mouse.get_pos()
+                if pos[0] < screen_width / 3:
+                    logger.info("📸 Zone gauche de l'écran touchée -> Photo précédente")
+                    previous_photo_requested = True
+                elif pos[0] > screen_width * 2 / 3:
+                    logger.info("📸 Zone droite de l'écran touchée -> Photo suivante")
+                    next_photo_requested = True
+                else:
+                    logger.info("📸 Zone centrale de l'écran touchée -> Pause/Reprise")
+                    paused = not paused
+                    update_status_file({"paused": paused})
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
 def reinit_pygame():
@@ -1291,8 +1315,7 @@ def display_title_slide(screen, screen_width, screen_height, title, duration, co
     # Boucle d'attente pour rester réactif aux signaux (ex: QUIT)
     start_sleep = time.time()
     while time.time() - start_sleep < duration:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: pygame.quit(); sys.exit()
+        handle_slideshow_events(screen_width)
         time.sleep(0.1)
 
 # Fonction pour afficher une image et l'heure                        
@@ -1309,10 +1332,7 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
     # Boucle de pause : si le diaporama est en pause, on attend ici.
     while paused:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+        handle_slideshow_events(screen_width)
         
         # Optionnel : dessiner une icône de pause sur l'écran
         # ...
@@ -1342,11 +1362,13 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
             # Boucle d'attente pour rester réactif aux signaux
             start_sleep = time.time()
             while time.time() - start_sleep < display_duration:
+                handle_slideshow_events(screen_width)
                 # Vérification en temps réel de l'arrivée d'une nouvelle carte postale
                 if not ignore_postcard_flag and NEW_POSTCARD_FLAG.exists(): return
 
                 if next_photo_requested or previous_photo_requested: return
                 while paused:
+                    handle_slideshow_events(screen_width)
                     if next_photo_requested or previous_photo_requested: return
                     time.sleep(0.1)
                     # Recalculer le temps de début pour que le sommeil reprenne où il s'est arrêté
@@ -1399,17 +1421,16 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
             while time.time() - start_animation_time < display_duration:
                 elapsed_animation_time = time.time() - start_animation_time
 
+                handle_slideshow_events(screen_width)
                 # Vérification en temps réel de l'arrivée d'une nouvelle carte postale
                 if not ignore_postcard_flag and NEW_POSTCARD_FLAG.exists(): return
 
                 # Vérifier les signaux à chaque image de l'animation
-                if next_photo_requested or previous_photo_requested:
-                    return # Sortir de la fonction pour changer de photo
+                if next_photo_requested or previous_photo_requested: return
                 
                 # Gérer la pause pendant l'animation
                 while paused:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT: pygame.quit(); sys.exit()
+                    handle_slideshow_events(screen_width)
                     time.sleep(0.1)
                     if next_photo_requested or previous_photo_requested: return
                     # Recalculer le temps de début pour que l'animation reprenne où elle s'est arrêtée
@@ -1459,7 +1480,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
     audio_output = config.get("video_audio_output", "auto")
     audio_volume = int(config.get("video_audio_volume", 100))
     transition_duration = float(config.get("transition_duration", 1.0))
-    hwdec_enabled = config.get("video_hwdec_enabled", False)
+    hwdec_enabled = config.get("video_hwdec_enabled", True)
 
     # Libérer le mixer de Pygame avant de lancer la vidéo pour éviter les conflits
     if audio_enabled:
@@ -1489,8 +1510,8 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             # pour une performance optimale, notamment sur Pi 4.
             pi_model = get_pi_model()
             if pi_model in [4, 5]:
-                # MODIFICATION SIGALOU 29/01/2026: Essayer v4l2m2m en priorité, mais autoriser le fallback sur mmal.
-                logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Tentative d'utilisation de 'v4l2m2m,mmal' pour le décodage matériel.")
+                # MODIFICATION: Retour à vo=gpu pour la stabilité (dmabuf-wayland provoque des erreurs sur certaines configs)
+                logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Utilisation de 'v4l2m2m,mmal' pour le décodage et 'gpu' pour la sortie vidéo.")
                 command.extend(['--hwdec=v4l2m2m,mmal', '--vo=gpu'])
             elif pi_model == 3:
                 logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Utilisation de 'mmal' pour le décodage matériel.")
@@ -1503,7 +1524,12 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         else:
             # Mode logiciel par défaut (plus stable sur certains systèmes mais plus lent)
             logger.info(f"[Video Playback] Décodage matériel désactivé. Utilisation du mode logiciel.")
-            command.extend(['--hwdec=no', '--vo=x11'])
+            # MODIFICATION: Sur Pi 4/5, x11 est trop lent. On utilise gpu même en mode logiciel.
+            pi_model = get_pi_model()
+            if pi_model in [4, 5]:
+                command.extend(['--hwdec=no', '--vo=gpu'])
+            else:
+                command.extend(['--hwdec=no', '--vo=x11'])
 
         command.append(video_path)
 
