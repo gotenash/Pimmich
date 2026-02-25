@@ -292,6 +292,9 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
     
     new_surface_scaled.blit(pygame.image.fromstring(new_pil_image_scaled.tobytes(), new_pil_image_scaled.size, new_pil_image_scaled.mode), (img_x, img_y))
 
+    # Récupérer les métadonnées pour l'image en cours de transition
+    photo_metadata = get_photo_metadata(new_image_path)
+
     for i in range(num_frames + 1):
         progress = i / num_frames # 0.0 to 1.0
 
@@ -323,14 +326,14 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
             screen.blit(new_surface_scaled, (0, 0)) # Just blit new image directly
         
         # Draw overlay during transition
-        draw_overlay(screen, screen_width, screen_height, config, main_font, None)
+        draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
 
         pygame.display.flip()
         clock.tick(fps)
 
     # Ensure the new image is fully blitted at the end of the transition
     screen.blit(new_surface_scaled, (0, 0))
-    draw_overlay(screen, screen_width, screen_height, config, main_font, None)
+    draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
     pygame.display.flip()
 
     return new_pil_image
@@ -974,7 +977,9 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
     if photo_metadata is not None:
         has_any_date = any(photo_metadata.get(field) for field in [
             "SubSecDateTimeOriginal", "DateTimeOriginal", "SubSecCreateDate", 
-            "CreateDate", "SubSecModifyDate", "MediaCreateDate", "DateTimeCreated",
+            "CreateDate", "SubSecModifyDate", "MediaCreateDate", "DateTimeCreated", 
+            "subSecDateTimeOriginal", "dateTimeOriginal", "subSecCreateDate", "createDate",
+            "subSecModifyDate", "modifyDate", "mediaCreateDate", "dateTimeCreated",
             "fileModifiedAt", "fileCreatedAt"
         ])
 
@@ -1002,10 +1007,10 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
         # Date de prise de vue (priorité 9 dates)
         if config.get("show_photo_date", False):
             date_priority = [
-                "subSecDateTimeOriginal", "dateTimeOriginal",  
-                "subSecCreateDate", "createDate",             
-                "subSecModifyDate", "modifyDate",             
-                "mediaCreateDate", "dateTimeCreated",
+                "subSecDateTimeOriginal", "dateTimeOriginal", "SubSecDateTimeOriginal", "DateTimeOriginal",
+                "subSecCreateDate", "createDate", "SubSecCreateDate", "CreateDate",
+                "subSecModifyDate", "modifyDate", "SubSecModifyDate",
+                "mediaCreateDate", "dateTimeCreated", "MediaCreateDate", "DateTimeCreated",
                 "fileModifiedAt", "fileCreatedAt"
             ]
             date_candidates = [photo_metadata.get(field) for field in date_priority]

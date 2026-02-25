@@ -162,18 +162,22 @@
     
     <div id="live-preview-container" class="cadre-bois p-4 flex flex-col items-center">
         <p id="live-preview-status" class="text-gray-500 italic hidden">{{ _("Le diaporama est arrêté.") }}</p>
-        <img id="live-preview-image" src="" alt="{{ _('Photo en cours') }}" class="mt-1 mx-auto max-w-xs max-h-32 rounded shadow hidden">
         
-        <div class="flex items-center justify-center gap-3 mt-2">
-            <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-transform transform hover:scale-110" data-command="previous" title="{{ _('Photo précédente') }}">
-                <i class="fas fa-backward fa-xs"></i>
-            </button>
-            <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-transform transform hover:scale-110" data-command="toggle_pause" title="{{ _('Pause/Lecture') }}">
-                <i class="slideshow-pause-icon fas fa-pause fa-xs"></i>
-            </button>
-            <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-transform transform hover:scale-110" data-command="next" title="{{ _('Photo suivante') }}">
-                <i class="fas fa-forward fa-xs"></i>
-            </button>
+        <div class="relative mt-1">
+            <img id="live-preview-image" src="" alt="{{ _('Photo en cours') }}" class="mx-auto max-w-xs max-h-32 rounded shadow hidden">
+            
+            <!-- Boutons de contrôle toujours visibles, en bas de l'image -->
+            <div id="live-preview-controls" class="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-3 hidden">
+                <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-transform transform hover:scale-110" data-command="previous" title="{{ _('Photo précédente') }}">
+                    <i class="fas fa-backward fa-xs"></i>
+                </button>
+                <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-transform transform hover:scale-110" data-command="toggle_pause" title="{{ _('Pause/Lecture') }}">
+                    <i class="slideshow-pause-icon fas fa-pause fa-xs"></i>
+                </button>
+                <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-transform transform hover:scale-110" data-command="next" title="{{ _('Photo suivante') }}">
+                    <i class="fas fa-forward fa-xs"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -4130,6 +4134,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Get elements for the 'Actions' tab
         const actionsLivePreviewStatus = document.getElementById('live-preview-status');
         const actionsLivePreviewImage = document.getElementById('live-preview-image');
+        const actionsLivePreviewControls = document.getElementById('live-preview-controls');
 
         // Get elements for the 'Playlists' tab
         const playlistLivePreviewStatus = document.getElementById('playlist-live-preview-status');
@@ -4143,13 +4148,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             
             // Function to update a specific set of live preview elements
-            function updateElements(statusElement, imageElement) {
+            function updateElements(statusElement, imageElement, controlsElement) {
                 if (!statusElement || !imageElement) return; // Skip if elements don't exist
 
                 if (data.status === 'stopped') {
                     statusElement.textContent = 'Le diaporama est arrêté.';
                     statusElement.classList.remove('hidden');
                     imageElement.classList.add('hidden');
+                    if (controlsElement) controlsElement.classList.add('hidden');
                 } else {
                     if (data.current_photo) {
                         // Mettre à jour la source de l'image uniquement si elle a changé
@@ -4158,15 +4164,17 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                         statusElement.classList.add('hidden');
                         imageElement.classList.remove('hidden');
+                        if (controlsElement) controlsElement.classList.remove('hidden');
                     } else {
                         statusElement.textContent = 'En attente de la prochaine photo...';
                         statusElement.classList.remove('hidden');
                         imageElement.classList.add('hidden');
+                        if (controlsElement) controlsElement.classList.add('hidden');
                     }
                 }
             }
 
-            updateElements(actionsLivePreviewStatus, actionsLivePreviewImage);
+            updateElements(actionsLivePreviewStatus, actionsLivePreviewImage, actionsLivePreviewControls);
             updateElements(playlistLivePreviewStatus, playlistLivePreviewImage);
         } catch (error) {
             console.error('Erreur de mise à jour de l\'aperçu en direct:', error);
