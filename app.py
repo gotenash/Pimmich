@@ -927,12 +927,12 @@ def configure():
         
         # Traiter les clés de métadonnées (Style et Positionnement)
         # Champs texte / select
-        for key in ['photo_date_format', 'country_flag_size', 'photo_location_format', 'photo_metadata_color', 'photo_metadata_outline_color', 'photo_metadata_font_path', 'photo_metadata_position', 'photo_metadata_background_color']:
+        for key in ['photo_date_format', 'country_flag_size', 'photo_location_format', 'photo_metadata_color', 'photo_metadata_outline_color', 'photo_metadata_font_path', 'photo_metadata_position', 'photo_metadata_background_color', 'country_flag_position']:
             if key in request.form:
                 config[key] = request.form.get(key)
         
         # Champs numériques (int) pour les métadonnées
-        for key in ['photo_metadata_font_size', 'photo_metadata_offset_x', 'photo_metadata_offset_y']:
+        for key in ['photo_metadata_font_size', 'photo_metadata_offset_x', 'photo_metadata_offset_y', 'country_flag_offset_x', 'country_flag_offset_y']:
             if key in request.form:
                 try:
                     config[key] = int(request.form.get(key))

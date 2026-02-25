@@ -949,6 +949,25 @@
             <label for="country_flag_opacity" class="block text-sm font-medium text-gray-700">{{ _("Opacité du drapeau (0.1 à 1.0)") }}</label>
             <input type="number" step="0.1" min="0.1" max="1.0" id="country_flag_opacity" name="country_flag_opacity" value="{{ config.get('country_flag_opacity', 1.0) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
         </div>
+        <div class="mb-4">
+            <label for="country_flag_position" class="block text-sm font-medium text-gray-700">{{ _("Position du drapeau") }}</label>
+            <select id="country_flag_position" name="country_flag_position" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="top_right" {% if config.get('country_flag_position') == 'top_right' %}selected{% endif %}>{{ _("En haut à droite") }}</option>
+                <option value="top_left" {% if config.get('country_flag_position') == 'top_left' %}selected{% endif %}>{{ _("En haut à gauche") }}</option>
+                <option value="bottom_right" {% if config.get('country_flag_position') == 'bottom_right' %}selected{% endif %}>{{ _("En bas à droite") }}</option>
+                <option value="bottom_left" {% if config.get('country_flag_position') == 'bottom_left' %}selected{% endif %}>{{ _("En bas à gauche") }}</option>
+            </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="country_flag_offset_x" class="block text-sm font-medium text-gray-700">{{ _("Décalage horizontal (px)") }}</label>
+                <input type="number" id="country_flag_offset_x" name="country_flag_offset_x" value="{{ config.get('country_flag_offset_x', 15) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="country_flag_offset_y" class="block text-sm font-medium text-gray-700">{{ _("Décalage vertical (px)") }}</label>
+                <input type="number" id="country_flag_offset_y" name="country_flag_offset_y" value="{{ config.get('country_flag_offset_y', 15) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+        </div>
 
         <!-- Style & Position -->
         <h4 class="text-lg font-semibold mt-6 pt-4 border-t">{{ _("Style et Positionnement") }}</h4>

@@ -37,6 +37,8 @@ FILTER_STATES_PATH = os.path.join(BASE_DIR, 'config', 'filter_states.json')
 TIDES_CACHE_FILE = Path(BASE_DIR) / 'cache' / 'tides.json'
 _icon_cache = {} # Cache pour les icônes météo chargées
 _envelope_blink_end_time = None # Pour gérer le clignotement de l'icône
+_postcard_count_cache = 0
+_last_postcard_count_check = 0
 
 # --- Variables globales pour le contrôle du diaporama ---
 paused = False
@@ -295,6 +297,10 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
     # Récupérer les métadonnées pour l'image en cours de transition
     photo_metadata = get_photo_metadata(new_image_path)
 
+    # Pré-calculer l'overlay pour ne pas le redessiner à chaque frame (optimisation performances)
+    overlay_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    draw_overlay(overlay_surface, screen_width, screen_height, config, main_font, photo_metadata)
+
     for i in range(num_frames + 1):
         progress = i / num_frames # 0.0 to 1.0
 
@@ -326,7 +332,7 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
             screen.blit(new_surface_scaled, (0, 0)) # Just blit new image directly
         
         # Draw overlay during transition
-        draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
+        screen.blit(overlay_surface, (0, 0))
 
         pygame.display.flip()
         clock.tick(fps)
@@ -661,6 +667,10 @@ def load_icon(icon_name, size, is_weather_icon=True):
 
 def get_today_postcard_count():
     """Compte le nombre de cartes postales reçues aujourd'hui."""
+    global _postcard_count_cache, _last_postcard_count_check
+    if time.time() - _last_postcard_count_check < 60:
+        return _postcard_count_cache
+
     count = 0
     today_date = datetime.now().date()
     telegram_dir = PREPARED_BASE_DIR / 'telegram'
@@ -680,6 +690,10 @@ def get_today_postcard_count():
                     count += 1
             except (ValueError, OSError):
                 continue # Ignorer les fichiers avec un timestamp invalide
+    
+    _postcard_count_cache = count
+    _last_postcard_count_check = time.time()
+    
     return count
 
 def get_path_to_display(photo_path_obj, source, filter_states):
@@ -1153,8 +1167,20 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                                 flag_pil.tobytes(), flag_pil.size, flag_pil.mode
                             )
                             
-                            # Position haut droite (marge 15px)
-                            flag_rect = flag_surf.get_rect(topright=(screen_width - 15, 15))
+                            # Positionnement du drapeau
+                            flag_position = config.get("country_flag_position", "top_right")
+                            flag_offset_x = int(config.get("country_flag_offset_x", 15))
+                            flag_offset_y = int(config.get("country_flag_offset_y", 15))
+
+                            if flag_position == "top_left":
+                                flag_rect = flag_surf.get_rect(topleft=(flag_offset_x, flag_offset_y))
+                            elif flag_position == "bottom_left":
+                                flag_rect = flag_surf.get_rect(bottomleft=(flag_offset_x, screen_height - flag_offset_y))
+                            elif flag_position == "bottom_right":
+                                flag_rect = flag_surf.get_rect(bottomright=(screen_width - flag_offset_x, screen_height - flag_offset_y))
+                            else: # top_right (default)
+                                flag_rect = flag_surf.get_rect(topright=(screen_width - flag_offset_x, flag_offset_y))
+                            
                             screen.blit(flag_surf, flag_rect)
                             
                     except ImportError:
