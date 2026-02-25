@@ -1754,6 +1754,7 @@ def start_slideshow():
                 filter_states = load_filter_states()
                 favorites = load_favorites()
                 display_sources = config.get("display_sources", ["immich"])
+                slideshow_video_enabled = config.get("slideshow_video_enabled", True)
                 
                 all_media = []
                 for source in display_sources:
@@ -1761,6 +1762,10 @@ def start_slideshow():
                     if source_dir.is_dir():
                         base_photos = [f for f in source_dir.iterdir() if f.is_file() and (f.suffix.lower() in ('.jpg', '.jpeg', '.png') or f.suffix.lower() in VIDEO_EXTENSIONS) and not f.name.endswith(('_polaroid.jpg', '_thumbnail.jpg', '_postcard.jpg'))]
                         for photo_path_obj in base_photos:
+                            # Filtrer les vidéos si l'option est désactivée
+                            if photo_path_obj.suffix.lower() in VIDEO_EXTENSIONS and not slideshow_video_enabled:
+                                continue
+                                
                             path_to_display = get_path_to_display(photo_path_obj, source, filter_states)
                             all_media.append(path_to_display)
                 

@@ -77,6 +77,15 @@
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-sm */
             border-color: #D1D5DB; /* gray-300 */
         }
+        /* Animation de pulsation pour le bouton play */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+        .pulse-animation {
+            animation: pulse-ring 2s infinite;
+        }
     </style>
 </head>
 <body class="relative min-h-screen">
@@ -136,10 +145,13 @@
             <a href="/logout">{{ _('Se déconnecter') }}</a>
         </div>
     </div>
-<div class="flex justify-between items-center mb-2 h-36">
+<div class="flex justify-between items-center mb-2 h-auto py-2">
     <div class="flex items-center gap-4">
         <a href="https://github.com/gotenash" target="_blank" rel="noopener noreferrer">
             <img src="{{ url_for('static', filename='gotenash.jpg') }}" alt="Avatar Gotenash" class="h-16 w-16 rounded-full object-cover shadow-md">
+        </a>
+        <a href="https://github.com/Sigalou" target="_blank" rel="noopener noreferrer">
+            <img src="{{ url_for('static', filename='sigalou.png') }}" alt="Avatar Sigalou" class="h-16 w-16 rounded-full object-cover shadow-md">
         </a>
         <a href="https://www.gadgetaulab.fr" target="_blank" rel="noopener noreferrer">
             <img src="{{ url_for('static', filename='logo_gadgeto.png') }}" alt="Logo Gadgetaulab" class="h-16">
@@ -148,9 +160,21 @@
     
     <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="h-16">
     
-    <div id="live-preview-container" class="cadre-bois p-4">
+    <div id="live-preview-container" class="cadre-bois p-4 flex flex-col items-center">
         <p id="live-preview-status" class="text-gray-500 italic hidden">{{ _("Le diaporama est arrêté.") }}</p>
         <img id="live-preview-image" src="" alt="{{ _('Photo en cours') }}" class="mt-1 mx-auto max-w-xs max-h-32 rounded shadow hidden">
+        
+        <div class="flex items-center justify-center gap-3 mt-2">
+            <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-transform transform hover:scale-110" data-command="previous" title="{{ _('Photo précédente') }}">
+                <i class="fas fa-backward fa-xs"></i>
+            </button>
+            <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-transform transform hover:scale-110" data-command="toggle_pause" title="{{ _('Pause/Lecture') }}">
+                <i class="slideshow-pause-icon fas fa-pause fa-xs"></i>
+            </button>
+            <button type="button" class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-transform transform hover:scale-110" data-command="next" title="{{ _('Photo suivante') }}">
+                <i class="fas fa-forward fa-xs"></i>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -174,6 +198,7 @@
 <div id="group-contenu" class="sub-nav-group hidden">
     <div class="tabs flex overflow-x-auto pb-2">
         <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-sources')" title="{{ _('Configurez les sources de photos (Immich, Samba, USB...).') }}"><i class="fas fa-folder-open fa-fw mr-2"></i>{{ _('Sources') }}</button>
+        <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-metadata')"><i class="fas fa-info-circle fa-fw mr-2"></i>{{ _('Métadonnées') }}</button>
         <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-apercu')" title="{{ _('Visualisez et gérez toutes les photos prêtes pour le diaporama.') }}"><i class="fas fa-eye fa-fw mr-2"></i>{{ _('Aperçu') }}</button>
         <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-playlists')" title="{{ _('Créez et gérez vos albums photo personnalisés.') }}"><i class="fas fa-list-ul fa-fw mr-2"></i>{{ _('Playlists') }}</button>
         <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-favoris')" title="{{ _('Retrouvez et gérez vos photos favorites.') }}"><i class="fas fa-star fa-fw mr-2"></i>{{ _('Favoris') }} <span id="favorites-count-badge" class="hidden bg-yellow-400 text-white text-xs font-bold rounded-full h-5 w-5 inline-flex items-center justify-center ml-1">0</span></button>
@@ -205,6 +230,15 @@
 
         <label for="display_duration">{{ _("Durée d'affichage (en secondes) :") }}</label>
         <input type="number" id="display_duration" name="display_duration" value="{{ config.display_duration }}" required>
+
+        <div class="mt-4">
+            <label for="screen_orientation" class="block text-sm font-medium text-gray-700">{{ _("Orientation du cadre") }}</label>
+            <select id="screen_orientation" name="screen_orientation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="landscape" {% if config.get('screen_orientation', 'landscape') == 'landscape' %}selected{% endif %}>{{ _("Paysage (Horizontal)") }}</option>
+                <option value="portrait" {% if config.get('screen_orientation') == 'portrait' %}selected{% endif %}>{{ _("Portrait (Vertical)") }}</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">{{ _("Si vous changez l'orientation, pensez à relancer une préparation des photos (onglet Actions) pour adapter le contenu.") }}</p>
+        </div>
 
         <label for="active_start">{{ _("Heure de début d'activité (HH:MM) :") }}</label>
         <input type="time" id="active_start" name="active_start" value="{{ config.active_start }}">
@@ -270,6 +304,12 @@
             <label for="favorite_boost_factor">{{ _("Fréquence des favoris (nombre d'ajouts supplémentaires dans la liste de lecture) :") }}</label>
             <input type="number" id="favorite_boost_factor" name="favorite_boost_factor" value="{{ config.get('favorite_boost_factor', 2) }}" min="0">
             <p class="text-sm text-gray-600 mt-1">{{ _("Ex: 0 = pas de boost, 2 = 3x plus de chances d'apparaître.") }}</p>
+        </div>
+        <div style="margin-top: 16px;">
+            <label>
+                <input type="checkbox" name="slideshow_video_enabled" {% if config.get('slideshow_video_enabled', True) %}checked{% endif %}>
+                {{ _("Afficher les vidéos dans le diaporama") }}
+            </label>
         </div>
         <div style="margin-top: 16px;">
             <label>
@@ -858,6 +898,114 @@
     </fieldset>
 </div>
 
+<div id="tab-metadata" class="tabcontent">
+    <fieldset>
+        <legend><h3><i class="fas fa-info-circle mr-2"></i>{{ _("Affichage des métadonnées des photos") }}</h3></legend>
+        <p class="text-sm text-gray-600 mb-4">{{ _("Configurez ici l'affichage des informations (date, lieu) extraites depuis Immich sur vos photos.") }}</p>
+
+        <!-- Date -->
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="show_photo_date" name="show_photo_date" {% if config.get('show_photo_date') %}checked{% endif %}>
+            <label class="form-check-label" for="show_photo_date">{{ _("Afficher la date de prise de vue") }}</label>
+        </div>
+        <div class="mb-4">
+            <label for="photo_date_format" class="block text-sm font-medium text-gray-700">{{ _("Format de la date") }}</label>
+            <input type="text" id="photo_date_format" name="photo_date_format" value="{{ config.get('photo_date_format', '%Y') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            <p class="text-xs text-gray-500 mt-1">{{ _("Utilise les codes de formatage Python (ex: %%d/%%m/%%Y, %%B %%Y).") }}</p>
+        </div>
+
+        <!-- Location -->
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="show_photo_location" name="show_photo_location" {% if config.get('show_photo_location') %}checked{% endif %}>
+            <label class="form-check-label" for="show_photo_location">{{ _("Afficher la localisation (ville/pays)") }}</label>
+        </div>
+        <div class="mb-4">
+            <label for="photo_location_format" class="block text-sm font-medium text-gray-700">{{ _("Format de la localisation") }}</label>
+            <select id="photo_location_format" name="photo_location_format" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="city_country" {% if config.get('photo_location_format') == 'city_country' %}selected{% endif %}>{{ _("Ville, Pays") }}</option>
+                <option value="city" {% if config.get('photo_location_format') == 'city' %}selected{% endif %}>{{ _("Ville uniquement") }}</option>
+                <option value="country" {% if config.get('photo_location_format') == 'country' %}selected{% endif %}>{{ _("Pays uniquement") }}</option>
+            </select>
+        </div>
+
+        <!-- Country Flag -->
+        <div class="form-check form-switch my-3">
+            <input class="form-check-input" type="checkbox" id="show_country_flag" name="show_country_flag" {% if config.get('show_country_flag') %}checked{% endif %}>
+            <label class="form-check-label" for="show_country_flag">{{ _("Afficher le drapeau du pays") }}</label>
+        </div>
+        <div class="mb-4">
+            <label for="country_flag_size" class="block text-sm font-medium text-gray-700">{{ _("Taille du drapeau") }}</label>
+            <select id="country_flag_size" name="country_flag_size" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="128x96" {% if config.get('country_flag_size') == '128x96' %}selected{% endif %}>128x96</option>
+                <option value="192x144" {% if config.get('country_flag_size') == '192x144' %}selected{% endif %}>192x144</option>
+                <option value="256x192" {% if config.get('country_flag_size') == '256x192' %}selected{% endif %}>256x192</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label for="country_flag_opacity" class="block text-sm font-medium text-gray-700">{{ _("Opacité du drapeau (0.1 à 1.0)") }}</label>
+            <input type="number" step="0.1" min="0.1" max="1.0" id="country_flag_opacity" name="country_flag_opacity" value="{{ config.get('country_flag_opacity', 1.0) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+        </div>
+
+        <!-- Style & Position -->
+        <h4 class="text-lg font-semibold mt-6 pt-4 border-t">{{ _("Style et Positionnement") }}</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <div>
+                <label for="photo_metadata_font_size" class="block text-sm font-medium text-gray-700">{{ _("Taille de la police") }}</label>
+                <input type="number" id="photo_metadata_font_size" name="photo_metadata_font_size" value="{{ config.get('photo_metadata_font_size', 23) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="photo_metadata_font_path" class="block text-sm font-medium text-gray-700">{{ _("Police") }}</label>
+                <select id="photo_metadata_font_path" name="photo_metadata_font_path" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    {% set fonts = [
+                        ('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 'DejaVu Sans Bold'),
+                        ('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 'DejaVu Sans'),
+                        ('/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', 'Liberation Sans'),
+                        ('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 'FreeSans')
+                    ] %}
+                    {% for path, label in fonts %}
+                        <option value="{{ path }}" {% if config.get('photo_metadata_font_path') == path %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="photo_metadata_color" class="block text-sm font-medium text-gray-700">{{ _("Couleur du texte (hex)") }}</label>
+                <input type="text" id="photo_metadata_color" name="photo_metadata_color" value="{{ config.get('photo_metadata_color', '#ffffff') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="photo_metadata_outline_color" class="block text-sm font-medium text-gray-700">{{ _("Couleur du contour (hex)") }}</label>
+                <input type="text" id="photo_metadata_outline_color" name="photo_metadata_outline_color" value="{{ config.get('photo_metadata_outline_color', '#000000') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="photo_metadata_position" class="block text-sm font-medium text-gray-700">{{ _("Position") }}</label>
+                <select id="photo_metadata_position" name="photo_metadata_position" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="bottom_left" {% if config.get('photo_metadata_position') == 'bottom_left' %}selected{% endif %}>{{ _("En bas à gauche") }}</option>
+                    <option value="bottom_right" {% if config.get('photo_metadata_position') == 'bottom_right' %}selected{% endif %}>{{ _("En bas à droite") }}</option>
+                    <option value="bottom_center" {% if config.get('photo_metadata_position') == 'bottom_center' %}selected{% endif %}>{{ _("En bas au centre") }}</option>
+                    <option value="top_left" {% if config.get('photo_metadata_position') == 'top_left' %}selected{% endif %}>{{ _("En haut à gauche") }}</option>
+                    <option value="top_right" {% if config.get('photo_metadata_position') == 'top_right' %}selected{% endif %}>{{ _("En haut à droite") }}</option>
+                </select>
+            </div>
+            <div>
+                <label for="photo_metadata_offset_x" class="block text-sm font-medium text-gray-700">{{ _("Décalage horizontal (px)") }}</label>
+                <input type="number" id="photo_metadata_offset_x" name="photo_metadata_offset_x" value="{{ config.get('photo_metadata_offset_x', 0) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="photo_metadata_offset_y" class="block text-sm font-medium text-gray-700">{{ _("Décalage vertical (px)") }}</label>
+                <input type="number" id="photo_metadata_offset_y" name="photo_metadata_offset_y" value="{{ config.get('photo_metadata_offset_y', 0) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+        </div>
+
+        <!-- Background -->
+        <div class="form-check form-switch my-3 pt-4 border-t">
+            <input class="form-check-input" type="checkbox" id="photo_metadata_background_enabled" name="photo_metadata_background_enabled" {% if config.get('photo_metadata_background_enabled') %}checked{% endif %}>
+            <label class="form-check-label" for="photo_metadata_background_enabled">{{ _("Afficher un fond semi-transparent derrière les métadonnées") }}</label>
+        </div>
+        <div class="mb-4">
+            <label for="photo_metadata_background_color" class="block text-sm font-medium text-gray-700">{{ _("Couleur du fond (hex RGBA)") }}</label>
+            <input type="text" id="photo_metadata_background_color" name="photo_metadata_background_color" value="{{ config.get('photo_metadata_background_color', '#00000080') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+        </div>
+    </fieldset>
+</div>
 
 <!-- Le bouton de sauvegarde est placé ici, à l'intérieur du formulaire mais après les onglets de configuration -->
 <button type="submit" id="save-changes-btn" class="save-button">{{ _("Enregistrer les modifications") }}</button>
@@ -3697,7 +3845,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Mettre à jour l'icône de pause/lecture
             document.querySelectorAll('.slideshow-pause-icon').forEach(icon => {
-                icon.className = isRunning && isPaused ? 'slideshow-pause-icon fas fa-play fa-2x' : 'slideshow-pause-icon fas fa-pause fa-2x';
+                const btn = icon.closest('button');
+                if (isRunning && isPaused) {
+                    icon.classList.remove('fa-pause');
+                    icon.classList.add('fa-play');
+                    if (btn) btn.classList.add('pulse-animation');
+                } else {
+                    icon.classList.remove('fa-play');
+                    icon.classList.add('fa-pause');
+                    if (btn) btn.classList.remove('pulse-animation');
+                }
             });
 
         } catch (error) {

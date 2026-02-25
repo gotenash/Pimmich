@@ -896,7 +896,7 @@ def configure():
             'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes',
             'smart_plug_on_url', 'smart_plug_off_url', 'smart_plug_on_delay',
             'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume', 'telegram_boost_duration_days',
-            'telegram_boost_factor',
+            'telegram_boost_factor', 'screen_orientation',
             'smb_update_interval_hours'
             # New fields
             , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token',
@@ -915,7 +915,7 @@ def configure():
                 elif key in ['pan_zoom_factor']: # Float fields
                     try:
                         config[key] = float(value)
-                    except (ValueError, TypeError):
+                    except (ValueError, TypeError): # type: ignore
                         config[key] = 1.0 # Default to no zoom
                 elif key in ['transition_duration']: # Float fields
                     try:
@@ -925,10 +925,46 @@ def configure():
                 else: # Gérer les champs texte
                     config[key] = value
         
+        # Traiter les clés de métadonnées (Style et Positionnement)
+        # Champs texte / select
+        for key in ['photo_date_format', 'country_flag_size', 'photo_location_format', 'photo_metadata_color', 'photo_metadata_outline_color', 'photo_metadata_font_path', 'photo_metadata_position', 'photo_metadata_background_color']:
+            if key in request.form:
+                config[key] = request.form.get(key)
+        
+        # Champs numériques (int) pour les métadonnées
+        for key in ['photo_metadata_font_size', 'photo_metadata_offset_x', 'photo_metadata_offset_y']:
+            if key in request.form:
+                try:
+                    config[key] = int(request.form.get(key))
+                except (ValueError, TypeError):
+                    config[key] = 0
+
+        # Champs numériques (float) pour les métadonnées
+        if 'country_flag_opacity' in request.form:
+            try:
+                config['country_flag_opacity'] = float(request.form.get('country_flag_opacity'))
+            except (ValueError, TypeError):
+                config['country_flag_opacity'] = 1.0
+        
         # Détecter et sauvegarder la résolution actuelle de l'écran
         detected_width, detected_height = get_screen_resolution()
         config['display_width'] = detected_width
         config['display_height'] = detected_height
+
+        # --- Gestion de l'orientation ---
+        # Si l'utilisateur force une orientation, on s'assure que width/height correspondent
+        target_orientation = config.get('screen_orientation', 'landscape')
+        if target_orientation == 'portrait':
+            # Si on est en portrait mais que la largeur est plus grande que la hauteur, on inverse
+            if config['display_width'] > config['display_height']:
+                config['display_width'], config['display_height'] = config['display_height'], config['display_width']
+                logger.info(f"Orientation Portrait forcée : dimensions inversées à {config['display_width']}x{config['display_height']}")
+        else: # landscape
+            # Si on est en paysage mais que la hauteur est plus grande que la largeur, on inverse
+            if config['display_height'] > config['display_width']:
+                config['display_width'], config['display_height'] = config['display_height'], config['display_width']
+                logger.info(f"Orientation Paysage forcée : dimensions inversées à {config['display_width']}x{config['display_height']}")
+
         logger.info(f"Résolution d'écran détectée : {detected_width}x{detected_height}. Sauvegarde dans la configuration.")
         # Gérer la clé display_sources (checkboxes)
         # request.form.getlist() retourne une liste vide si aucune checkbox avec ce nom n'est cochée.
@@ -937,6 +973,7 @@ def configure():
         config["smart_plug_enabled"] = 'smart_plug_enabled' in request.form
         config["transition_enabled"] = 'transition_enabled' in request.form # New checkbox handling
         config["clock_background_enabled"] = 'clock_background_enabled' in request.form
+        config["slideshow_video_enabled"] = 'slideshow_video_enabled' in request.form
         config["video_audio_enabled"] = 'video_audio_enabled' in request.form
         config["video_hwdec_enabled"] = 'video_hwdec_enabled' in request.form
 
@@ -950,6 +987,11 @@ def configure():
         config["show_date"] = 'show_date' in request.form
         config["show_weather"] = 'show_weather' in request.form
         config["show_tides"] = 'show_tides' in request.form
+        # Metadata checkboxes
+        config["show_photo_date"] = 'show_photo_date' in request.form
+        config["show_photo_location"] = 'show_photo_location' in request.form
+        config["show_country_flag"] = 'show_country_flag' in request.form
+        config["photo_metadata_background_enabled"] = 'photo_metadata_background_enabled' in request.form
         # La gestion de l'activation/désactivation du contrôle vocal se fait maintenant via une API dédiée
         # mais il faut aussi sauvegarder son état ici pour la persistance au redémarrage.
         config['voice_control_enabled'] = 'voice_control_enabled' in request.form
