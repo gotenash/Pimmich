@@ -4556,7 +4556,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Flag pour savoir si une mise à jour est en cours.
         let updateInProgress = true;
 
-        function startReloadSequence() {
+        function performRedirection() {
             if (!updateInProgress) return; // S'assurer de ne pas le lancer deux fois
             updateInProgress = false;
             eventSource.close();
@@ -4565,8 +4565,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Rediriger vers la page de redémarrage
             setTimeout(() => {
-                window.location.replace("/rebooting");
-            }, 500);
+                window.location.href = "/rebooting";
+            }, 1000);
         }
 
         eventSource.onmessage = (event) => {
@@ -4576,11 +4576,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.percent !== undefined) {
                     progressBar.style.width = `${data.percent}%`;
                     progressBar.textContent = `${data.percent}%`;
-                    // Sécurité : si 100% atteint, on force la redirection après un délai si elle n'a pas eu lieu
+                    // Redirection immédiate si 100% atteint
                     if (data.percent >= 100) {
-                        setTimeout(() => {
-                            if (updateInProgress) startReloadSequence();
-                        }, 2000);
+                        performRedirection();
                     }
                 }
                 
@@ -4589,7 +4587,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if (data.stage === 'RESTART') {
-                    startReloadSequence();
+                    performRedirection();
                 } else if (data.type === 'error') {
                     updateInProgress = false;
                     eventSource.close();
@@ -4607,7 +4605,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (updateInProgress) {
                 progressBar.style.width = `100%`;
                 progressBar.textContent = `100%`;
-                startReloadSequence();
+                performRedirection();
             }
         };
     });
