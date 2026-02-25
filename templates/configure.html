@@ -4561,16 +4561,12 @@ document.addEventListener("DOMContentLoaded", () => {
             updateInProgress = false;
             eventSource.close();
 
-            displayMessage(statusDiv, "{{ _('Mise à jour terminée. L\'application redémarre. La page se rechargera automatiquement...') }}", 'success');
+            displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection...') }}", 'success');
             
-            // Afficher un overlay et commencer à recharger la page
+            // Rediriger vers la page de redémarrage
             setTimeout(() => {
-                const overlay = document.createElement('div');
-                overlay.className = "fixed inset-0 bg-gray-800 bg-opacity-90 text-white flex flex-col items-center justify-center text-center p-4 z-50";
-                overlay.innerHTML = `<i class="fas fa-sync-alt fa-spin text-4xl mb-4"></i><h1 class="text-2xl font-bold">{{ _("Redémarrage en cours...") }}</h1><p class="mt-2">{{ _("La page va se recharger automatiquement.") }}</p>`;
-                document.body.appendChild(overlay);
-                setInterval(() => { location.reload(true); }, 3000);
-            }, 2000);
+                window.location.replace("/rebooting");
+            }, 500);
         }
 
         eventSource.onmessage = (event) => {
@@ -4580,6 +4576,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.percent !== undefined) {
                     progressBar.style.width = `${data.percent}%`;
                     progressBar.textContent = `${data.percent}%`;
+                    // Sécurité : si 100% atteint, on force la redirection après un délai si elle n'a pas eu lieu
+                    if (data.percent >= 100) {
+                        setTimeout(() => {
+                            if (updateInProgress) startReloadSequence();
+                        }, 2000);
+                    }
                 }
                 
                 if (data.message) {

@@ -1953,6 +1953,12 @@ def system_reboot():
     
     return render_template('rebooting.html')
 
+@app.route('/rebooting', methods=['GET'])
+@login_required
+def rebooting():
+    """Affiche la page de redémarrage (accessible en GET pour les redirections)."""
+    return render_template('rebooting.html')
+
 @app.route('/api/trigger_reboot', methods=['POST'])
 @login_required
 def trigger_reboot():
@@ -2964,12 +2970,11 @@ def update_app():
         return_code = process.wait()
 
         if return_code == 0:
-            yield stream_event({"stage": "RESTART", "percent": 100, "message": "Mise à jour terminée. Redémarrage en cours..."})
+            yield stream_event({"stage": "RESTART", "percent": 100, "message": "Mise à jour terminée. Redémarrage du système en cours..."})
             def restart_server():
-                time.sleep(3)
-                print("[Update] Redémarrage du serveur suite à la mise à jour...")
-                os.kill(os.getpid(), signal.SIGTERM)
-                os._exit(42)
+                time.sleep(5)
+                print("[Update] Redémarrage du système suite à la mise à jour...")
+                os.system('sudo reboot')
             
             restart_thread = threading.Thread(target=restart_server)
             restart_thread.start()
