@@ -103,7 +103,9 @@ def create_default_config():
         "max_photos_to_download": {
             "immich": 10,
             "telegram": 100
-        }
+        },
+        
+        "random_content_in_album": True
     }
 
 def load_config():

@@ -1297,7 +1297,7 @@ def display_title_slide(screen, screen_width, screen_height, title, duration, co
                         
                     # Inclinaison aléatoire
                     angle = random.uniform(-15, 15)
-                    rotated_img = image_to_rotate.rotate(angle, expand=True, resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
+                    rotated_img = image_to_rotate.rotate(angle, expand=True, resample=Image.Resampling.BICUBIC, fillcolor=(0, 0, 0, 0))
                     
                     py_surface = pygame.image.fromstring(rotated_img.tobytes(), rotated_img.size, rotated_img.mode).convert_alpha()
                     photo_surfaces.append(py_surface)

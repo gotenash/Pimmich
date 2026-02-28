@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-from smbclient import register_session, listdir, open_file, remove_session, path as smb_path
+from smbclient import register_session, listdir, open_file, delete_session, path as smb_path
 from smbprotocol.exceptions import SMBException
 
 # Destination folder for photos before preparation
@@ -79,6 +79,6 @@ def import_samba_photos(config):
     finally:
         if session_registered:
             try:
-                remove_session(host)
+                delete_session(host)
             except Exception:
                 pass
