@@ -978,9 +978,11 @@ def configure():
         config["video_hwdec_enabled"] = 'video_hwdec_enabled' in request.form
 
         config["telegram_boost_enabled"] = 'telegram_boost_enabled' in request.form
+        config["display_telegram_notification_overlay"] = "display_telegram_notification_overlay" in request.form
         # Traitement des checkboxes
         config["show_clock"] = 'show_clock' in request.form
         config["immich_auto_update"] = 'immich_auto_update' in request.form
+        config["random_content_in_album"] = "random_content_in_album" in request.form
         config["smb_auto_update"] = 'smb_auto_update' in request.form
 
         config["telegram_bot_enabled"] = 'telegram_bot_enabled' in request.form # 'telegram_enabled' is removed
