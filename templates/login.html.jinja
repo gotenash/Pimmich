@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="{{ get_locale() }}">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ _('Connexion') }} - Pimmich</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <!-- Font Awesome pour les icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body class="relative min-h-screen">
+
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div id="flash-container" class="absolute top-0 mt-4 max-w-xs w-full z-20">
+    {% for category, message in messages %}
+    <div class="
+          flash-message
+          px-4 py-3 rounded-md text-white shadow-md transition-opacity duration-700 ease-in-out²
+          {% if category == 'success' %}
+            bg-green-500
+          {% elif category == 'danger' %}
+            bg-red-500
+          {% else %}
+            bg-gray-500
+          {% endif %}
+        ">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  <script>
+    // Disparition automatique après 4 secondes
+    setTimeout(() => {
+      const messages = document.querySelectorAll('.flash-message');
+      messages.forEach(msg => {
+        msg.classList.add('opacity-0');
+        setTimeout(() => msg.remove(), 700); // attendre que l'effet se termine
+      });
+    }, 4000);
+  </script>
+  {% endif %}
+  {% endwith %}
+
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="w-11/12 max-w-xs p-6 md:p-8 bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-xl">
+      <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" class="w-40 mx-auto mb-8">
+
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="mb-4">
+          <label for="username" class="block text-gray-700 text-sm font-bold mb-2">{{ _('Utilisateur') }}</label>
+          <input type="text" id="username" name="username" required maxlength="20"
+            class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="mb-6">
+          <label for="password" class="block text-gray-700 text-sm font-bold mb-2">{{ _('Mot de passe') }}</label>
+          <div class="relative">
+            <input type="password" id="password" name="password" required maxlength="20"
+              class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10">
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button type="button"
+                class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                data-target="password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center mt-8">
+          <button type="submit"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out w-full">
+            {{ _('Se connecter') }}
+          </button>
+        </div>
+      </form>
+      <div class="mt-6 pt-6 border-t border-gray-300">
+        <a href="{{ url_for('upload_page') }}"
+          class="w-full inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors duration-300 text-center">{{
+          _('Envoyer des photos (Invité)') }}</a>
+      </div>
+      <div class="text-center mt-6 text-sm">
+        <span class="font-semibold">{{ _('Langue') }}:</span>
+        {% set current_lang = get_locale() %}
+        <a href="?lang=fr"
+          class="{% if current_lang == 'fr' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">FR</a>
+        |
+        <a href="?lang=en"
+          class="{% if current_lang == 'en' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">EN</a>
+        |
+        <a href="?lang=es"
+          class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.toggle-password-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          const targetInputId = button.dataset.target;
+          const passwordInput = document.getElementById(targetInputId);
+          if (!passwordInput) return;
+
+          const icon = button.querySelector('i');
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+
+          // Toggle the icon
+          if (type === 'password') {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+          } else {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

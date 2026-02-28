@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ get_locale() }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -20,7 +21,7 @@
             min-height: 100vh;
             color: white;
         }
-        
+
         .container {
             text-align: center;
             padding: 40px;
@@ -30,19 +31,19 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             max-width: 500px;
         }
-        
+
         h1 {
             font-size: 2em;
             margin-bottom: 20px;
             font-weight: 600;
         }
-        
+
         .status {
             font-size: 1.2em;
             margin-bottom: 10px;
             opacity: 0.9;
         }
-        
+
         /* Spinner animé - ORIGINAL */
         .spinner {
             width: 60px;
@@ -53,28 +54,40 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         /* Animation de pulsation pour le texte - ORIGINAL */
         .pulse {
             animation: pulse 2s ease-in-out infinite;
         }
-        
+
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
-        
+
         .info {
             font-size: 0.9em;
             opacity: 0.7;
             margin-top: 30px;
         }
-        
+
         /* Progress bar à 50s */
         .progress-bar {
             width: 100%;
@@ -84,47 +97,54 @@
             overflow: hidden;
             margin-top: 20px;
         }
-        
+
         .progress-bar-fill {
             height: 100%;
             background: white;
             animation: progress 50s ease-out forwards;
         }
-        
+
         @keyframes progress {
-            0% { width: 0%; }
-            100% { width: 90%; }
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 90%;
+            }
         }
-        
+
         /* Compteur bien visible */
         .countdown {
             font-size: 2.5em;
             font-weight: bold;
             color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             margin: 20px 0;
             font-family: 'Courier New', monospace;
             animation: pulse 1.5s ease-in-out infinite;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Logo Pimmich - ORIGINAL -->
-        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich" style="width: 160px; height: auto;">
-        
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo Pimmich"
+            style="width: 160px; height: auto;">
+
         <h1>Redémarrage en cours</h1>
-        
+
         <div class="spinner"></div>
-        
+
         <!-- STATUS + COMPTEUR SÉPARÉS -->
         <p class="status" id="statusText">Redémarrage du système</p>
         <div id="countdown" class="countdown">50s</div>
-        
+
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
         </div>
-        
+
         <p class="info">
             Le système va redémarrer dans quelques instants.<br>
             Cette page se rechargera automatiquement une fois le système prêt.
@@ -137,31 +157,31 @@
         let rebootTriggered = false;
         let remainingTime = 60;
         let serverReady = false;  // ✅ État serveur prêt
-        
+
         const statusText = document.getElementById('statusText');
         const countdownEl = document.getElementById('countdown');
-        
+
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(triggerReboot, 100);
         });
-        
+
         function triggerReboot() {
             if (rebootTriggered) return;
             rebootTriggered = true;
-            
+
             // Déclencher reboot API
             fetch('/api/trigger_reboot', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'}
+                headers: { 'Content-Type': 'application/json' }
             }).catch(() => console.log('Reboot command sent'));
-            
+
             // Démarrer compte à rebours + vérifications
             startCountdownAndChecks();
         }
-        
+
         function startCountdownAndChecks() {
             updateDisplay(); // Affichage initial
-            
+
             // ✅ COMPTEUR
             countdownInterval = setInterval(() => {
                 remainingTime--;
@@ -172,67 +192,68 @@
                     switchToCheckingMode();
                 }
             }, 1000);
-            
+
             // ✅ PING TOUTES LES 2s (après délai de sécurité)
             setTimeout(() => {
                 checkInterval = setInterval(checkServerAvailability, 2000);
             }, 20000); // Attendre 20s que le serveur s'éteigne vraiment avant de tester le retour
         }
-        
+
         function checkServerAvailability() {
             console.log('🔍 Ping test...');
-            fetch('/api/ping', { 
-                method: 'GET', 
+            fetch('/api/ping', {
+                method: 'GET',
                 cache: 'no-cache',
                 keepalive: true
             })
-            .then(response => {
-                console.log('✅ Ping OK:', response.status);
-                if (response.ok) {
-                    serverReady = true;
-                    stopCountdown();
-                    showServerReady();
-                }
-            })
-            .catch(error => {
-                console.log('❌ Ping failed:', error);
-            });
+                .then(response => {
+                    console.log('✅ Ping OK:', response.status);
+                    if (response.ok) {
+                        serverReady = true;
+                        stopCountdown();
+                        showServerReady();
+                    }
+                })
+                .catch(error => {
+                    console.log('❌ Ping failed:', error);
+                });
         }
-        
+
         function stopCountdown() {
             if (countdownInterval) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
             }
         }
-        
+
         function switchToCheckingMode() {
             stopCountdown();
             statusText.textContent = '🔄 Vérification intensive...';
             countdownEl.textContent = '⏳';
             // Continue les pings existants
         }
-        
+
         function showServerReady() {
             statusText.textContent = '✅ Serveur disponible !';
             countdownEl.textContent = 'Redirection...';
-            
+
             // Arrêter tous les timers
             if (checkInterval) {
                 clearInterval(checkInterval);
                 checkInterval = null;
             }
-            
+
             // Rediriger après 1s
             setTimeout(() => {
                 window.location.href = '/configure';
             }, 1000);
         }
-        
+
         function updateDisplay() {
             statusText.textContent = 'Redémarrage du système';
             countdownEl.textContent = remainingTime + 's';
         }
     </script>
 </body>
+
 </html>
