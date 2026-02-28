@@ -1113,6 +1113,18 @@
                         <p class="text-sm text-gray-600 ml-2">{{ _("(Ex: 4 = 5x plus de chances d'apparaître)") }}</p>
                     </div>
                 </fieldset>
+                <fieldset class="mt-6">
+                    <legend>
+                        <h3>{{ _("Options de l'overlay") }}</h3>
+                    </legend>
+                    <div style="margin-top: 16px;">
+                        <label>
+                            <input type="checkbox" name="display_telegram_notification_overlay" {% if
+                                config.get('display_telegram_notification_overlay', True) %}checked{% endif %}>
+                            {{ _("Activer l'icône de nouvelle carte postale dans l'overlay") }}
+                        </label>
+                    </div>
+                </fieldset>
             </div>
 
             <div id="tab-vocal" class="tabcontent">

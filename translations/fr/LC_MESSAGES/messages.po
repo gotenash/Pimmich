@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-02-28 17:48+0100\n"
+"POT-Creation-Date: 2026-02-28 19:01+0100\n"
 "PO-Revision-Date: 2025-07-21 23:26+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -202,22 +202,22 @@ msgstr ""
 msgid "Le diaporama est arrêté."
 msgstr ""
 
-#: templates/configure.html.jinja:209 templates/configure.html.jinja:2165
+#: templates/configure.html.jinja:209 templates/configure.html.jinja:2177
 msgid "Photo en cours"
 msgstr ""
 
-#: templates/configure.html.jinja:217 templates/configure.html.jinja:1472
-#: templates/configure.html.jinja:2136
+#: templates/configure.html.jinja:217 templates/configure.html.jinja:1484
+#: templates/configure.html.jinja:2148
 msgid "Photo précédente"
 msgstr ""
 
-#: templates/configure.html.jinja:222 templates/configure.html.jinja:1477
-#: templates/configure.html.jinja:2140
+#: templates/configure.html.jinja:222 templates/configure.html.jinja:1489
+#: templates/configure.html.jinja:2152
 msgid "Pause/Lecture"
 msgstr ""
 
-#: templates/configure.html.jinja:227 templates/configure.html.jinja:1482
-#: templates/configure.html.jinja:2144
+#: templates/configure.html.jinja:227 templates/configure.html.jinja:1494
+#: templates/configure.html.jinja:2156
 msgid "Photo suivante"
 msgstr ""
 
@@ -319,7 +319,7 @@ msgstr ""
 msgid "Lancez les imports, contrôlez le diaporama et envoyez des photos."
 msgstr ""
 
-#: templates/configure.html.jinja:294 templates/configure.html.jinja:1454
+#: templates/configure.html.jinja:294 templates/configure.html.jinja:1466
 msgid "Actions"
 msgstr ""
 
@@ -767,13 +767,13 @@ msgid ""
 msgstr ""
 
 #: templates/configure.html.jinja:788 templates/configure.html.jinja:791
-#: templates/configure.html.jinja:1578 templates/configure.html.jinja:1581
-#: templates/configure.html.jinja:1585 templates/configure.html.jinja:1659
-#: templates/configure.html.jinja:1661 templates/configure.html.jinja:1665
-#: templates/configure.html.jinja:1846 templates/configure.html.jinja:1849
-#: templates/configure.html.jinja:1853 templates/configure.html.jinja:1856
-#: templates/configure.html.jinja:2321 templates/configure.html.jinja:2342
-#: templates/configure.html.jinja:4772
+#: templates/configure.html.jinja:1590 templates/configure.html.jinja:1593
+#: templates/configure.html.jinja:1597 templates/configure.html.jinja:1671
+#: templates/configure.html.jinja:1673 templates/configure.html.jinja:1677
+#: templates/configure.html.jinja:1858 templates/configure.html.jinja:1861
+#: templates/configure.html.jinja:1865 templates/configure.html.jinja:1868
+#: templates/configure.html.jinja:2333 templates/configure.html.jinja:2354
+#: templates/configure.html.jinja:4784
 msgid "Chargement..."
 msgstr ""
 
@@ -1064,7 +1064,7 @@ msgstr ""
 msgid "Valide 90 jours"
 msgstr ""
 
-#: templates/configure.html.jinja:1066 templates/configure.html.jinja:2179
+#: templates/configure.html.jinja:1066 templates/configure.html.jinja:2191
 msgid "Créer"
 msgstr ""
 
@@ -1116,19 +1116,27 @@ msgstr ""
 msgid "(Ex: 4 = 5x plus de chances d'apparaître)"
 msgstr ""
 
-#: templates/configure.html.jinja:1121
-msgid "Contrôle Vocal"
+#: templates/configure.html.jinja:1118
+msgid "Options de l'overlay"
 msgstr ""
 
 #: templates/configure.html.jinja:1124
+msgid "Activer l'icône de nouvelle carte postale dans l'overlay"
+msgstr ""
+
+#: templates/configure.html.jinja:1133
+msgid "Contrôle Vocal"
+msgstr ""
+
+#: templates/configure.html.jinja:1136
 msgid "Contrôlez votre diaporama à la voix avec le mot-clé \"Cadre Magique\"."
 msgstr ""
 
-#: templates/configure.html.jinja:1128
+#: templates/configure.html.jinja:1140
 msgid "Étape Manuelle Requise :"
 msgstr ""
 
-#: templates/configure.html.jinja:1128
+#: templates/configure.html.jinja:1140
 msgid ""
 "Pour utiliser le mot-clé\n"
 "                            personnalisé \"Cadre Magique\", vous devez "
@@ -1138,101 +1146,101 @@ msgid ""
 "                            `cadre-magique_raspberry-pi.ppn`."
 msgstr ""
 
-#: templates/configure.html.jinja:1135
+#: templates/configure.html.jinja:1147
 msgid ""
 "Moteur\n"
 "                            de mot-clé"
 msgstr ""
 
-#: templates/configure.html.jinja:1145
+#: templates/configure.html.jinja:1157
 msgid ""
 "Choisissez 'Vosk' si vous ne souhaitez pas créer de\n"
 "                            compte Picovoice."
 msgstr ""
 
-#: templates/configure.html.jinja:1152
+#: templates/configure.html.jinja:1164
 msgid ""
 "Activer le contrôle vocal\n"
 "                            (action immédiate)"
 msgstr ""
 
-#: templates/configure.html.jinja:1157
+#: templates/configure.html.jinja:1169
 msgid ""
 "Langue\n"
 "                            du contrôle vocal"
 msgstr ""
 
-#: templates/configure.html.jinja:1162
+#: templates/configure.html.jinja:1174
 msgid "Français"
 msgstr ""
 
-#: templates/configure.html.jinja:1164
+#: templates/configure.html.jinja:1176
 msgid "Anglais"
 msgstr ""
 
-#: templates/configure.html.jinja:1166
+#: templates/configure.html.jinja:1178
 msgid ""
 "Le changement de langue nécessite un redémarrage du\n"
 "                            service vocal (désactiver puis réactiver le "
 "contrôle vocal)."
 msgstr ""
 
-#: templates/configure.html.jinja:1171
+#: templates/configure.html.jinja:1183
 msgid ""
 "Clé\n"
 "                            d'accès Picovoice Porcupine"
 msgstr ""
 
-#: templates/configure.html.jinja:1175
+#: templates/configure.html.jinja:1187
 msgid ""
 " Collez\n"
 "                            votre clé d'accès ici"
 msgstr ""
 
-#: templates/configure.html.jinja:1177
+#: templates/configure.html.jinja:1189
 msgid ""
 "Obtenez votre clé via le compte gratuit (Free Tier)\n"
 "                            sur la"
 msgstr ""
 
-#: templates/configure.html.jinja:1184
+#: templates/configure.html.jinja:1196
 msgid "Périphérique d'entrée audio (Microphone)"
 msgstr ""
 
-#: templates/configure.html.jinja:1188 templates/configure.html.jinja:5084
+#: templates/configure.html.jinja:1200 templates/configure.html.jinja:5096
 msgid "Périphérique par défaut"
 msgstr ""
 
-#: templates/configure.html.jinja:1193
+#: templates/configure.html.jinja:1205
 msgid "Actualiser la liste"
 msgstr ""
 
-#: templates/configure.html.jinja:1198
+#: templates/configure.html.jinja:1210
 msgid "État du service vocal :"
 msgstr ""
 
-#: templates/configure.html.jinja:1207
+#: templates/configure.html.jinja:1219
 msgid "Volume des Notifications Sonores"
 msgstr ""
 
-#: templates/configure.html.jinja:1210
+#: templates/configure.html.jinja:1222
 msgid ""
 "Règle le volume pour les sons de notification (confirmation du contrôle "
 "vocal, réception\n"
 "                        de carte postale, etc.)."
 msgstr ""
 
-#: templates/configure.html.jinja:1214
+#: templates/configure.html.jinja:1226
 msgid ""
 "Volume des notifications\n"
 "                            :"
 msgstr ""
 
-#: templates/configure.html.jinja:1227
+#: templates/configure.html.jinja:1239
 msgid "Diagnostic Audio"
 msgstr ""
 
-#: templates/configure.html.jinja:1230
+#: templates/configure.html.jinja:1242
 msgid ""
 "Si votre microphone n'apparaît pas dans la liste ci-dessus, utilisez cet "
 "outil pour\n"
@@ -1240,311 +1248,311 @@ msgid ""
 "correctement."
 msgstr ""
 
-#: templates/configure.html.jinja:1235 templates/configure.html.jinja:2372
+#: templates/configure.html.jinja:1247 templates/configure.html.jinja:2384
 msgid "Lancer le diagnostic"
 msgstr ""
 
-#: templates/configure.html.jinja:1238
+#: templates/configure.html.jinja:1250
 msgid "Résultats du diagnostic :"
 msgstr ""
 
-#: templates/configure.html.jinja:1250
+#: templates/configure.html.jinja:1262
 msgid "Affichage des métadonnées des photos"
 msgstr ""
 
-#: templates/configure.html.jinja:1252
+#: templates/configure.html.jinja:1264
 msgid ""
 "Configurez ici l'affichage des informations (date, lieu)\n"
 "                        extraites depuis Immich sur vos photos."
 msgstr ""
 
-#: templates/configure.html.jinja:1259
+#: templates/configure.html.jinja:1271
 msgid "Afficher la date de prise de vue"
 msgstr ""
 
-#: templates/configure.html.jinja:1263
+#: templates/configure.html.jinja:1275
 msgid ""
 "Format de\n"
 "                            la date"
 msgstr ""
 
-#: templates/configure.html.jinja:1268
+#: templates/configure.html.jinja:1280
 #, python-format
 msgid ""
 "Utilise les codes de formatage Python (ex:\n"
 "                            %%d/%%m/%%Y, %%B %%Y)."
 msgstr ""
 
-#: templates/configure.html.jinja:1276
+#: templates/configure.html.jinja:1288
 msgid ""
 "Afficher la localisation\n"
 "                            (ville/pays)"
 msgstr ""
 
-#: templates/configure.html.jinja:1280
+#: templates/configure.html.jinja:1292
 msgid ""
 "Format\n"
 "                            de la localisation"
 msgstr ""
 
-#: templates/configure.html.jinja:1285
+#: templates/configure.html.jinja:1297
 msgid "Ville, Pays"
 msgstr ""
 
-#: templates/configure.html.jinja:1287
+#: templates/configure.html.jinja:1299
 msgid "Ville uniquement"
 msgstr ""
 
-#: templates/configure.html.jinja:1289
+#: templates/configure.html.jinja:1301
 msgid "Pays uniquement"
 msgstr ""
 
-#: templates/configure.html.jinja:1297
+#: templates/configure.html.jinja:1309
 msgid "Afficher le drapeau du pays"
 msgstr ""
 
-#: templates/configure.html.jinja:1301
+#: templates/configure.html.jinja:1313
 msgid ""
 "Taille du\n"
 "                            drapeau"
 msgstr ""
 
-#: templates/configure.html.jinja:1314
+#: templates/configure.html.jinja:1326
 msgid ""
 "Opacité\n"
 "                            du drapeau (0.1 à 1.0)"
 msgstr ""
 
-#: templates/configure.html.jinja:1322
+#: templates/configure.html.jinja:1334
 msgid "Position du drapeau"
 msgstr ""
 
-#: templates/configure.html.jinja:1326 templates/configure.html.jinja:1408
+#: templates/configure.html.jinja:1338 templates/configure.html.jinja:1420
 msgid "En haut à droite"
 msgstr ""
 
-#: templates/configure.html.jinja:1328 templates/configure.html.jinja:1406
+#: templates/configure.html.jinja:1340 templates/configure.html.jinja:1418
 msgid "En haut à gauche"
 msgstr ""
 
-#: templates/configure.html.jinja:1330 templates/configure.html.jinja:1401
+#: templates/configure.html.jinja:1342 templates/configure.html.jinja:1413
 msgid "En bas à droite"
 msgstr ""
 
-#: templates/configure.html.jinja:1332 templates/configure.html.jinja:1399
+#: templates/configure.html.jinja:1344 templates/configure.html.jinja:1411
 msgid "En bas à gauche"
 msgstr ""
 
-#: templates/configure.html.jinja:1338 templates/configure.html.jinja:1413
+#: templates/configure.html.jinja:1350 templates/configure.html.jinja:1425
 msgid "Décalage horizontal (px)"
 msgstr ""
 
-#: templates/configure.html.jinja:1345 templates/configure.html.jinja:1420
+#: templates/configure.html.jinja:1357 templates/configure.html.jinja:1432
 msgid "Décalage vertical (px)"
 msgstr ""
 
-#: templates/configure.html.jinja:1353
+#: templates/configure.html.jinja:1365
 msgid "Style et Positionnement"
 msgstr ""
 
-#: templates/configure.html.jinja:1357
+#: templates/configure.html.jinja:1369
 msgid "Taille de la police"
 msgstr ""
 
-#: templates/configure.html.jinja:1364
+#: templates/configure.html.jinja:1376
 msgid "Police"
 msgstr ""
 
-#: templates/configure.html.jinja:1381
+#: templates/configure.html.jinja:1393
 msgid "Couleur du texte (hex)"
 msgstr ""
 
-#: templates/configure.html.jinja:1388
+#: templates/configure.html.jinja:1400
 msgid "Couleur du contour (hex)"
 msgstr ""
 
-#: templates/configure.html.jinja:1395
+#: templates/configure.html.jinja:1407
 msgid "Position"
 msgstr ""
 
-#: templates/configure.html.jinja:1404
+#: templates/configure.html.jinja:1416
 msgid "En bas au centre"
 msgstr ""
 
-#: templates/configure.html.jinja:1432
+#: templates/configure.html.jinja:1444
 msgid ""
 "Afficher un fond\n"
 "                            semi-transparent derrière les métadonnées"
 msgstr ""
 
-#: templates/configure.html.jinja:1437
+#: templates/configure.html.jinja:1449
 msgid "Couleur du fond (hex RGBA)"
 msgstr ""
 
-#: templates/configure.html.jinja:1446
+#: templates/configure.html.jinja:1458
 msgid "Enregistrer les modifications"
 msgstr ""
 
-#: templates/configure.html.jinja:1458
+#: templates/configure.html.jinja:1470
 msgid "Gestion du diaporama"
 msgstr ""
 
-#: templates/configure.html.jinja:1463
+#: templates/configure.html.jinja:1475
 msgid "Arrêter le diaporama"
 msgstr ""
 
-#: templates/configure.html.jinja:1465
+#: templates/configure.html.jinja:1477
 msgid "Démarrer le diaporama"
 msgstr ""
 
-#: templates/configure.html.jinja:1489
+#: templates/configure.html.jinja:1501
 msgid "Importation des photos"
 msgstr ""
 
-#: templates/configure.html.jinja:1492
+#: templates/configure.html.jinja:1504
 msgid "Importer depuis la clé USB"
 msgstr ""
 
-#: templates/configure.html.jinja:1501
+#: templates/configure.html.jinja:1513
 msgid "Importer depuis Immich"
 msgstr ""
 
-#: templates/configure.html.jinja:1510
+#: templates/configure.html.jinja:1522
 msgid "Importer depuis Samba"
 msgstr ""
 
-#: templates/configure.html.jinja:1520
+#: templates/configure.html.jinja:1532
 msgid "Préparation en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:1521
+#: templates/configure.html.jinja:1533
 msgid "Photo en cours de préparation"
 msgstr ""
 
-#: templates/configure.html.jinja:1526
+#: templates/configure.html.jinja:1538
 msgid ""
 "L'import depuis Telegram se fait automatiquement à la\n"
 "                            réception des photos. Activez la source dans "
 "l'onglet \"Sources\" pour les voir."
 msgstr ""
 
-#: templates/configure.html.jinja:1534
+#: templates/configure.html.jinja:1546
 msgid "Importer depuis un Smartphone"
 msgstr ""
 
-#: templates/configure.html.jinja:1535
+#: templates/configure.html.jinja:1547
 msgid ""
 "Envoyez des photos directement depuis votre\n"
 "                            téléphone via le navigateur."
 msgstr ""
 
-#: templates/configure.html.jinja:1542
+#: templates/configure.html.jinja:1554
 msgid "Envoyer les photos"
 msgstr ""
 
-#: templates/configure.html.jinja:1556
+#: templates/configure.html.jinja:1568
 msgid "Photos en attente de validation"
 msgstr ""
 
-#: templates/configure.html.jinja:1559
+#: templates/configure.html.jinja:1571
 msgid ""
 "Approuvez ou rejetez les photos envoyées. Les photos approuvées\n"
 "                        seront ajoutées à la source \"Invités\"."
 msgstr ""
 
-#: templates/configure.html.jinja:1563 templates/configure.html.jinja:1893
+#: templates/configure.html.jinja:1575 templates/configure.html.jinja:1905
 msgid "Actualiser"
 msgstr ""
 
-#: templates/configure.html.jinja:1573
+#: templates/configure.html.jinja:1585
 msgid "État de la connexion Wi-Fi"
 msgstr ""
 
-#: templates/configure.html.jinja:1577 templates/configure.html.jinja:1658
+#: templates/configure.html.jinja:1589 templates/configure.html.jinja:1670
 msgid "État:"
 msgstr ""
 
-#: templates/configure.html.jinja:1581
+#: templates/configure.html.jinja:1593
 msgid "Réseau (SSID):"
 msgstr ""
 
-#: templates/configure.html.jinja:1585 templates/configure.html.jinja:1660
+#: templates/configure.html.jinja:1597 templates/configure.html.jinja:1672
 msgid "Adresse IP:"
 msgstr ""
 
-#: templates/configure.html.jinja:1592
+#: templates/configure.html.jinja:1604
 msgid "Configuration Wi-Fi"
 msgstr ""
 
-#: templates/configure.html.jinja:1594
+#: templates/configure.html.jinja:1606
 msgid ""
 "La sélection du pays est obligatoire pour activer\n"
 "                    l'interface Wi-Fi et respecter les réglementations "
 "locales sur les fréquences radio."
 msgstr ""
 
-#: templates/configure.html.jinja:1598
+#: templates/configure.html.jinja:1610
 msgid ""
 "Pays (pour la\n"
 "                            réglementation Wi-Fi)"
 msgstr ""
 
-#: templates/configure.html.jinja:1602
+#: templates/configure.html.jinja:1614
 msgid "France"
 msgstr ""
 
-#: templates/configure.html.jinja:1602
+#: templates/configure.html.jinja:1614
 msgid "États-Unis"
 msgstr ""
 
-#: templates/configure.html.jinja:1602
+#: templates/configure.html.jinja:1614
 msgid "Royaume-Uni"
 msgstr ""
 
-#: templates/configure.html.jinja:1603
+#: templates/configure.html.jinja:1615
 msgid "Allemagne"
 msgstr ""
 
-#: templates/configure.html.jinja:1603
+#: templates/configure.html.jinja:1615
 msgid "Espagne"
 msgstr ""
 
-#: templates/configure.html.jinja:1603
+#: templates/configure.html.jinja:1615
 msgid "Canada"
 msgstr ""
 
-#: templates/configure.html.jinja:1603
+#: templates/configure.html.jinja:1615
 msgid "Belgique"
 msgstr ""
 
-#: templates/configure.html.jinja:1604
+#: templates/configure.html.jinja:1616
 msgid "Suisse"
 msgstr ""
 
-#: templates/configure.html.jinja:1612
+#: templates/configure.html.jinja:1624
 msgid ""
 "SSID (Nom du\n"
 "                            réseau)"
 msgstr ""
 
-#: templates/configure.html.jinja:1619 templates/login.html.jinja:62
+#: templates/configure.html.jinja:1631 templates/login.html.jinja:62
 msgid "Mot de passe"
 msgstr ""
 
-#: templates/configure.html.jinja:1628 templates/configure.html.jinja:1704
-#: templates/configure.html.jinja:1719 templates/login.html.jinja:69
+#: templates/configure.html.jinja:1640 templates/configure.html.jinja:1716
+#: templates/configure.html.jinja:1731 templates/login.html.jinja:69
 msgid "Afficher/Cacher le mot de passe"
 msgstr ""
 
-#: templates/configure.html.jinja:1633
+#: templates/configure.html.jinja:1645
 msgid "Laissez vide si le réseau est ouvert."
 msgstr ""
 
-#: templates/configure.html.jinja:1637
+#: templates/configure.html.jinja:1649
 msgid "Appliquer les paramètres Wi-Fi"
 msgstr ""
 
-#: templates/configure.html.jinja:1640
+#: templates/configure.html.jinja:1652
 msgid ""
 "Note : Après avoir appliqué les paramètres, la connexion\n"
 "                    peut prendre jusqu'à une minute. Si le statut de "
@@ -1553,11 +1561,11 @@ msgid ""
 "le système."
 msgstr ""
 
-#: templates/configure.html.jinja:1647
+#: templates/configure.html.jinja:1659
 msgid "Gestion des Interfaces Réseau"
 msgstr ""
 
-#: templates/configure.html.jinja:1649
+#: templates/configure.html.jinja:1661
 msgid ""
 "Si le Wi-Fi ne se connecte pas alors qu'un câble Ethernet\n"
 "                    est branché, c'est souvent un problème de priorité. "
@@ -1566,64 +1574,64 @@ msgid ""
 "action redémarre le service réseau."
 msgstr ""
 
-#: templates/configure.html.jinja:1657
+#: templates/configure.html.jinja:1669
 msgid "Interface Filaire (eth0)"
 msgstr ""
 
-#: templates/configure.html.jinja:1672
+#: templates/configure.html.jinja:1684
 msgid "Réseaux Wi-Fi à proximité"
 msgstr ""
 
-#: templates/configure.html.jinja:1673
+#: templates/configure.html.jinja:1685
 msgid ""
 "Cliquez sur le bouton pour rechercher les réseaux Wi-Fi disponibles.\n"
 "                    Cliquer sur un réseau dans la liste remplira "
 "automatiquement le champ SSID ci-dessus."
 msgstr ""
 
-#: templates/configure.html.jinja:1678 templates/configure.html.jinja:2325
+#: templates/configure.html.jinja:1690 templates/configure.html.jinja:2337
 msgid "Lancer le scan"
 msgstr ""
 
-#: templates/configure.html.jinja:1689 templates/configure.html.jinja:2329
+#: templates/configure.html.jinja:1701 templates/configure.html.jinja:2341
 msgid "Sécurité"
 msgstr ""
 
-#: templates/configure.html.jinja:1692
+#: templates/configure.html.jinja:1704
 msgid "Changer le mot de passe de l'interface"
 msgstr ""
 
-#: templates/configure.html.jinja:1695
+#: templates/configure.html.jinja:1707
 msgid ""
 "Nouveau mot de\n"
 "                            passe"
 msgstr ""
 
-#: templates/configure.html.jinja:1700
+#: templates/configure.html.jinja:1712
 msgid "6 caractères minimum"
 msgstr ""
 
-#: templates/configure.html.jinja:1711
+#: templates/configure.html.jinja:1723
 msgid ""
 "Confirmer le\n"
 "                            nouveau mot de passe"
 msgstr ""
 
-#: templates/configure.html.jinja:1724
+#: templates/configure.html.jinja:1736
 msgid ""
 "Les mots de passe ne\n"
 "                            correspondent pas."
 msgstr ""
 
-#: templates/configure.html.jinja:1729
+#: templates/configure.html.jinja:1741
 msgid "Changer le mot de passe"
 msgstr ""
 
-#: templates/configure.html.jinja:1736
+#: templates/configure.html.jinja:1748
 msgid "Sauvegarde et Restauration"
 msgstr ""
 
-#: templates/configure.html.jinja:1738
+#: templates/configure.html.jinja:1750
 msgid ""
 "Sauvegardez votre configuration (API, partages,\n"
 "                    affichage...) dans un fichier. Vous pourrez le "
@@ -1631,33 +1639,33 @@ msgid ""
 "                    installation."
 msgstr ""
 
-#: templates/configure.html.jinja:1744
+#: templates/configure.html.jinja:1756
 msgid "Sauvegarder la configuration"
 msgstr ""
 
-#: templates/configure.html.jinja:1747
+#: templates/configure.html.jinja:1759
 msgid "Télécharger la sauvegarde"
 msgstr ""
 
-#: templates/configure.html.jinja:1752
+#: templates/configure.html.jinja:1764
 msgid "Restaurer une configuration"
 msgstr ""
 
-#: templates/configure.html.jinja:1754
+#: templates/configure.html.jinja:1766
 msgid ""
 "Êtes-vous sûr ? La configuration actuelle sera écrasée par le contenu du "
 "fichier de sauvegarde."
 msgstr ""
 
-#: templates/configure.html.jinja:1759
+#: templates/configure.html.jinja:1771
 msgid "Restaurer"
 msgstr ""
 
-#: templates/configure.html.jinja:1767
+#: templates/configure.html.jinja:1779
 msgid "Mise à jour de l'application"
 msgstr ""
 
-#: templates/configure.html.jinja:1769
+#: templates/configure.html.jinja:1781
 msgid ""
 "Cliquez sur le bouton pour rechercher et installer les\n"
 "                    dernières mises à jour de Pimmich depuis GitHub. "
@@ -1665,15 +1673,15 @@ msgid ""
 "                    mise à jour."
 msgstr ""
 
-#: templates/configure.html.jinja:1774 templates/configure.html.jinja:4995
+#: templates/configure.html.jinja:1786 templates/configure.html.jinja:5007
 msgid "Vérifier les mises à jour"
 msgstr ""
 
-#: templates/configure.html.jinja:1784
+#: templates/configure.html.jinja:1796
 msgid "Système de Fichiers de la Carte SD"
 msgstr ""
 
-#: templates/configure.html.jinja:1786
+#: templates/configure.html.jinja:1798
 msgid ""
 "Si vous avez flashé Pimmich sur une carte SD plus grande que\n"
 "                    l'image, utilisez cette option pour étendre la "
@@ -1682,123 +1690,123 @@ msgid ""
 " l'opération."
 msgstr ""
 
-#: templates/configure.html.jinja:1790
+#: templates/configure.html.jinja:1802
 msgid "Note :"
 msgstr ""
 
-#: templates/configure.html.jinja:1790
+#: templates/configure.html.jinja:1802
 msgid ""
 "Cette opération est sûre et ne supprime aucune donnée.\n"
 "                        Elle prépare simplement le système à s'étendre au"
 " prochain démarrage."
 msgstr ""
 
-#: templates/configure.html.jinja:1795
+#: templates/configure.html.jinja:1807
 msgid "Étendre le système de fichiers"
 msgstr ""
 
-#: templates/configure.html.jinja:1802
+#: templates/configure.html.jinja:1814
 msgid "Contrôle du système"
 msgstr ""
 
-#: templates/configure.html.jinja:1805
+#: templates/configure.html.jinja:1817
 msgid ""
 "Êtes-vous sûr de vouloir redémarrer UNIQUEMENT l'application web ? Le "
 "système d'exploitation ne sera pas redémarré."
 msgstr ""
 
-#: templates/configure.html.jinja:1808
+#: templates/configure.html.jinja:1820
 msgid "Redémarrer l'application web"
 msgstr ""
 
-#: templates/configure.html.jinja:1817
+#: templates/configure.html.jinja:1829
 msgid "Redémarrer le système"
 msgstr ""
 
-#: templates/configure.html.jinja:1825
+#: templates/configure.html.jinja:1837
 msgid "Supprimer les logs"
 msgstr ""
 
-#: templates/configure.html.jinja:1830
+#: templates/configure.html.jinja:1842
 msgid "Êtes-vous sûr de vouloir ÉTEINDRE le système ?"
 msgstr ""
 
-#: templates/configure.html.jinja:1833
+#: templates/configure.html.jinja:1845
 msgid "Éteindre le système"
 msgstr ""
 
-#: templates/configure.html.jinja:1842
+#: templates/configure.html.jinja:1854
 msgid "Informations Système"
 msgstr ""
 
-#: templates/configure.html.jinja:1846
+#: templates/configure.html.jinja:1858
 msgid "Température CPU:"
 msgstr ""
 
-#: templates/configure.html.jinja:1849
+#: templates/configure.html.jinja:1861
 msgid "Utilisation CPU:"
 msgstr ""
 
-#: templates/configure.html.jinja:1853
+#: templates/configure.html.jinja:1865
 msgid "RAM:"
 msgstr ""
 
-#: templates/configure.html.jinja:1856
+#: templates/configure.html.jinja:1868
 msgid "Stockage:"
 msgstr ""
 
-#: templates/configure.html.jinja:1861
+#: templates/configure.html.jinja:1873
 msgid "Historique Température CPU (10 min)"
 msgstr ""
 
-#: templates/configure.html.jinja:1865
+#: templates/configure.html.jinja:1877
 msgid "Historique Utilisation CPU (10 min)"
 msgstr ""
 
-#: templates/configure.html.jinja:1869
+#: templates/configure.html.jinja:1881
 msgid "Historique Utilisation RAM (10 min)"
 msgstr ""
 
-#: templates/configure.html.jinja:1873
+#: templates/configure.html.jinja:1885
 msgid "Historique Utilisation Disque (10 min)"
 msgstr ""
 
-#: templates/configure.html.jinja:1884
+#: templates/configure.html.jinja:1896
 msgid "Logs Système"
 msgstr ""
 
-#: templates/configure.html.jinja:1887
+#: templates/configure.html.jinja:1899
 msgid "Sélectionner un log :"
 msgstr ""
 
-#: templates/configure.html.jinja:1896
+#: templates/configure.html.jinja:1908
 msgid "Effacer les logs"
 msgstr ""
 
-#: templates/configure.html.jinja:1906
+#: templates/configure.html.jinja:1918
 msgid "Crédits"
 msgstr ""
 
-#: templates/configure.html.jinja:1910
+#: templates/configure.html.jinja:1922
 msgid "Auteurs : Gotenash et Shenron"
 msgstr ""
 
-#: templates/configure.html.jinja:1915
+#: templates/configure.html.jinja:1927
 msgid "Projet réalisé dans le cadre du Gadgetaulab"
 msgstr ""
 
-#: templates/configure.html.jinja:1980
+#: templates/configure.html.jinja:1992
 msgid "Aperçu des photos préparées"
 msgstr ""
 
-#: templates/configure.html.jinja:1982
+#: templates/configure.html.jinja:1994
 msgid ""
 "Voici les photos qui sont prêtes à être affichées par le diaporama,\n"
 "                    classées par source. Cliquez sur une photo pour "
 "l'agrandir."
 msgstr ""
 
-#: templates/configure.html.jinja:1993
+#: templates/configure.html.jinja:2005
 #, python-format
 msgid "%(num)d photo"
 msgid_plural ""
@@ -1807,86 +1815,86 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/configure.html.jinja:1999
+#: templates/configure.html.jinja:2011
 #, python-format
 msgid "Supprimer toutes les photos de la source '%(source)s'"
 msgstr ""
 
-#: templates/configure.html.jinja:2001
+#: templates/configure.html.jinja:2013
 msgid "Tout supprimer"
 msgstr ""
 
-#: templates/configure.html.jinja:2038 templates/configure.html.jinja:2041
-#: templates/configure.html.jinja:2236 templates/configure.html.jinja:2239
+#: templates/configure.html.jinja:2050 templates/configure.html.jinja:2053
+#: templates/configure.html.jinja:2248 templates/configure.html.jinja:2251
 #, python-format
 msgid "Aperçu de %(media)s"
 msgstr ""
 
-#: templates/configure.html.jinja:2055 templates/configure.html.jinja:2251
+#: templates/configure.html.jinja:2067 templates/configure.html.jinja:2263
 msgid "Filtre..."
 msgstr ""
 
-#: templates/configure.html.jinja:2057 templates/configure.html.jinja:2254
+#: templates/configure.html.jinja:2069 templates/configure.html.jinja:2266
 msgid "Noir & Blanc"
 msgstr ""
 
-#: templates/configure.html.jinja:2059 templates/configure.html.jinja:2255
+#: templates/configure.html.jinja:2071 templates/configure.html.jinja:2267
 msgid "Sépia"
 msgstr ""
 
-#: templates/configure.html.jinja:2061 templates/configure.html.jinja:2258
+#: templates/configure.html.jinja:2073 templates/configure.html.jinja:2270
 msgid "Vignette"
 msgstr ""
 
-#: templates/configure.html.jinja:2063 templates/configure.html.jinja:2260
+#: templates/configure.html.jinja:2075 templates/configure.html.jinja:2272
 msgid "Vintage"
 msgstr ""
 
-#: templates/configure.html.jinja:2066 templates/configure.html.jinja:2263
+#: templates/configure.html.jinja:2078 templates/configure.html.jinja:2275
 msgid "Polaroid"
 msgstr ""
 
-#: templates/configure.html.jinja:2070 templates/configure.html.jinja:2267
+#: templates/configure.html.jinja:2082 templates/configure.html.jinja:2279
 msgid "Carte Postale"
 msgstr ""
 
-#: templates/configure.html.jinja:2073 templates/configure.html.jinja:2270
+#: templates/configure.html.jinja:2085 templates/configure.html.jinja:2282
 msgid "Polaroid Vintage"
 msgstr ""
 
-#: templates/configure.html.jinja:2074 templates/configure.html.jinja:2271
+#: templates/configure.html.jinja:2086 templates/configure.html.jinja:2283
 msgid "Original"
 msgstr ""
 
-#: templates/configure.html.jinja:2081 templates/configure.html.jinja:2278
+#: templates/configure.html.jinja:2093 templates/configure.html.jinja:2290
 msgid "Ajouter à une playlist"
 msgstr ""
 
-#: templates/configure.html.jinja:2085 templates/configure.html.jinja:2282
-#: templates/configure.html.jinja:2332
+#: templates/configure.html.jinja:2097 templates/configure.html.jinja:2294
+#: templates/configure.html.jinja:2344
 msgid "Mettre en favori"
 msgstr ""
 
-#: templates/configure.html.jinja:2089 templates/configure.html.jinja:2286
+#: templates/configure.html.jinja:2101 templates/configure.html.jinja:2298
 msgid "Supprimer ce média"
 msgstr ""
 
-#: templates/configure.html.jinja:2100 templates/configure.html.jinja:2297
-#: templates/configure.html.jinja:2334
+#: templates/configure.html.jinja:2112 templates/configure.html.jinja:2309
+#: templates/configure.html.jinja:2346
 msgid "Ajouter une légende..."
 msgstr ""
 
-#: templates/configure.html.jinja:2111
+#: templates/configure.html.jinja:2123
 msgid ""
 "Aucune photo préparée n'a été trouvée. Veuillez\n"
 "                    en importer depuis l'onglet \"Actions\"."
 msgstr ""
 
-#: templates/configure.html.jinja:2120
+#: templates/configure.html.jinja:2132
 msgid "Gestion des Playlists"
 msgstr ""
 
-#: templates/configure.html.jinja:2122
+#: templates/configure.html.jinja:2134
 msgid ""
 "Créez des albums virtuels (playlists) en sélectionnant des\n"
 "                    photos de n'importe quelle source. Vous pouvez "
@@ -1894,399 +1902,399 @@ msgid ""
 "                    photos d'une playlist."
 msgstr ""
 
-#: templates/configure.html.jinja:2130
+#: templates/configure.html.jinja:2142
 msgid ""
 "Contrôle du Diaporama\n"
 "                                Actuel"
 msgstr ""
 
-#: templates/configure.html.jinja:2153
+#: templates/configure.html.jinja:2165
 msgid ""
 "Arrête la playlist en cours et relance le diaporama avec toutes les "
 "sources activées."
 msgstr ""
 
-#: templates/configure.html.jinja:2154 templates/configure.html.jinja:4217
-#: templates/configure.html.jinja:4222
+#: templates/configure.html.jinja:2166 templates/configure.html.jinja:4229
+#: templates/configure.html.jinja:4234
 msgid "Retour au diaporama standard"
 msgstr ""
 
-#: templates/configure.html.jinja:2160
+#: templates/configure.html.jinja:2172
 msgid "Aperçu en direct"
 msgstr ""
 
-#: templates/configure.html.jinja:2163
+#: templates/configure.html.jinja:2175
 msgid ""
 "Le diaporama est\n"
 "                                arrêté."
 msgstr ""
 
-#: templates/configure.html.jinja:2173
+#: templates/configure.html.jinja:2185
 msgid "Créer une nouvelle playlist"
 msgstr ""
 
-#: templates/configure.html.jinja:2176
+#: templates/configure.html.jinja:2188
 msgid "Nom de la playlist (ex: Vacances 2024)"
 msgstr ""
 
-#: templates/configure.html.jinja:2186
+#: templates/configure.html.jinja:2198
 msgid "Vos Playlists"
 msgstr ""
 
-#: templates/configure.html.jinja:2197
+#: templates/configure.html.jinja:2209
 msgid "Vos photos favorites"
 msgstr ""
 
-#: templates/configure.html.jinja:2199
+#: templates/configure.html.jinja:2211
 msgid ""
 "Voici toutes vos photos marquées comme favorites. Vous pouvez les\n"
 "                    gérer ici."
 msgstr ""
 
-#: templates/configure.html.jinja:2305
+#: templates/configure.html.jinja:2317
 msgid ""
 "Vous n'avez aucune\n"
 "                    photo en favori pour le moment."
 msgstr ""
 
-#: templates/configure.html.jinja:2322
+#: templates/configure.html.jinja:2334
 msgid "Erreur"
 msgstr ""
 
-#: templates/configure.html.jinja:2323
+#: templates/configure.html.jinja:2335
 msgid "N/A"
 msgstr ""
 
-#: templates/configure.html.jinja:2324
+#: templates/configure.html.jinja:2336
 msgid "Scan en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:2326
+#: templates/configure.html.jinja:2338
 msgid "Aucun réseau Wi-Fi trouvé."
 msgstr ""
 
-#: templates/configure.html.jinja:2327
+#: templates/configure.html.jinja:2339
 msgid "Erreur de communication avec le serveur:"
 msgstr ""
 
-#: templates/configure.html.jinja:2328
+#: templates/configure.html.jinja:2340
 msgid "SSID"
 msgstr ""
 
-#: templates/configure.html.jinja:2330
+#: templates/configure.html.jinja:2342
 msgid "Signal"
 msgstr ""
 
-#: templates/configure.html.jinja:2331
+#: templates/configure.html.jinja:2343
 msgid "Aucune"
 msgstr ""
 
-#: templates/configure.html.jinja:2333
+#: templates/configure.html.jinja:2345
 msgid "Vous n'avez aucune photo en favori pour le moment."
 msgstr ""
 
-#: templates/configure.html.jinja:2335
+#: templates/configure.html.jinja:2347
 msgid "Cliquer pour sélectionner ce réseau"
 msgstr ""
 
-#: templates/configure.html.jinja:2340 templates/configure.html.jinja:2422
+#: templates/configure.html.jinja:2352 templates/configure.html.jinja:2434
 msgid "Test en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:2341 templates/configure.html.jinja:2436
-#: templates/configure.html.jinja:2583
+#: templates/configure.html.jinja:2353 templates/configure.html.jinja:2448
+#: templates/configure.html.jinja:2595
 msgid "Erreur de communication avec le serveur."
 msgstr ""
 
-#: templates/configure.html.jinja:2343
+#: templates/configure.html.jinja:2355
 msgid "Aucune invitation active."
 msgstr ""
 
-#: templates/configure.html.jinja:2344
+#: templates/configure.html.jinja:2356
 msgid "Utilisé par"
 msgstr ""
 
-#: templates/configure.html.jinja:2345
+#: templates/configure.html.jinja:2357
 msgid "Non utilisé"
 msgstr ""
 
-#: templates/configure.html.jinja:2346
+#: templates/configure.html.jinja:2358
 msgid "Expire le"
 msgstr ""
 
-#: templates/configure.html.jinja:2347
+#: templates/configure.html.jinja:2359
 msgid "Supprimer l'invitation"
 msgstr ""
 
-#: templates/configure.html.jinja:2348
+#: templates/configure.html.jinja:2360
 msgid "Erreur lors du chargement des invitations."
 msgstr ""
 
-#: templates/configure.html.jinja:2349
+#: templates/configure.html.jinja:2361
 msgid "Veuillez entrer un nom pour l'invité."
 msgstr ""
 
-#: templates/configure.html.jinja:2350 templates/configure.html.jinja:2579
-#: templates/configure.html.jinja:3383 templates/configure.html.jinja:4215
+#: templates/configure.html.jinja:2362 templates/configure.html.jinja:2591
+#: templates/configure.html.jinja:3395 templates/configure.html.jinja:4227
 msgid "Erreur :"
 msgstr ""
 
-#: templates/configure.html.jinja:2351
+#: templates/configure.html.jinja:2363
 msgid "Êtes-vous sûr de vouloir supprimer cette invitation ?"
 msgstr ""
 
-#: templates/configure.html.jinja:2352
+#: templates/configure.html.jinja:2364
 msgid "Erreur de connexion"
 msgstr ""
 
-#: templates/configure.html.jinja:2353
+#: templates/configure.html.jinja:2365
 msgid "Révoquer l'accès"
 msgstr ""
 
-#: templates/configure.html.jinja:2354
+#: templates/configure.html.jinja:2366
 msgid ""
 "Êtes-vous sûr de vouloir révoquer l'accès pour cet invité ? Il ne pourra "
 "plus envoyer de photos."
 msgstr ""
 
-#: templates/configure.html.jinja:2355
+#: templates/configure.html.jinja:2367
 msgid "Le nom d'utilisateur du bot n'a pas pu être récupéré."
 msgstr ""
 
-#: templates/configure.html.jinja:2356
+#: templates/configure.html.jinja:2368
 msgid "Copier le lien"
 msgstr ""
 
-#: templates/configure.html.jinja:2357
+#: templates/configure.html.jinja:2369
 msgid "La copie a échoué."
 msgstr ""
 
-#: templates/configure.html.jinja:2359
+#: templates/configure.html.jinja:2371
 msgid "photo"
 msgstr ""
 
-#: templates/configure.html.jinja:2360
+#: templates/configure.html.jinja:2372
 msgid "photos"
 msgstr ""
 
-#: templates/configure.html.jinja:2361
+#: templates/configure.html.jinja:2373
 msgid "Aucune playlist créée pour le moment."
 msgstr ""
 
-#: templates/configure.html.jinja:2362
+#: templates/configure.html.jinja:2374
 msgid "Erreur lors du chargement des playlists."
 msgstr ""
 
-#: templates/configure.html.jinja:2363 templates/configure.html.jinja:3476
+#: templates/configure.html.jinja:2375 templates/configure.html.jinja:3488
 msgid "Lancer"
 msgstr ""
 
-#: templates/configure.html.jinja:2364
+#: templates/configure.html.jinja:2376
 msgid "Supprimer la playlist"
 msgstr ""
 
-#: templates/configure.html.jinja:2365
+#: templates/configure.html.jinja:2377
 msgid "Renommer la playlist"
 msgstr ""
 
-#: templates/configure.html.jinja:2366
+#: templates/configure.html.jinja:2378
 msgid "Entrez le nouveau nom pour la playlist :"
 msgstr ""
 
-#: templates/configure.html.jinja:2369
+#: templates/configure.html.jinja:2381
 msgid "Ordre sauvegardé !"
 msgstr ""
 
-#: templates/configure.html.jinja:2373
+#: templates/configure.html.jinja:2385
 msgid "Diagnostic en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:2374
+#: templates/configure.html.jinja:2386
 msgid "Veuillez patienter..."
 msgstr ""
 
-#: templates/configure.html.jinja:2417
+#: templates/configure.html.jinja:2429
 msgid "Veuillez entrer une URL."
 msgstr ""
 
-#: templates/configure.html.jinja:2462
+#: templates/configure.html.jinja:2474
 msgid "État de la prise : Allumée"
 msgstr ""
 
-#: templates/configure.html.jinja:2465
+#: templates/configure.html.jinja:2477
 msgid "État de la prise : Éteinte"
 msgstr ""
 
-#: templates/configure.html.jinja:2474
+#: templates/configure.html.jinja:2486
 msgid "État : Erreur"
 msgstr ""
 
-#: templates/configure.html.jinja:2478
+#: templates/configure.html.jinja:2490
 msgid "État de la prise : Injoignable"
 msgstr ""
 
-#: templates/configure.html.jinja:2523
+#: templates/configure.html.jinja:2535
 msgid "Aucune photo en attente de validation."
 msgstr ""
 
-#: templates/configure.html.jinja:2552
+#: templates/configure.html.jinja:2564
 msgid "Approuver"
 msgstr ""
 
-#: templates/configure.html.jinja:2553
+#: templates/configure.html.jinja:2565
 msgid "Rejeter"
 msgstr ""
 
-#: templates/configure.html.jinja:2864
+#: templates/configure.html.jinja:2876
 msgid "Retirer de la playlist"
 msgstr ""
 
-#: templates/configure.html.jinja:2874
+#: templates/configure.html.jinja:2886
 msgid "Afficher/Cacher les photos"
 msgstr ""
 
-#: templates/configure.html.jinja:3369
+#: templates/configure.html.jinja:3381
 msgid "Veuillez entrer un nom pour la playlist."
 msgstr ""
 
-#: templates/configure.html.jinja:3385 templates/configure.html.jinja:3471
-#: templates/configure.html.jinja:4167 templates/configure.html.jinja:4220
+#: templates/configure.html.jinja:3397 templates/configure.html.jinja:3483
+#: templates/configure.html.jinja:4179 templates/configure.html.jinja:4232
 msgid "Erreur de communication."
 msgstr ""
 
-#: templates/configure.html.jinja:3399
+#: templates/configure.html.jinja:3411
 msgid ""
 "Êtes-vous sûr de vouloir supprimer cette playlist ? Les photos ne seront "
 "pas supprimées."
 msgstr ""
 
-#: templates/configure.html.jinja:3455
+#: templates/configure.html.jinja:3467
 msgid "Erreur lors de la suppression de la photo."
 msgstr ""
 
-#: templates/configure.html.jinja:3461
+#: templates/configure.html.jinja:3473
 msgid "Lancement..."
 msgstr ""
 
-#: templates/configure.html.jinja:3516
+#: templates/configure.html.jinja:3528
 msgid "Aucune playlist"
 msgstr ""
 
-#: templates/configure.html.jinja:4134
+#: templates/configure.html.jinja:4146
 msgid "Aucune résolution trouvée."
 msgstr ""
 
-#: templates/configure.html.jinja:4138
+#: templates/configure.html.jinja:4150
 msgid "Erreur de chargement."
 msgstr ""
 
-#: templates/configure.html.jinja:4150
+#: templates/configure.html.jinja:4162
 msgid "Application en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:4205
+#: templates/configure.html.jinja:4217
 msgid "Redémarrage..."
 msgstr ""
 
-#: templates/configure.html.jinja:4211
+#: templates/configure.html.jinja:4223
 msgid "Diaporama standard relancé."
 msgstr ""
 
-#: templates/configure.html.jinja:4724
+#: templates/configure.html.jinja:4736
 msgid "Erreur lors de la récupération des infos système:"
 msgstr ""
 
-#: templates/configure.html.jinja:4731
+#: templates/configure.html.jinja:4743
 msgid "Erreur de communication avec l'API système:"
 msgstr ""
 
-#: templates/configure.html.jinja:4745
+#: templates/configure.html.jinja:4757
 msgid "Aucun fichier de log disponible ou sélectionné."
 msgstr ""
 
-#: templates/configure.html.jinja:4761
+#: templates/configure.html.jinja:4773
 msgid "Erreur:"
 msgstr ""
 
-#: templates/configure.html.jinja:4765
+#: templates/configure.html.jinja:4777
 msgid "Erreur de connexion à l'API des logs."
 msgstr ""
 
-#: templates/configure.html.jinja:4786
+#: templates/configure.html.jinja:4798
 msgid "Aucun log trouvé"
 msgstr ""
 
-#: templates/configure.html.jinja:4790
+#: templates/configure.html.jinja:4802
 msgid "Erreur de chargement"
 msgstr ""
 
-#: templates/configure.html.jinja:4814
+#: templates/configure.html.jinja:4826
 msgid ""
 "Êtes-vous sûr de vouloir effacer le contenu du log \"__LOG_NAME__\" ? "
 "Cette action est irréversible."
 msgstr ""
 
-#: templates/configure.html.jinja:4829
+#: templates/configure.html.jinja:4841
 msgid "Erreur lors de l'effacement du log :"
 msgstr ""
 
-#: templates/configure.html.jinja:4832
+#: templates/configure.html.jinja:4844
 msgid "Erreur de connexion à l'API pour effacer les logs."
 msgstr ""
 
-#: templates/configure.html.jinja:4931
+#: templates/configure.html.jinja:4943
 msgid ""
 "Êtes-vous sûr de vouloir lancer la mise à jour ? L'application sera "
 "indisponible pendant le processus et redémarrera automatiquement."
 msgstr ""
 
-#: templates/configure.html.jinja:4946
+#: templates/configure.html.jinja:4958
 msgid "Mise à jour en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:4964
+#: templates/configure.html.jinja:4976
 msgid "Mise à jour terminée. Redirection..."
 msgstr ""
 
-#: templates/configure.html.jinja:4998
+#: templates/configure.html.jinja:5010
 msgid "Données invalides reçues du serveur."
 msgstr ""
 
-#: templates/configure.html.jinja:5015
+#: templates/configure.html.jinja:5027
 msgid ""
 "Cette opération va préparer le système à étendre la partition au prochain"
 " redémarrage. Voulez-vous continuer ?"
 msgstr ""
 
-#: templates/configure.html.jinja:5077
+#: templates/configure.html.jinja:5089
 msgid "Chargement des périphériques..."
 msgstr ""
 
-#: templates/configure.html.jinja:5087
+#: templates/configure.html.jinja:5099
 msgid "Aucun microphone trouvé."
 msgstr ""
 
-#: templates/configure.html.jinja:5101
+#: templates/configure.html.jinja:5113
 msgid "Erreur chargement"
 msgstr ""
 
-#: templates/configure.html.jinja:5107
+#: templates/configure.html.jinja:5119
 msgid "Erreur de communication avec le serveur"
 msgstr ""
 
-#: templates/configure.html.jinja:5118
+#: templates/configure.html.jinja:5130
 msgid "Statut inconnu"
 msgstr ""
 
-#: templates/configure.html.jinja:5143
+#: templates/configure.html.jinja:5155
 msgid "Activation en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:5143
+#: templates/configure.html.jinja:5155
 msgid "Désactivation en cours..."
 msgstr ""
 
-#: templates/configure.html.jinja:5185
+#: templates/configure.html.jinja:5197
 msgid "Erreur lors de la récupération des diagnostics."
 msgstr ""
 
