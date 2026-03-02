@@ -784,6 +784,7 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
     now = datetime.now()
     text_color = parse_color(config.get("clock_color", "#FFFFFF"))
     outline_color = parse_color(config.get("clock_outline_color", "#000000"))
+    display_telegram_notification_overlay = config.get("display_telegram_notification_overlay", True)
     country_codes = load_country_codes()
 
 
@@ -845,23 +846,24 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                 except (IndexError, KeyError) as e:
                     logger.info(f"[Display] Erreur préparation météo pour un jour: {e}")
 
-        # --- Compteur de cartes postales du jour ---
-        today_postcard_count = get_today_postcard_count()
-        if today_postcard_count > 0:
-            elements.append({'type': 'text', 'text': separator})
+        if display_telegram_notification_overlay:
+            # --- Compteur de cartes postales du jour ---
+            today_postcard_count = get_today_postcard_count()
+            if today_postcard_count > 0:
+                elements.append({'type': 'text', 'text': separator})
 
-            # --- Logique de clignotement ---
-            global _envelope_blink_end_time
-            is_blinking = _envelope_blink_end_time and datetime.now() < _envelope_blink_end_time
-            
-            icon_surface = load_icon("envelope", main_font.get_height(), is_weather_icon=False)
-            if icon_surface:
-                # On ajoute toujours l'icône à la liste pour la largeur, mais on contrôle sa visibilité
-                should_draw_icon = not is_blinking or (is_blinking and datetime.now().second % 2 == 0)
-                elements.append({'type': 'icon', 'surface': icon_surface, 'padding': icon_padding, 'visible': should_draw_icon})
-            
-            # Texte du compteur
-            elements.append({'type': 'text', 'text': f" {today_postcard_count}"})
+                # --- Logique de clignotement ---
+                global _envelope_blink_end_time
+                is_blinking = _envelope_blink_end_time and datetime.now() < _envelope_blink_end_time
+                
+                icon_surface = load_icon("envelope", main_font.get_height(), is_weather_icon=False)
+                if icon_surface:
+                    # On ajoute toujours l'icône à la liste pour la largeur, mais on contrôle sa visibilité
+                    should_draw_icon = not is_blinking or (is_blinking and datetime.now().second % 2 == 0)
+                    elements.append({'type': 'icon', 'surface': icon_surface, 'padding': icon_padding, 'visible': should_draw_icon})
+                
+                # Texte du compteur
+                elements.append({'type': 'text', 'text': f" {today_postcard_count}"})
 
 
         # --- Calcul de la taille totale et positionnement du bloc ---
@@ -1297,7 +1299,7 @@ def display_title_slide(screen, screen_width, screen_height, title, duration, co
                         
                     # Inclinaison aléatoire
                     angle = random.uniform(-15, 15)
-                    rotated_img = image_to_rotate.rotate(angle, expand=True, resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
+                    rotated_img = image_to_rotate.rotate(angle, expand=True, resample=Image.Resampling.BICUBIC, fillcolor=(0, 0, 0, 0))
                     
                     py_surface = pygame.image.fromstring(rotated_img.tobytes(), rotated_img.size, rotated_img.mode).convert_alpha()
                     photo_surfaces.append(py_surface)

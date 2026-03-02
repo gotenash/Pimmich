@@ -103,7 +103,12 @@ def create_default_config():
         "max_photos_to_download": {
             "immich": 10,
             "telegram": 100
-        }
+        },
+        
+        "random_content_in_album": True,
+        
+        # --- Telegram notification in overlay --- 
+        "display_telegram_notification_overlay": True
     }
 
 def load_config():
