@@ -1566,7 +1566,23 @@ def schedule_worker():
                 # 1. On s'assure que l'écran est allumé (via DPMS si pas de prise)
                 set_display_power(on=True)
                 # 2. On attend un court instant pour laisser l'environnement d'affichage se stabiliser
-                time.sleep(2)
+                time.sleep(5)
+                
+                # --- FIX: Forcer la résolution au réveil comme au démarrage ---
+                output_name = get_display_output_name()
+                if output_name:
+                    width = config.get('display_width', 1920)
+                    height = config.get('display_height', 1080)
+                    logger.info(f"📅 Forçage de la résolution {width}x{height} sur l'écran '{output_name}' au réveil.")
+                    try:
+                        subprocess.run(
+                            ['swaymsg', 'output', output_name, 'mode', f'{width}x{height}'],
+                            check=True, timeout=10, env=os.environ
+                        )
+                        time.sleep(2) # Laisser le temps à l'écran de se stabiliser
+                    except Exception as e:
+                        logger.error(f"❌ Échec du forçage de la résolution au réveil : {e}")
+
                 # 3. On lance explicitement le diaporama
                 start_slideshow()
 
