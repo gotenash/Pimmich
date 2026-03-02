@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ get_locale() }}">
+
 <head>
     <title>Diaporama - Pimmich</title>
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             background-color: black;
             overflow: hidden;
             height: 100%;
         }
+
         img {
             position: absolute;
             width: 100%;
@@ -19,6 +22,7 @@
         }
     </style>
 </head>
+
 <body>
     <img id="slideshow" src="" alt="Diaporama">
     <script>
@@ -43,4 +47,5 @@
         }
     </script>
 </body>
+
 </html>

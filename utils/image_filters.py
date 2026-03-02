@@ -177,7 +177,7 @@ def create_postcard_effect(img_content, caption=None):
     card = add_stamp_and_postmark(card)
 
     # 2. Incliner la carte
-    rotated_card = card.rotate(rotation_angle, expand=True, resample=Image.BICUBIC)
+    rotated_card = card.rotate(rotation_angle, expand=True, resample=Image.Resampling.BICUBIC)
 
     # 3. Créer l'ombre
     shadow_layer = Image.new('RGBA', rotated_card.size, (0, 0, 0, 0))

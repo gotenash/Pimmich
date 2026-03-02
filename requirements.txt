@@ -1,6 +1,6 @@
 Flask==2.3.2
 requests==2.31.0
-Pillow==10.1.0
+Pillow==10.4.0
 pygame
 psutil
 pillow-heif
@@ -18,3 +18,4 @@ thefuzz
 python-Levenshtein
 deep-translator
 polib
+python-telegram-bot

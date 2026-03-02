@@ -659,7 +659,7 @@ def get_telegram_bot_info():
 @app.route('/upload', methods=['GET'])
 def upload_page():
     """Affiche la page publique pour envoyer des photos."""
-    return render_template('upload.html')
+    return render_template('upload.html.jinja')
 
 @app.route('/handle_upload', methods=['POST'])
 def handle_upload():
@@ -822,7 +822,7 @@ def login():
             return redirect(url_for('configure'))
         else:
             flash(_("Identifiants invalides"), "error")
-    return render_template('login.html')
+    return render_template('login.html.jinja')
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -978,9 +978,11 @@ def configure():
         config["video_hwdec_enabled"] = 'video_hwdec_enabled' in request.form
 
         config["telegram_boost_enabled"] = 'telegram_boost_enabled' in request.form
+        config["display_telegram_notification_overlay"] = "display_telegram_notification_overlay" in request.form
         # Traitement des checkboxes
         config["show_clock"] = 'show_clock' in request.form
         config["immich_auto_update"] = 'immich_auto_update' in request.form
+        config["random_content_in_album"] = "random_content_in_album" in request.form
         config["smb_auto_update"] = 'smb_auto_update' in request.form
 
         config["telegram_bot_enabled"] = 'telegram_bot_enabled' in request.form # 'telegram_enabled' is removed
@@ -1033,7 +1035,7 @@ def configure():
                 favorite_photos.append(media)
 
     return render_template(
-        'configure.html',
+        'configure.html.jinja',
         config=config,
         prepared_photos_by_source=prepared_media_by_source, # Le template utilise ce nom de variable
         favorite_photos=favorite_photos, # Nouvelle variable pour l'onglet des favoris
@@ -1841,12 +1843,12 @@ def import_usb_progress():
 @app.route("/slideshow")
 @login_required
 def slideshow():
-    return render_template("slideshow.html")
+    return render_template("slideshow.html.jinja")
 
 @app.route('/slideshow_view')
 def slideshow_view():
     all_media = [media for source_media in get_prepared_photos_by_source().values() for media in source_media]
-    return render_template('slideshow_view.html', photos=all_media) # Le template s'attend probablement à une variable 'photos'
+    return render_template('slideshow_view.html.jinja', photos=all_media) # Le template s'attend probablement à une variable 'photos'
 
 @app.route('/toggle_slideshow', methods=['POST'])
 @login_required
@@ -1967,13 +1969,13 @@ def system_reboot():
     
     
     
-    return render_template('rebooting.html')
+    return render_template('rebooting.html.jinja')
 
 @app.route('/rebooting', methods=['GET'])
 @login_required
 def rebooting():
     """Affiche la page de redémarrage (accessible en GET pour les redirections)."""
-    return render_template('rebooting.html')
+    return render_template('rebooting.html.jinja')
 
 @app.route('/api/trigger_reboot', methods=['POST'])
 @login_required

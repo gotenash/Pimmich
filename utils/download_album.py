@@ -1,4 +1,5 @@
 import os
+import random
 import requests
 import shutil
 import time
@@ -102,7 +103,7 @@ def yield_and_log(
     if stage is not None:
         data["stage"] = stage
     if percent is not None:
-        data["percent"] = percent
+        data["percent"] = str(percent)
     if extra:
         data.update(extra)
 
@@ -159,6 +160,8 @@ def download_and_extract_album(config):
 
     # Récupération de max_photos_to_download depuis la configuration
     max_photos_config = config.get("max_photos_to_download", {"immich": 10})
+
+    random_content_in_album = config.get("random_content_in_album", True)
 
     # Gérer les deux formats possibles (dict ou int)
     if isinstance(max_photos_config, dict):
@@ -249,7 +252,10 @@ def download_and_extract_album(config):
                     f"Limitation à {max_photos_to_download} photos."
                 ),
             )
-            assets = assets[:max_photos_to_download]
+            if random_content_in_album:
+                assets = random.choices(assets, k=max_photos_to_download)
+            else:
+                assets = assets[:max_photos_to_download]
 
     else:
         # MODE ALÉATOIRE : Récupérer des photos aléatoires avec leurs métadonnées complètes
