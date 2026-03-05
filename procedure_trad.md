@@ -28,7 +28,7 @@ Assurez-vous que le fichier `babel.cfg` existe à la racine du projet avec le co
 
 ```ini
 [python: **.py]
-[jinja2: **/templates/**.html]
+[jinja2: **/templates/**.jinja]
 extensions=jinja2.ext.i18n
 ```
 

@@ -2025,8 +2025,6 @@ def start_slideshow():
         # Nettoyer le fichier d'état à la sortie
         if os.path.exists(CURRENT_PHOTO_FILE):
             os.remove(CURRENT_PHOTO_FILE)
-        if os.path.exists(CUSTOM_PLAYLIST_FILE):
-            os.remove(CUSTOM_PLAYLIST_FILE)
         if os.path.exists(STATUS_FILE):
             os.remove(STATUS_FILE)
         pygame.quit()

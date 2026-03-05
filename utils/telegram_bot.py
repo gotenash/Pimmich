@@ -52,6 +52,17 @@ class PimmichBot:
             return self.guest_users[user.id]
         return user.first_name
 
+    async def _handle_invitation_code(self, update: Update, code: str):
+        """Helper function to validate an invitation code and reply to the user."""
+        user = update.effective_user
+        logger.info(f"User {user.id} ({user.first_name}) is attempting to use invitation code: {code}")
+        # The validation callback is a sync function from app.py
+        result = self.validation_callback(code, user.id, user.first_name)
+        await update.message.reply_text(result['message'])
+        # If validation was successful, update the bot's internal guest list
+        if result.get('success'):
+            self.guest_users[user.id] = result.get('guest_name', user.first_name)
+
     async def start_command_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handles the /start and /help commands, including invitation code validation."""
         user = update.effective_user
@@ -59,13 +70,7 @@ class PimmichBot:
         # Case 1: The /start command includes an invitation code (e.g., /start MyCode123)
         if context.args:
             code = context.args[0]
-            logger.info(f"User {user.id} ({user.first_name}) is attempting to use invitation code: {code}")
-            # The validation callback is a sync function from app.py
-            result = self.validation_callback(code, user.id, user.first_name)
-            await update.message.reply_text(result['message'])
-            # If validation was successful, update the bot's internal guest list
-            if result.get('success'):
-                self.guest_users[user.id] = result.get('guest_name', user.first_name)
+            await self._handle_invitation_code(update, code)
             return
 
         # Case 2: The user is already authorized
@@ -133,13 +138,7 @@ class PimmichBot:
             return
 
         # If user is not authorized, treat the message as a potential invitation code
-        logger.info(f"Potential invitation code '{message_text}' received from user {user.id} ({user.first_name}).")
-        result = self.validation_callback(message_text, user.id, user.first_name)
-        await update.message.reply_text(result['message'])
-        
-        # If validation was successful, update the bot's internal guest list
-        if result.get('success'):
-            self.guest_users[user.id] = result.get('guest_name', user.first_name)
+        await self._handle_invitation_code(update, message_text)
 
     async def unsupported_message_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handles any message type that is not a command, photo, or text."""

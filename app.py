@@ -2074,14 +2074,9 @@ def play_playlist():
         with open(CUSTOM_PLAYLIST_FILE, 'w') as f:
             json.dump(playlist_data_to_save, f)
         
-        # Arrêter le diaporama actuel s'il est en cours
-        if is_slideshow_running():
-            stop_slideshow()
-            time.sleep(1) # Laisser le temps au processus de se terminer
-        
-        # Démarrer le nouveau diaporama
-        start_slideshow()
-        
+        # Redémarrer le diaporama pour charger la nouvelle playlist sans éteindre l'écran
+        restart_slideshow_for_update()
+
         return jsonify({"success": True, "message": f"Lancement du diaporama pour la playlist '{target_playlist.get('name')}'."})
     except Exception as e:
         logger.info(f"Erreur lors du lancement de la playlist : {e}")
@@ -2089,21 +2084,14 @@ def play_playlist():
 
 @app.route('/api/slideshow/restart_standard', methods=['POST'])
 def restart_standard_slideshow():
-    """Arrête tout diaporama en cours et en lance un nouveau en mode standard."""
-    # Sécurité : n'accepter que les requêtes venant de la machine elle-même (contrôle vocal) ou d'un utilisateur connecté
-    if not session.get('logged_in') and request.remote_addr != '127.0.0.1':
-        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
-
+    """Arrête tout diaporama en cours et en lance un nouveau en mode standard.""" # ... (le reste de la fonction est modifié ci-dessous)
     try:
         # S'assurer que le fichier de playlist personnalisée est supprimé
         if os.path.exists(CUSTOM_PLAYLIST_FILE):
             os.remove(CUSTOM_PLAYLIST_FILE)
         
-        if is_slideshow_running():
-            stop_slideshow()
-            time.sleep(1) # Laisser le temps au processus de se terminer
-        
-        start_slideshow()
+        # Redémarrer le diaporama en mode standard sans éteindre l'écran
+        restart_slideshow_for_update()
         return jsonify({"success": True, "message": "Diaporama standard relancé."})
     except Exception as e:
         logger.info(f"Erreur lors du redémarrage du diaporama standard : {e}")

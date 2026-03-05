@@ -1149,10 +1149,9 @@
                         <select id="voice_control_engine" name="voice_control_engine"
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                             <option value="porcupine" {% if config.get('voice_control_engine', 'porcupine'
-                                )=='porcupine' %}selected{% endif %}>Picovoice Porcupine (Recommandé, nécessite une clé
-                                API)</option>
+                                )=='porcupine' %}selected{% endif %}>{{ _("Picovoice Porcupine (Recommandé, nécessite une clé API)") }}</option>
                             <option value="vosk" {% if config.get('voice_control_engine', 'porcupine' )=='vosk'
-                                %}selected{% endif %}>Vosk (100% local, sans clé API, plus gourmand)</option>
+                                %}selected{% endif %}>{{ _("Vosk (Totalement local, sans clé API, plus gourmand)") }}</option>
                         </select>
                         <p class="text-xs text-gray-500 mt-1">{{ _("Choisissez 'Vosk' si vous ne souhaitez pas créer de
                             compte Picovoice.") }}</p>
@@ -3550,7 +3549,7 @@
                         b.disabled = true;
                         b.classList.add("opacity-50", "cursor-not-allowed");
                     });
-                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Import en cours...`;
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> {{ _("Import en cours...") }}`;
 
                     progressBar.style.width = "0%";
                     progressBar.textContent = "0%";
@@ -3579,7 +3578,7 @@
                                 const data = JSON.parse(event.data);
                                 progressBar.style.width = `${data.percent || 0}%`;
                                 progressBar.textContent = `${data.percent || 0}%`;
-                                displayMessage(statusDiv, `Préparation: ${data.message}`, data.type);
+                                displayMessage(statusDiv, `{{ _("Préparation :") }} ${data.message}`, data.type);
 
                                 // Mettre à jour l'image d'aperçu si elle est fournie
                                 if (data.current_photo_url && previewImage) {
@@ -3588,14 +3587,14 @@
 
                                 if (data.type === 'done' || data.stage === 'PREPARING_COMPLETE') {
                                     prepareEventSource.close();
-                                    displayMessage(statusDiv, "Préparation terminée ! Redémarrage du diaporama...", 'success');
+                                    displayMessage(statusDiv, "{{ _('Préparation terminée ! Redémarrage du diaporama...') }}", 'success');
 
                                     // Envoyer la requête pour redémarrer le diaporama
                                     fetch('/api/slideshow/restart_for_update', { method: 'POST' })
                                         .then(response => response.json())
                                         .then(result => {
                                             if (result.success) {
-                                                displayMessage(statusDiv, "Diaporama redémarré. Rechargement de la page...", 'success');
+                                                displayMessage(statusDiv, "{{ _('Diaporama redémarré. Rechargement de la page...') }}", 'success');
                                             }
                                             setTimeout(() => { location.reload(); }, 2000);
                                         });
@@ -3604,7 +3603,7 @@
                                     restoreButtons();
                                 }
                             } catch (e) {
-                                displayMessage(statusDiv, "Données de préparation invalides reçues du serveur.", 'error');
+                                displayMessage(statusDiv, "{{ _('Données de préparation invalides reçues du serveur.') }}", 'error');
                                 prepareEventSource.close();
                                 restoreButtons();
                             }
@@ -3612,7 +3611,7 @@
 
                         prepareEventSource.onerror = () => {
                             prepareEventSource.close();
-                            displayMessage(statusDiv, "Erreur de connexion au serveur pour la préparation des photos.", 'error');
+                            displayMessage(statusDiv, "{{ _('Erreur de connexion au serveur pour la préparation des photos.') }}", 'error');
                             restoreButtons();
                         };
                     }
@@ -3624,7 +3623,7 @@
                             const data = JSON.parse(event.data);
                             progressBar.style.width = `${data.percent || 0}%`;
                             progressBar.textContent = `${data.percent || 0}%`;
-                            displayMessage(statusDiv, `Importation: ${data.message}`, data.type);
+                            displayMessage(statusDiv, `{{ _("Importation :") }} ${data.message}`, data.type);
 
                             if (data.type === 'done') {
                                 importEventSource.close();
@@ -3634,7 +3633,7 @@
                                 restoreButtons();
                             }
                         } catch (e) {
-                            displayMessage(statusDiv, `Données d'import invalides reçues du serveur.`, 'error');
+                            displayMessage(statusDiv, "{{ _('Données d\'import invalides reçues du serveur.') }}", 'error');
                             importEventSource.close();
                             restoreButtons();
                         }
@@ -3642,7 +3641,7 @@
 
                     importEventSource.onerror = () => {
                         importEventSource.close();
-                        displayMessage(statusDiv, `Erreur de connexion au serveur pour l'import ${source}.`, 'error');
+                        displayMessage(statusDiv, `{{ _("Erreur de connexion au serveur pour l'import") }} ${source}.`, 'error');
                         restoreButtons();
                     };
                 }
@@ -3664,7 +3663,7 @@
                     const password = document.getElementById("smb_password").value;
 
                     // Provide immediate feedback
-                    statusSpan.textContent = "Test en cours...";
+                    statusSpan.textContent = "{{ _('Test en cours...') }}";
                     statusSpan.className = "ml-4 font-medium text-blue-600";
                     btn.disabled = true;
 
@@ -3689,7 +3688,7 @@
                         statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
 
                     } catch (error) {
-                        statusSpan.textContent = "Erreur de communication avec le serveur.";
+                        statusSpan.textContent = "{{ _('Erreur de communication avec le serveur.') }}";
                         statusSpan.className = "ml-4 font-medium text-red-600";
                     } finally {
                         btn.disabled = false;
@@ -3706,7 +3705,7 @@
                         const apiKey = document.getElementById("weather_api_key").value;
                         const city = document.getElementById("weather_city").value;
 
-                        statusSpan.textContent = "Test en cours...";
+                        statusSpan.textContent = "{{ _('Test en cours...') }}";
                         statusSpan.className = "ml-4 font-medium text-blue-600";
                         btn.disabled = true;
 
@@ -3723,7 +3722,7 @@
                             statusSpan.className = result.success ? "ml-4 font-medium text-green-600" : "ml-4 font-medium text-red-600";
 
                         } catch (error) {
-                            statusSpan.textContent = "Erreur de communication avec le serveur.";
+                            statusSpan.textContent = "{{ _('Erreur de communication avec le serveur.') }}";
                             statusSpan.className = "ml-4 font-medium text-red-600";
                         } finally {
                             btn.disabled = false;
@@ -3881,15 +3880,15 @@
                                     tideListDiv.appendChild(p);
                                 });
                             } else {
-                                tideListDiv.innerHTML = `<p class="italic">${"Aucune donnée de marée à afficher."}</p>`;
+                                tideListDiv.innerHTML = `<p class="italic">{{ _("Aucune donnée de marée à afficher.") }}</p>`;
                             }
                         } else {
-                            tideApiStatus.textContent = data.message || 'Impossible de charger les données.';
+                            tideApiStatus.textContent = data.message || "{{ _('Impossible de charger les données.') }}";
                             tideApiStatus.className = 'font-mono text-red-600';
                         }
                     } catch (error) {
                         console.error("Erreur de communication avec l'API des marées:", error);
-                        tideApiStatus.textContent = "Erreur de connexion au serveur.";
+                        tideApiStatus.textContent = "{{ _('Erreur de connexion au serveur.') }}";
                         tideApiStatus.className = 'font-mono text-red-600';
                     }
                 }
@@ -3938,7 +3937,7 @@
                         const btn = forceTideBtn;
                         const statusSpan = document.getElementById("forceTideUpdateResult");
 
-                        statusSpan.textContent = "Mise à jour en cours...";
+                        statusSpan.textContent = "{{ _('Mise à jour en cours...') }}";
                         statusSpan.className = "ml-4 font-medium text-blue-600";
                         btn.disabled = true;
 
@@ -3956,7 +3955,7 @@
                                 fetchTideInfo(); // Rafraîchir l'affichage de l'état des marées
                             }
                         } catch (error) {
-                            statusSpan.textContent = "Erreur de communication avec le serveur.";
+                            statusSpan.textContent = "{{ _('Erreur de communication avec le serveur.') }}";
                             statusSpan.className = "ml-4 font-medium text-red-600";
                         } finally {
                             btn.disabled = false;
@@ -3983,7 +3982,7 @@
 
                     // Check if files were selected
                     if (!formData.has('photos') || !formData.get('photos').name) {
-                        displayMessage(statusDiv, "Veuillez sélectionner au moins un fichier.", 'error');
+                        displayMessage(statusDiv, "{{ _('Veuillez sélectionner au moins un fichier.') }}", 'error');
                         return;
                     }
 
@@ -3992,7 +3991,7 @@
                         b.disabled = true;
                         b.classList.add("opacity-50", "cursor-not-allowed");
                     });
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Envoi en cours...") }}';
 
                     // Reset UI
                     progressBar.style.width = '0%';
@@ -4015,7 +4014,7 @@
                                 reader.read().then(({ done, value }) => {
                                     if (done) { // Stream finished
                                         if (!hasErrorOccurred) {
-                                            displayMessage(statusDiv, "Importation réussie ! Rechargement de la page...", 'success');
+                                            displayMessage(statusDiv, "{{ _('Importation réussie ! Rechargement de la page...') }}", 'success');
                                             setTimeout(() => { location.reload(); }, 2000);
                                         } else {
                                             // Re-enable buttons after a delay if there was an error
@@ -4024,7 +4023,7 @@
                                                     b.disabled = false;
                                                     b.classList.remove("opacity-50", "cursor-not-allowed");
                                                 });
-                                                btn.innerHTML = '<i class="fas fa-upload"></i> Envoyer les photos';
+                                                btn.innerHTML = '<i class="fas fa-upload"></i> {{ _("Envoyer les photos") }}';
                                             }, 5000);
                                         }
                                         return; // End the stream processing
@@ -4044,7 +4043,7 @@
                                                     hasErrorOccurred = true;
                                                 }
                                             } catch (e) {
-                                                displayMessage(statusDiv, "Données invalides reçues du serveur.", 'error');
+                                                displayMessage(statusDiv, "{{ _('Données invalides reçues du serveur.') }}", 'error');
                                                 hasErrorOccurred = true;
                                             }
                                         }
@@ -4055,9 +4054,9 @@
                             processStream();
                         })
                         .catch(error => {
-                            displayMessage(statusDiv, `Erreur de communication: ${error.message}`, 'error');
+                            displayMessage(statusDiv, `{{ _('Erreur de communication :') }} ${error.message}`, 'error');
                             allImportButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
-                            btn.innerHTML = '<i class="fas fa-upload"></i> Envoyer les photos';
+                            btn.innerHTML = '<i class="fas fa-upload"></i> {{ _("Envoyer les photos") }}';
                         });
                 });
 
@@ -4112,7 +4111,7 @@
 
                     } catch (error) {
                         console.error(`Erreur lors de la récupération du statut ${workerName}:`, error);
-                        document.getElementById(statusManagerId).textContent = "Erreur de connexion";
+                        document.getElementById(statusManagerId).textContent = "{{ _('Erreur de connexion') }}";
                         document.getElementById(lastRunId).textContent = "N/A";
                         document.getElementById(nextRunId).textContent = "N/A";
                     }
@@ -4195,7 +4194,7 @@
                         // Après avoir envoyé une commande, on met à jour l'état des contrôles
                         updateSlideshowControlsState();
                     } catch (error) {
-                        alert('Erreur de communication avec le serveur.');
+                        alert("{{ _('Erreur de communication avec le serveur.') }}");
                     }
                 }
 
@@ -4291,7 +4290,7 @@
                     async function fetchAndSetResolution() {
                         const originalTooltip = detectResBtn.title;
                         const originalText = detectResBtn.innerHTML;
-                        detectResBtn.innerHTML = 'Détection...';
+                        detectResBtn.innerHTML = "{{ _('Détection...') }}";
                         detectResBtn.disabled = true;
 
                         try {
@@ -4301,15 +4300,15 @@
                             if (data.success) {
                                 document.getElementById('display_width').value = data.width;
                                 document.getElementById('display_height').value = data.height;
-                                detectResBtn.innerHTML = 'Détecté !';
+                                detectResBtn.innerHTML = "{{ _('Détecté !') }}";
                                 detectResBtn.title = `Détecté : ${data.width}x${data.height}`;
                             } else {
-                                detectResBtn.innerHTML = 'Échec';
-                                detectResBtn.title = data.message || "Erreur lors de la détection.";
+                                detectResBtn.innerHTML = "{{ _('Échec') }}";
+                                detectResBtn.title = data.message || "{{ _('Erreur lors de la détection.') }}";
                                 detectResBtn.innerHTML = originalText;
                             }
                         } catch (error) {
-                            detectResBtn.title = "Erreur de communication avec le serveur.";
+                            detectResBtn.title = "{{ _('Erreur de communication avec le serveur.') }}";
                             detectResBtn.innerHTML = originalText;
                         } finally {
                             setTimeout(() => {
@@ -4556,7 +4555,7 @@
                             if (!statusElement || !imageElement) return; // Skip if elements don't exist
 
                             if (data.status === 'stopped') {
-                                statusElement.textContent = 'Le diaporama est arrêté.';
+                                statusElement.textContent = "{{ _('Le diaporama est arrêté.') }}";
                                 statusElement.classList.remove('hidden');
                                 imageElement.classList.add('hidden');
                                 if (controlsElement) controlsElement.classList.add('hidden');
@@ -4570,7 +4569,7 @@
                                     imageElement.classList.remove('hidden');
                                     if (controlsElement) controlsElement.classList.remove('hidden');
                                 } else {
-                                    statusElement.textContent = 'En attente de la prochaine photo...';
+                                    statusElement.textContent = "{{ _('En attente de la prochaine photo...') }}";
                                     statusElement.classList.remove('hidden');
                                     imageElement.classList.add('hidden');
                                     if (controlsElement) controlsElement.classList.add('hidden');
@@ -4584,12 +4583,12 @@
                         console.error('Erreur de mise à jour de l\'aperçu en direct:', error);
                         // Handle error for both sets of elements
                         if (actionsLivePreviewStatus && actionsLivePreviewImage) {
-                            actionsLivePreviewStatus.textContent = 'Erreur de connexion.';
+                            actionsLivePreviewStatus.textContent = "{{ _('Erreur de connexion.') }}";
                             actionsLivePreviewStatus.classList.remove('hidden');
                             actionsLivePreviewImage.classList.add('hidden');
                         }
                         if (playlistLivePreviewStatus && playlistLivePreviewImage) {
-                            playlistLivePreviewStatus.textContent = 'Erreur de connexion.';
+                            playlistLivePreviewStatus.textContent = "{{ _('Erreur de connexion.') }}";
                             playlistLivePreviewStatus.classList.remove('hidden');
                             playlistLivePreviewImage.classList.add('hidden');
                         }
