@@ -882,7 +882,9 @@ def configure():
 
         for key in [
             'immich_url', 'immich_token', 'album_name',
-            'display_duration', 'active_start', 'active_end',
+            'display_duration', 
+            'active_start_weekday', 'active_end_weekday',
+            'active_start_weekend', 'active_end_weekend',
             'screen_height_percent', 'clock_font_size', 'clock_color',
             'clock_format', 'clock_offset_x', 'clock_offset_y',
             'clock_background_color',
@@ -897,17 +899,18 @@ def configure():
             'smart_plug_on_url', 'smart_plug_off_url', 'smart_plug_on_delay',
             'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume', 'telegram_boost_duration_days',
             'telegram_boost_factor', 'screen_orientation',
-            'smb_update_interval_hours'
+            'smb_update_interval_hours', 'button_pin'
             # New fields
             , 'wifi_ssid', 'wifi_password', 'info_display_duration', 'telegram_bot_token',
             'telegram_authorized_users', 'voice_control_language',
             'voice_control_engine', 'skip_initial_auto_import',
             'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y', 'notification_sound_volume'
-        ]: 
+            , 'button_pin'
+        ]:
             if key in request.form:
                 value = request.form.get(key)
                 # Gérer les champs numériques
-                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume', 'favorite_boost_factor', 'telegram_boost_duration_days', 'telegram_boost_factor']: # Integer fields
+                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume', 'favorite_boost_factor', 'telegram_boost_duration_days', 'telegram_boost_factor', 'button_pin']: # Integer fields
                     try:
                         config[key] = int(value)
                     except (ValueError, TypeError):
@@ -970,6 +973,7 @@ def configure():
         # request.form.getlist() retourne une liste vide si aucune checkbox avec ce nom n'est cochée.
         config['display_sources'] = request.form.getlist('display_sources')
         config["pan_zoom_enabled"] = 'pan_zoom_enabled' in request.form # New checkbox handling
+        config["button_enabled"] = 'button_enabled' in request.form
         config["smart_plug_enabled"] = 'smart_plug_enabled' in request.form
         config["transition_enabled"] = 'transition_enabled' in request.form # New checkbox handling
         config["clock_background_enabled"] = 'clock_background_enabled' in request.form
@@ -1528,10 +1532,18 @@ def schedule_worker():
             except Exception as e:
                 logger.error(f"❌ Échec du forçage de la résolution au démarrage : {e}")
         
-        # Démarrer le diaporama si on est dans les heures actives au lancement de l'app
-        start_str = config.get("active_start", "07:00")
-        end_str = config.get("active_end", "22:00")
-        now_time = datetime.now().time()
+        # Calcul des heures actives selon le jour (Semaine vs Weekend)
+        now = datetime.now()
+        is_weekend = now.weekday() >= 5 # 5=Samedi, 6=Dimanche
+        
+        if is_weekend:
+            start_str = config.get("active_start_weekend", config.get("active_start", "07:00"))
+            end_str = config.get("active_end_weekend", config.get("active_end", "23:00"))
+        else:
+            start_str = config.get("active_start_weekday", config.get("active_start", "07:00"))
+            end_str = config.get("active_end_weekday", config.get("active_end", "22:00"))
+
+        now_time = now.time()
         start_time = datetime.strptime(start_str, "%H:%M").time()
         end_time = datetime.strptime(end_str, "%H:%M").time()
         in_schedule_at_boot = (start_time <= end_time and start_time <= now_time <= end_time) or \
@@ -1546,10 +1558,18 @@ def schedule_worker():
     while True:
         try:
             config = load_config()
-            start_str = config.get("active_start", "07:00")
-            end_str = config.get("active_end", "22:00")
+            
+            now = datetime.now()
+            is_weekend = now.weekday() >= 5
+            
+            if is_weekend:
+                start_str = config.get("active_start_weekend", config.get("active_start", "07:00"))
+                end_str = config.get("active_end_weekend", config.get("active_end", "23:00"))
+            else:
+                start_str = config.get("active_start_weekday", config.get("active_start", "07:00"))
+                end_str = config.get("active_end_weekday", config.get("active_end", "22:00"))
 
-            now_time = datetime.now().time()
+            now_time = now.time()
             start_time = datetime.strptime(start_str, "%H:%M").time()
             end_time = datetime.strptime(end_str, "%H:%M").time()
 
@@ -2095,6 +2115,28 @@ def restart_standard_slideshow():
         return jsonify({"success": True, "message": "Diaporama standard relancé."})
     except Exception as e:
         logger.info(f"Erreur lors du redémarrage du diaporama standard : {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/slideshow/toggle_sleep', methods=['POST'])
+def toggle_sleep_api():
+    """Bascule l'état du diaporama (actif/veille). Pour utilisation avec un bouton physique."""
+    # Sécurité : n'accepter que les requêtes venant de la machine elle-même
+    if request.remote_addr != '127.0.0.1':
+        logger.warning(f"Tentative d'accès non autorisé à toggle_sleep depuis {request.remote_addr}")
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+    
+    try:
+        if is_slideshow_running():
+            logger.info("API toggle_sleep: Diaporama en cours -> Arrêt.")
+            stop_slideshow()
+            message = "Diaporama mis en veille."
+        else:
+            logger.info("API toggle_sleep: Diaporama arrêté -> Démarrage.")
+            start_slideshow()
+            message = "Diaporama réveillé."
+        return jsonify({"success": True, "message": message})
+    except Exception as e:
+        logger.error(f"Erreur lors du basculement de la veille via API : {e}", exc_info=True)
         return jsonify({"success": False, "message": str(e)}), 500
 
 # --- API pour la gestion des Playlists ---

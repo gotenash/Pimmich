@@ -194,59 +194,31 @@ Pour toute question ou problème, consultez notre **Foire Aux Questions (FAQ.md)
 
 ## 🛣️ Feuille de Route
 
-Voici un aperçu des fonctionnalités à venir :
-
-- **Octobre 2025 :**
-  - 📱 Création d’une application Android "télécommande" pour contrôler le cadre.
-  - 🔘 Gestion d'un bouton physique pour interagir avec le diaporama.
-
-- **Idées pour le futur :**
-  - 📺 Version pour Android TV.
-  - ☁️ Import depuis d'autres services comme Google Photos ou PhotoPrism.
-
----
-
-## 💖 Crédits
-
-- **Auteurs :** Gotenash et Shenron
+#*
 - **Projet du :** Gadgetaulab
-
-<p align="center">
-  <a href="https://www.gadgetaulab.fr">
-    <img src="static/logo_gadgeto.png" alt="Logo Gadgetaulab" width="120">
-  </a>
-</p>
 
 
 
 > 🗓️ À partir de juin 2025 — Une version majeure chaque mois
-
-## 🗓️ Octobre 2025 - (En cours de développement)
-- 📱 Création d’une APK Android pour contrôler le cadre (Pimmich télécommande)
--  Gestion d'un bouton physique pour démarrer/arrêter le diaporama.
-- 🗂️ Gestion des albums directement depuis l'interface Pimmich (créer, renommer, etc.).
 
 ## ✅ Septembre 2025 - (Sortie prévue le 15 septembre)
 - 🎨 **Refonte de l'Interface :** Nouvelle navigation par groupes et onglets pour une expérience plus claire et intuitive.
 - 🎵 **Gestion de Playlists Améliorée :**
     - ✅ Nouvel écran de lancement dynamique avec un pêle-mêle de photos sur un fond en liège.
     - ✅ Créez des albums virtuels, visualisez leur contenu, renommez-les et lancez des diaporamas thématiques.
-- 🗣️ **Contrôle Vocal :**
-    - ✅ Ajout de la commande vocale ("Cadre Magique") pour piloter le cadre (photo suivante, pause, etc.).
-    - ✅ Ajout de la commande "Revenir au diaporama principal".
-    - ✅ Fiabilisation du lancement des playlists par la voix.
-- 📊 **Monitoring Avancé :** Ajout de graphiques d'historique pour la température, l'utilisation du CPU, de la RAM et du disque.
-- 🖥️ **Gestion de l'Affichage :** Possibilité de lister et de forcer une résolution d'écran spécifique directement depuis l'interface.
-- 💾 **Extension du Stockage :** Ajout d'un outil dans l'interface pour étendre facilement le système de fichiers.
+- 🔘 **Bouton Physique :**
+    - ✅ Ajout du support pour un bouton physique (via GPIO) pour mettre en veille et réveiller le cadre.
+- �️ **Contrôle Vocal :**
+    - ✅ Ajout de la commande vocale ("Cadre Magique"pge :iee nt le système de fichiers.
 - 🚀 **Optimisations et Stabilité :**
     - ✅ Amélioration de la réactivité de l'onglet "Système" grâce à une lecture optimisée des logs.
     - ✅ Fiabilisation du script de mise à jour pour éviter les blocages.
     - ✅ Nombreuses corrections de bugs pour une meilleure stabilité générale.
 
 ## 🛠️✅ Août 2025  - (Version précédente)
-
+�
 - ✅ Gestion des vidéos
-- ✅ Ajout d'une vignette lors de lecture de la vidéo (onglet Actions)
+-  Ajout d'une vignette lors de lecture de la vidéo (onglet Actions)
 - ✅ Ajout de la fonction "Carte Postle" par telegram
     - ✅ sécurisation par lien d'invitation
 - ✅ Gestion accélération matérielle pour Pi3

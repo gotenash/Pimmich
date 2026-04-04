@@ -257,6 +257,8 @@
                 <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-vocal')"
                     title="{{ _('Configurez le contrôle vocal du diaporama.') }}"><i
                         class="fas fa-microphone-alt fa-fw mr-2"></i>{{ _('Vocal') }}</button>
+                <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-metadata')"><i
+                        class="fas fa-info-circle fa-fw mr-2"></i>{{ _('Métadonnées') }}</button>
             </div>
         </div>
 
@@ -265,8 +267,6 @@
                 <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-sources')"
                     title="{{ _('Configurez les sources de photos (Immich, Samba, USB...).') }}"><i
                         class="fas fa-folder-open fa-fw mr-2"></i>{{ _('Sources') }}</button>
-                <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-metadata')"><i
-                        class="fas fa-info-circle fa-fw mr-2"></i>{{ _('Métadonnées') }}</button>
                 <button class="tablink inline-flex items-center" onclick="openTab(event, 'tab-apercu')"
                     title="{{ _('Visualisez et gérez toutes les photos prêtes pour le diaporama.') }}"><i
                         class="fas fa-eye fa-fw mr-2"></i>{{ _('Aperçu') }}</button>
@@ -338,11 +338,22 @@
                             préparation des photos (onglet Actions) pour adapter le contenu.") }}</p>
                     </div>
 
-                    <label for="active_start">{{ _("Heure de début d'activité (HH:MM) :") }}</label>
-                    <input type="time" id="active_start" name="active_start" value="{{ config.active_start }}">
-
-                    <label for="active_end">{{ _("Heure de fin d'activité (HH:MM) :") }}</label>
-                    <input type="time" id="active_end" name="active_end" value="{{ config.active_end }}">
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-3 bg-gray-50 rounded border">
+                            <h4 class="font-semibold text-sm mb-2"><i class="fas fa-calendar-day mr-2"></i>{{ _("Horaires Semaine (Lun-Ven)") }}</h4>
+                            <label for="active_start_weekday" class="block text-xs text-gray-600 mb-1">{{ _("Allumage :") }}</label>
+                            <input type="time" id="active_start_weekday" name="active_start_weekday" value="{{ config.get('active_start_weekday', config.get('active_start', '07:00')) }}" class="w-full mb-2">
+                            <label for="active_end_weekday" class="block text-xs text-gray-600 mb-1">{{ _("Extinction :") }}</label>
+                            <input type="time" id="active_end_weekday" name="active_end_weekday" value="{{ config.get('active_end_weekday', config.get('active_end', '22:00')) }}" class="w-full">
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded border">
+                            <h4 class="font-semibold text-sm mb-2"><i class="fas fa-calendar-plus mr-2"></i>{{ _("Horaires Weekend (Sam-Dim)") }}</h4>
+                            <label for="active_start_weekend" class="block text-xs text-gray-600 mb-1">{{ _("Allumage :") }}</label>
+                            <input type="time" id="active_start_weekend" name="active_start_weekend" value="{{ config.get('active_start_weekend', config.get('active_start', '07:00')) }}" class="w-full mb-2">
+                            <label for="active_end_weekend" class="block text-xs text-gray-600 mb-1">{{ _("Extinction :") }}</label>
+                            <input type="time" id="active_end_weekend" name="active_end_weekend" value="{{ config.get('active_end_weekend', config.get('active_end', '23:00')) }}" class="w-full">
+                        </div>
+                    </div>
 
                     <div class="mt-4 pt-4 border-t">
                         <label for="resolution-selector" class="block text-sm font-medium text-gray-700">{{
