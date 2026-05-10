@@ -683,24 +683,38 @@ def load_icon(icon_name, size, is_weather_icon=True):
     # Cela permet à la logique d'affichage de simplement ignorer l'icône.
     return None
 
-def draw_pause_icon(screen, screen_width, screen_height, offset_x=0):
+def draw_pause_icon(screen, screen_width, screen_height):
     """Affiche une icône de pause en bas au centre de l'écran."""
     icon_size = 50 # Taille de l'icône de pause réduite
     # On utilise load_icon qui gère le cache et le chemin static/icons
     pause_icon = load_icon("pause", icon_size, is_weather_icon=False)
     if pause_icon:
         # Positionnée en bas au centre avec une marge de 40 pixels (10 + 30) du bord
-        rect = pause_icon.get_rect(centerx=(screen_width // 2) + offset_x, bottom=screen_height - 40)
+        rect = pause_icon.get_rect(centerx=screen_width // 2, bottom=screen_height - 40)
         screen.blit(pause_icon, rect)
 
-def draw_postcard_notification_icon(screen, screen_width, screen_height, offset_x=0):
-    """Affiche une icône de notification de carte postale en bas au centre."""
+def draw_postcard_notification_icon(screen, screen_width, screen_height, count, font):
+    """Affiche une icône de notification de carte postale avec un compteur en bas au centre."""
     icon_size = 50 
     # Charge postale.png dans static/icons
     postale_icon = load_icon("postale", icon_size, is_weather_icon=False)
-    if postale_icon:
-        rect = postale_icon.get_rect(centerx=(screen_width // 2) + offset_x, bottom=screen_height - 40)
-        screen.blit(postale_icon, rect)
+    if postale_icon and font:
+        text_str = str(count)
+        text_color = (255, 255, 255)
+        outline_color = (0, 0, 0)
+        
+        # Calcul de la largeur totale pour centrer le bloc [Icône + Nombre]
+        text_surf = font.render(text_str, True, text_color)
+        spacing = 10
+        total_width = icon_size + spacing + text_surf.get_width()
+        
+        start_x = (screen_width - total_width) // 2
+        icon_rect = postale_icon.get_rect(left=start_x, bottom=screen_height - 40)
+        screen.blit(postale_icon, icon_rect)
+        
+        # Dessin du texte à côté de l'icône (centré verticalement sur l'icône)
+        text_y = icon_rect.top + (icon_size - text_surf.get_height()) // 2
+        draw_text_with_outline(screen, text_str, font, text_color, outline_color, (icon_rect.right + spacing, text_y), anchor="topleft")
 
 def get_today_postcard_count():
     """Compte le nombre de cartes postales reçues aujourd'hui."""
@@ -893,7 +907,7 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                 global _envelope_blink_end_time
                 is_blinking = _envelope_blink_end_time and datetime.now() < _envelope_blink_end_time
                 
-                icon_surface = load_icon("envelope", main_font.get_height(), is_weather_icon=False)
+                icon_surface = load_icon("postale", main_font.get_height(), is_weather_icon=False)
                 if icon_surface:
                     # On ajoute toujours l'icône à la liste pour la largeur, mais on contrôle sa visibilité
                     should_draw_icon = not is_blinking or (is_blinking and datetime.now().second % 2 == 0)
@@ -1399,25 +1413,26 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
     photo_metadata = get_photo_metadata(photo_path) if photo_path else None
     # Fin Modification Sigalou 25/01/2026
 
+    # Préparer l'image et les métadonnées dès le début pour éviter les erreurs de définition (NameError)
+    if pil_image.mode != 'RGB':
+        pil_image = pil_image.convert('RGB')
+    pygame_image_base = pygame.image.fromstring(pil_image.tobytes(), pil_image.size, pil_image.mode)
+
 
     # Boucle de pause : si le diaporama est en pause, on attend ici.
     while paused:
-        current_ticks = pygame.time.get_ticks()
-        postcard_count = get_today_postcard_count()
-        
         handle_slideshow_events(screen_width)
+        if next_photo_requested or previous_photo_requested: return
         
-        # Redessiner le fond pour le clignotement si nécessaire (optionnel ici selon l'usage)
-        
-        # Alternance : Pause sur Phase A, Postale sur Phase B
-        if (current_ticks // 500) % 2 == 0:
+        ticks = pygame.time.get_ticks()
+        p_count = get_today_postcard_count()
+        if (ticks // 500) % 2 == 0:
             draw_pause_icon(screen, screen_width, screen_height)
-        elif postcard_count > 0:
-            draw_postcard_notification_icon(screen, screen_width, screen_height)
-        
+        elif p_count > 0:
+            draw_postcard_notification_icon(screen, screen_width, screen_height, p_count, main_font)
+            
         pygame.display.flip()
         time.sleep(0.1) # Évite de surcharger le CPU pendant la pause
-        if next_photo_requested or previous_photo_requested: return # Sortir si on demande de changer de photo
 
     """Affiche une image préparée et l'heure sur l'écran."""
     try:
@@ -1445,39 +1460,36 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
                 if not ignore_postcard_flag and NEW_POSTCARD_FLAG.exists(): return
 
                 if next_photo_requested or previous_photo_requested: return
-                # Variables pour le clignotement de l'icône de pause
                 was_paused = False
-                _pause_blink_state = True # True pour visible, False pour caché
-                _last_pause_blink_toggle = pygame.time.get_ticks() # Temps du dernier changement d'état
-                blink_interval = 500 # Intervalle de clignotement en millisecondes
-
                 while paused:
                     was_paused = True
                     handle_slideshow_events(screen_width)
-
-                    # Redessiner l'image de base et l'overlay pour effacer l'icône précédente
-                    screen.blit(pygame_image_base, (0, 0))
-                    draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
-
-                    # Logique de clignotement
-                    current_ticks = pygame.time.get_ticks()
-                    if current_ticks - _last_pause_blink_toggle > blink_interval:
-                        _pause_blink_state = not _pause_blink_state
-                        _last_pause_blink_toggle = current_ticks
-                    
-                    if _pause_blink_state: # Dessiner l'icône seulement si elle doit être visible
-                        draw_pause_icon(screen, screen_width, screen_height)
-                    pygame.display.flip()
                     if next_photo_requested or previous_photo_requested: return
-                    time.sleep(0.1)
-                    # Recalculer le temps de début pour que le sommeil reprenne où il s'est arrêté
-                    start_sleep += 0.1
-                
-                if was_paused: # Redessiner l'image originale pour effacer l'icône de pause
+
+                    # Redessiner le fond pour effacer l'icône de la phase précédente
                     screen.blit(pygame_image_base, (0, 0))
                     draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
+
+                    # Logique de clignotement/alternance (Pause / Nouvelle Postale)
+                    ticks = pygame.time.get_ticks()
+                    p_count = get_today_postcard_count()
+                    if (ticks // 500) % 2 == 0: draw_pause_icon(screen, screen_width, screen_height)
+                    elif p_count > 0: draw_postcard_notification_icon(screen, screen_width, screen_height, p_count, main_font)
+                    
                     pygame.display.flip()
-                
+                    time.sleep(0.1)
+                    start_sleep += 0.1
+
+                # Gestion du clignotement de l'icône postale pendant la lecture statique
+                ticks = pygame.time.get_ticks()
+                p_count = get_today_postcard_count()
+                if was_paused or p_count > 0:
+                    screen.blit(pygame_image_base, (0, 0))
+                    draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
+                    if p_count > 0 and (ticks // 500) % 2 != 0:
+                        draw_postcard_notification_icon(screen, screen_width, screen_height, p_count, main_font)
+                    pygame.display.flip()
+
                 time.sleep(0.1)
         else:
             # Logique de l'effet Pan/Zoom
@@ -1533,29 +1545,6 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
                 # Vérifier les signaux à chaque image de l'animation
                 if next_photo_requested or previous_photo_requested: return
                 
-                # Gérer la pause pendant l'animation
-                current_ticks = pygame.time.get_ticks()
-                postcard_count = get_today_postcard_count()
-                
-                # Dessin des icônes sur la frame d'animation en cours
-                if paused:
-                    # Clignotement alterné
-                    if (current_ticks // 500) % 2 == 0:
-                        draw_pause_icon(screen, screen_width, screen_height)
-                    elif postcard_count > 0:
-                        draw_postcard_notification_icon(screen, screen_width, screen_height)
-                elif postcard_count > 0 and (current_ticks // 500) % 2 != 0:
-                    # Clignotement pendant l'animation
-                    draw_postcard_notification_icon(screen, screen_width, screen_height)
-
-                pygame.display.flip()
-                
-                if paused:
-                    time.sleep(0.1)
-                    if next_photo_requested or previous_photo_requested: return
-                    # Recalculer le temps de début pour que l'animation reprenne où elle s'est arrêtée
-                    start_animation_time += 0.1
-
                 # Appliquer une fonction d'accélération/décélération (ease-in-out) pour un mouvement plus doux
                 raw_progress = min(1.0, elapsed_animation_time / display_duration)
                 eased_progress = 0.5 * (1 - math.cos(raw_progress * math.pi))
@@ -1569,6 +1558,27 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
                 # Draw overlay (clock/date/weather)
                 draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
+
+                # Gestion de la pause et des notifications (Enveloppe / Pause)
+                ticks = pygame.time.get_ticks()
+                p_count = get_today_postcard_count()
+                
+                if paused:
+                    # En pause : Alternance entre l'icône de pause et l'enveloppe
+                    if (ticks // 500) % 2 == 0:
+                        draw_pause_icon(screen, screen_width, screen_height)
+                    elif p_count > 0:
+                        draw_postcard_notification_icon(screen, screen_width, screen_height, p_count, main_font)
+                    
+                    pygame.display.flip()
+                    time.sleep(0.1)
+                    start_animation_time += 0.1 # On décale le temps pour ne pas "sauter" l'animation
+                    continue # On recommence la boucle sans avancer l'image
+
+                # En lecture : Clignotement de l'enveloppe seule si p_count > 0
+                if p_count > 0 and (ticks // 500) % 2 != 0:
+                    draw_postcard_notification_icon(screen, screen_width, screen_height, p_count, main_font)
+
                 pygame.display.flip()
                 clock.tick(60) # Limit frame rate to 60 FPS for smoother animation
                 
