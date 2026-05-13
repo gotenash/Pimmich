@@ -287,18 +287,15 @@ def prepare_video(source_path, dest_path, output_width, output_height):
             result = subprocess.run(['ffmpeg', '-encoders'], capture_output=True, text=True, check=True, timeout=5)
             available_encoders = result.stdout
             
-            if pi_model in [4, 5] and 'h264_v4l2m2m' in available_encoders:
+            # Priorité à l'encodeur matériel moderne v4l2m2m pour tous les modèles de Raspberry Pi (3, 4, 5)
+            if pi_model and 'h264_v4l2m2m' in available_encoders:
                 encoder = 'h264_v4l2m2m'
                 encoder_params = ['-b:v', '8M']
-                print("[Video Prep] Pi 4/5 détecté. Utilisation de l'encodeur matériel optimisé : h264_v4l2m2m")
+                print(f"[Video Prep] Raspberry Pi {pi_model} détecté. Utilisation de l'encodeur matériel : h264_v4l2m2m")
             elif pi_model and 'h264_omx' in available_encoders:
                 encoder = 'h264_omx'
                 encoder_params = ['-b:v', '8M']
-                print(f"[Video Prep] Pi modèle {pi_model} détecté. Utilisation de l'encodeur matériel stable : h264_omx")
-            elif 'h264_v4l2m2m' in available_encoders:
-                encoder = 'h264_v4l2m2m'
-                encoder_params = ['-b:v', '8M']
-                print("[Video Prep] Utilisation de l'encodeur matériel générique : h264_v4l2m2m")
+                print(f"[Video Prep] Raspberry Pi {pi_model} détecté. Utilisation de l'encodeur matériel legacy : h264_omx")
             else:
                 print("[Video Prep] Aucun encodeur matériel trouvé, utilisation de l'encodeur logiciel : libx264")
         except Exception as e:
@@ -428,6 +425,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
         
         try:
             base_name, extension = os.path.splitext(filename)
+            current_preview = ""
             
             if extension.lower() in VIDEO_EXTENSIONS:
                 # Video processing
@@ -435,6 +433,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
                 dest_path = PREPARED_SOURCE_DIR / dest_filename
                 prepare_video(src_path, str(dest_path), actual_output_width, actual_output_height)
                 message_type = "vidéo"
+                current_preview = f"{base_name}_thumbnail.jpg"
             else:
                 # Image processing
                 dest_filename = f"{base_name}.jpg"
@@ -456,6 +455,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
                 
                 prepare_photo(src_path, str(dest_path), actual_output_width, actual_output_height, source_type=source_type, caption=caption)
                 message_type = "photo"
+                current_preview = f"{base_name}.jpg"
             
             if i == 1:
                 percent = 25  # Modif Sigalou, Début boucle après cleaning 21%
@@ -467,7 +467,7 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
                 f"Nouveau média préparé ({message_type}) : {filename} ({i}/{total})",
                 stage="PREPARING_PHOTO",
                 percent=percent,
-                extra={"current": i, "total": total}
+                extra={"current": i, "total": total, "current_photo_path": current_preview}
             )
         
         except Exception as e:

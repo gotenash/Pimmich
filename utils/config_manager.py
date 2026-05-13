@@ -108,7 +108,9 @@ def create_default_config():
         "random_content_in_album": True,
         
         # --- Telegram notification in overlay --- 
-        "display_telegram_notification_overlay": True
+        "display_telegram_notification_overlay": True,
+        "anniversary_boost_enabled": False,
+        "anniversary_boost_factor": 2
     }
 
 def load_config():

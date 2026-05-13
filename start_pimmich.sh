@@ -6,6 +6,17 @@
 # Code de sortie spécial pour demander un redémarrage
 RESTART_CODE=42
 
+# Empêcher les instances multiples
+LOCK_FILE="/tmp/pimmich_app.lock"
+if [ -f "$LOCK_FILE" ]; then
+    PID=$(cat "$LOCK_FILE")
+    if ps -p "$PID" > /dev/null; then
+        echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 ❌ Instance déjà en cours (PID: $PID). Abandon." >> logs/pimmich.log
+        exit 1
+    fi
+fi
+echo $$ > "$LOCK_FILE"
+
 # Se placer dans le répertoire du script pour que les chemins relatifs fonctionnent
 cd "$(dirname "$0")" || exit 1
 
@@ -49,7 +60,7 @@ while true; do
     fi
 
     # Lancer l'application 
-    python3 -u app.py #>> logs/pimmich.log 2>&1
+    python3 -u app.py >> logs/pimmich.log 2>&1
 
     exit_code=$?
     echo "📟📟$(date +'%d-%m %H:%M:%S') 📟 🛑 Application terminée avec code $exit_code" >> logs/pimmich.log

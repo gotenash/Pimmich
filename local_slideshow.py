@@ -20,6 +20,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from utils.text_drawer import draw_text_with_outline
+from utils.metadata_utils import get_photo_metadata, load_photo_metadata_cache # Import from new utility
 from utils.config_manager import load_config
 
 # Définition des chemins
@@ -480,65 +481,6 @@ _tides_data = None
 _last_tides_fetch = None
 _tides_warning_printed = False
 
-# --- Modification Sigalou 25/01/2026 - Gestion des métadonnées photo (date + localisation) ---
-# Cache global pour les métadonnées des photos (évite de recharger le JSON à chaque photo)
-_photo_metadata_cache = None
-_photo_metadata_last_load = None
-
-def load_photo_metadata_cache():
-    """
-    Charge le cache des métadonnées photos depuis le fichier JSON créé lors du téléchargement.
-    Ce fichier contient les informations EXIF de chaque photo (date, ville, pays, coordonnées GPS).
-    """
-    global _photo_metadata_cache, _photo_metadata_last_load
-
-    cache_file = Path(BASE_DIR) / 'cache' / 'immich_description_map.json'
-
-    if not cache_file.exists():
-        return {}
-
-    # Vérifier si le fichier a été modifié depuis le dernier chargement
-    try:
-        file_mtime = cache_file.stat().st_mtime
-
-        # Recharger si c'est le premier chargement ou si le fichier a changé
-        if _photo_metadata_last_load is None or file_mtime > _photo_metadata_last_load:
-            with open(cache_file, 'r', encoding='utf-8') as f:
-                _photo_metadata_cache = json.load(f)
-            _photo_metadata_last_load = file_mtime
-
-        return _photo_metadata_cache
-
-    except Exception as e:
-        logger.info(f"[Metadata]  Erreur chargement cache : {e}")
-        return {}
-
-def get_photo_metadata(photo_path):
-    """
-    Récupère les métadonnées d'une photo depuis le cache.
-    Retourne un dictionnaire avec : date_taken, city, country, location, latitude, longitude
-    """
-    try:
-        metadata_map = load_photo_metadata_cache()
-        if not metadata_map:
-            return {}
-        filename = Path(photo_path).name
-        filename_lower = filename.lower()
-        for cached_filename, metadata in metadata_map.items():
-            if cached_filename.lower() == filename_lower:
-                return metadata
-        base_filename = re.sub(r'(_polaroid|_postcard)\.(jpg|jpeg|png|JPG|JPEG|PNG)$', r'.\2', filename, flags=re.IGNORECASE)
-        base_filename_lower = base_filename.lower()
-        for cached_filename, metadata in metadata_map.items():
-            if cached_filename.lower() == base_filename_lower:
-                return metadata
-        return {}
-    except Exception as e:
-        logger.info(f"[Metadata] Erreur extraction métadonnées pour {photo_path}: {e}")
-        return {}
-
-# --- Fin Modification Sigalou 25/01/2026 ---
-
 def get_tides(config):
     """Récupère les prochaines marées haute et basse, avec un cache en mémoire et un cache fichier persistant."""
     global _tides_data, _last_tides_fetch, _tides_warning_printed
@@ -782,6 +724,8 @@ def build_playlist(media_list, config, favorites):
     telegram_boost_enabled = config.get("telegram_boost_enabled", True)
     telegram_boost_factor = int(config.get("telegram_boost_factor", 4))
     telegram_boost_duration_days = int(config.get("telegram_boost_duration_days", 7))
+    anniversary_boost_enabled = config.get("anniversary_boost_enabled", False)
+    anniversary_boost_factor = int(config.get("anniversary_boost_factor", 2))
 
     playlist = []
     for media_path in media_list:
@@ -795,6 +739,28 @@ def build_playlist(media_list, config, favorites):
                 for _ in range(telegram_boost_factor): playlist.append(media_path)
         if normalized_relative_path in favorites:
             for _ in range(favorite_boost): playlist.append(media_path)
+
+        # --- Boost d'anniversaire ---
+        if anniversary_boost_enabled:
+            photo_metadata = get_photo_metadata(media_path)
+            if photo_metadata:
+                date_priority = [
+                    "subSecDateTimeOriginal", "dateTimeOriginal", "SubSecDateTimeOriginal", "DateTimeOriginal",
+                    "subSecCreateDate", "createDate", "SubSecCreateDate", "CreateDate",
+                    "subSecModifyDate", "modifyDate", "SubSecModifyDate",
+                    "mediaCreateDate", "dateTimeCreated", "MediaCreateDate", "DateTimeCreated",
+                    "fileModifiedAt", "fileCreatedAt"
+                ]
+                date_taken_str = next((photo_metadata.get(field) for field in date_priority if photo_metadata.get(field)), None)
+                
+                if date_taken_str:
+                    try:
+                        photo_date = datetime.fromisoformat(date_taken_str.replace('Z', '+00:00'))
+                        if photo_date.month == datetime.now().month and photo_date.day == datetime.now().day:
+                            logger.debug(f"📸 Boost anniversaire pour {Path(media_path).name} (prise le {photo_date.strftime('%d/%m')})")
+                            for _ in range(anniversary_boost_factor): playlist.append(media_path)
+                    except Exception as e:
+                        logger.debug(f"Erreur lors de la lecture de la date pour le boost anniversaire: {e}")
     return playlist
 
 try:
@@ -1421,11 +1387,12 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
     # Boucle de pause : si le diaporama est en pause, on attend ici.
     while paused:
+        config = load_config() # Recharger pour réagir au changement de notification immédiat
         handle_slideshow_events(screen_width)
         if next_photo_requested or previous_photo_requested: return
         
         ticks = pygame.time.get_ticks()
-        p_count = get_today_postcard_count()
+        p_count = get_today_postcard_count() if config.get("display_telegram_notification_overlay", True) else 0
         if (ticks // 500) % 2 == 0:
             draw_pause_icon(screen, screen_width, screen_height)
         elif p_count > 0:
@@ -1462,6 +1429,7 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
                 if next_photo_requested or previous_photo_requested: return
                 was_paused = False
                 while paused:
+                    config = load_config() # Recharger pour réaction immédiate au bouton
                     was_paused = True
                     handle_slideshow_events(screen_width)
                     if next_photo_requested or previous_photo_requested: return
@@ -1472,7 +1440,8 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
                     # Logique de clignotement/alternance (Pause / Nouvelle Postale)
                     ticks = pygame.time.get_ticks()
-                    p_count = get_today_postcard_count()
+                    # Vérifier l'option de notification même en pause
+                    p_count = get_today_postcard_count() if config.get("display_telegram_notification_overlay", True) else 0
                     if (ticks // 500) % 2 == 0: draw_pause_icon(screen, screen_width, screen_height)
                     elif p_count > 0: draw_postcard_notification_icon(screen, screen_width, screen_height, p_count, main_font)
                     
@@ -1481,8 +1450,9 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
                     start_sleep += 0.1
 
                 # Gestion du clignotement de l'icône postale pendant la lecture statique
+                config = load_config() # Rafraîchir la config ici aussi
                 ticks = pygame.time.get_ticks()
-                p_count = get_today_postcard_count()
+                p_count = get_today_postcard_count() if config.get("display_telegram_notification_overlay", True) else 0
                 if was_paused or p_count > 0:
                     screen.blit(pygame_image_base, (0, 0))
                     draw_overlay(screen, screen_width, screen_height, config, main_font, photo_metadata)
@@ -1561,10 +1531,12 @@ def display_photo_with_pan_zoom(screen, pil_image, screen_width, screen_height, 
 
                 # Gestion de la pause et des notifications (Enveloppe / Pause)
                 ticks = pygame.time.get_ticks()
-                p_count = get_today_postcard_count()
+                p_count = get_today_postcard_count() if config.get("display_telegram_notification_overlay", True) else 0
                 
                 if paused:
                     # En pause : Alternance entre l'icône de pause et l'enveloppe
+                    config = load_config() # Recharger pendant la pause de l'animation
+                    p_count = get_today_postcard_count() if config.get("display_telegram_notification_overlay", True) else 0
                     if (ticks // 500) % 2 == 0:
                         draw_pause_icon(screen, screen_width, screen_height)
                     elif p_count > 0:

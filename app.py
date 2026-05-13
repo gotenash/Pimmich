@@ -33,6 +33,7 @@ from utils.wifi_manager import set_wifi_config # Import the new utility
 from utils.display_manager import get_display_output_name, set_display_power
 from utils.prepare_all_photos import prepare_all_photos_with_progress
 from utils.import_usb_photos import import_usb_photos  # Déplacé dans utils
+from utils.metadata_utils import get_photo_metadata # Import get_photo_metadata
 from utils.import_samba import import_samba_photos
 from utils.image_filters import apply_filter_to_image, add_text_to_polaroid, add_text_to_image, create_polaroid_effect
 from utils.voice_control_manager import start_voice_control, stop_voice_control, is_voice_control_running
@@ -445,6 +446,9 @@ def get_prepared_photos_by_source():
     polaroid_texts = load_polaroid_texts()
     text_states = load_text_states()
     
+    # Charger la config pour le boost anniversaire
+    app_config = load_config()
+    anniversary_boost_enabled = app_config.get("anniversary_boost_enabled", False)
     if base_prepared_dir.exists():
         for source_dir in base_prepared_dir.iterdir():
             if source_dir.is_dir():
@@ -468,8 +472,30 @@ def get_prepared_photos_by_source():
                     media_item = {
                         "path": media_relative_path,
                         "type": media_type,
-                        "is_favorite": media_relative_path in favorites
+                        "is_favorite": media_relative_path in favorites,
+                        "is_anniversary": False # Default to False
                     }
+
+                    # Vérifier si c'est une photo anniversaire
+                    if anniversary_boost_enabled and media_type == 'image':
+                        photo_metadata = get_photo_metadata(media_path_obj)
+                        if photo_metadata:
+                            date_priority = [
+                                "subSecDateTimeOriginal", "dateTimeOriginal", "SubSecDateTimeOriginal", "DateTimeOriginal",
+                                "subSecCreateDate", "createDate", "SubSecCreateDate", "CreateDate",
+                                "subSecModifyDate", "modifyDate", "SubSecModifyDate",
+                                "mediaCreateDate", "dateTimeCreated", "MediaCreateDate", "DateTimeCreated",
+                                "fileModifiedAt", "fileCreatedAt"
+                            ]
+                            date_taken_str = next((photo_metadata.get(field) for field in date_priority if photo_metadata.get(field)), None)
+                            
+                            if date_taken_str:
+                                try:
+                                    photo_date = datetime.fromisoformat(date_taken_str.replace('Z', '+00:00'))
+                                    if photo_date.month == datetime.now().month and photo_date.day == datetime.now().day:
+                                        media_item["is_anniversary"] = True
+                                except Exception as e:
+                                    logger.debug(f"Erreur lors de la lecture de la date pour l'icône anniversaire: {e}")
 
                     # Les options de filtre ne s'appliquent qu'aux images
                     if media_type == 'image':
@@ -895,7 +921,7 @@ def configure():
             'transition_duration', # Added transition_duration
             'pan_zoom_factor', 'favorite_boost_factor',
             'immich_update_interval_hours', 'date_format', 
-            'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes',
+            'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes', 'anniversary_boost_factor',
             'smart_plug_on_url', 'smart_plug_off_url', 'smart_plug_on_delay', 'smart_plug_status_url',
             'smb_host', 'smb_share', 'smb_path', 'smb_user', 'smb_password', 'video_audio_output', 'video_audio_volume', 'telegram_boost_duration_days',
             'telegram_boost_factor', 'screen_orientation',
@@ -910,7 +936,7 @@ def configure():
             if key in request.form:
                 value = request.form.get(key)
                 # Gérer les champs numériques
-                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume', 'favorite_boost_factor', 'telegram_boost_duration_days', 'telegram_boost_factor', 'button_pin', 'smart_plug_on_delay']: # Integer fields
+                if key in ['display_duration', 'clock_offset_x', 'clock_offset_y', 'clock_font_size', 'weather_update_interval_minutes', 'immich_update_interval_hours', 'smb_update_interval_hours', 'display_width', 'display_height', 'info_display_duration', 'tide_offset_x', 'tide_offset_y', 'video_audio_volume', 'favorite_boost_factor', 'telegram_boost_duration_days', 'telegram_boost_factor', 'button_pin', 'smart_plug_on_delay', 'anniversary_boost_factor']: # Integer fields
                     try:
                         config[key] = int(value)
                     except (ValueError, TypeError):
@@ -982,6 +1008,7 @@ def configure():
         config["video_hwdec_enabled"] = 'video_hwdec_enabled' in request.form
 
         config["telegram_boost_enabled"] = 'telegram_boost_enabled' in request.form
+        config["anniversary_boost_enabled"] = 'anniversary_boost_enabled' in request.form
         config["display_telegram_notification_overlay"] = "display_telegram_notification_overlay" in request.form
         # Traitement des checkboxes
         config["show_clock"] = 'show_clock' in request.form
@@ -1149,6 +1176,9 @@ def import_smartphone():
 
             # --- Étape 2: Préparation des photos ---
             for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type="smartphone"):
+                # Ajouter l'URL d'aperçu
+                if update.get("current_photo_path"):
+                    update["current_photo_url"] = url_for('static', filename=f"prepared/smartphone/{update['current_photo_path']}")
                 yield stream_event(update)
 
         except Exception as e:
@@ -1258,7 +1288,7 @@ def prepare_photos():
             for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type=source, description_map=final_caption_map):
                 # Ajouter le chemin de l'image source à l'événement pour l'affichage en direct
                 if update.get("current_photo_path"):
-                    update["current_photo_url"] = url_for('static', filename=f"photos/{source}/{update['current_photo_path']}")
+                    update["current_photo_url"] = url_for('static', filename=f"prepared/{source}/{update['current_photo_path']}")
                 
                 yield f"data: {json.dumps(update, ensure_ascii=False)}\n\n"
         except Exception as e:
@@ -1555,6 +1585,7 @@ def schedule_worker():
     except Exception as e:
         logger.error(f"❌ Erreur critique dans la séquence de démarrage : {e}", exc_info=True)
 
+    last_schedule_state = None
     while True:
         try:
             config = load_config()
@@ -1578,12 +1609,22 @@ def schedule_worker():
             else:
                 in_schedule = now_time >= start_time or now_time <= end_time
 
+            # Réinitialiser l'override manuel si on change de plage horaire (ex: passage de nuit à jour)
+            if last_schedule_state is not None and last_schedule_state != in_schedule:
+                logger.info(f"📅 Changement de planning détecté, réinitialisation de l'override manuel.")
+                config['manual_override'] = None
+                save_config(config)
+            
+            last_schedule_state = in_schedule
+            manual_override = config.get('manual_override')
             slideshow_is_running = is_slideshow_running()
 
-            if not in_schedule and slideshow_is_running:
+            # Arrêt auto : uniquement si pas d'override "start"
+            if not in_schedule and slideshow_is_running and manual_override != "start":
                 logger.info("📅 Heure inactive détectée et diaporama en cours. Arrêt...")
                 stop_slideshow()
-            elif in_schedule and not slideshow_is_running:
+            # Démarrage auto : uniquement si pas d'override "stop"
+            elif in_schedule and not slideshow_is_running and manual_override != "stop":
                 logger.info("📅 Heure active mais le diaporama est arrêté. Séquence de démarrage...")
                 # 1. On s'assure que l'écran est allumé (via DPMS si pas de prise)
                 set_display_power(on=True)
@@ -1881,10 +1922,12 @@ def toggle_slideshow():
     # Si le slideshow est lancé, on l'arrête, sinon on le démarre
     if running:
         stop_slideshow()
-        config['manual_override'] = True  # Forcer l'arrêt manuel
+        config['manual_override'] = "stop"  # L'utilisateur a demandé l'arrêt
     else:
+        set_display_power(on=True)
+        time.sleep(1)
         start_slideshow()
-        config['manual_override'] = True  # Forcer le demarrage manuel
+        config['manual_override'] = "start"  # L'utilisateur a demandé le démarrage
 
     save_config(config) # Save config after manual override
 
@@ -2104,7 +2147,7 @@ def play_playlist():
 
 @app.route('/api/slideshow/restart_standard', methods=['POST'])
 def restart_standard_slideshow():
-    """Arrête tout diaporama en cours et en lance un nouveau en mode standard.""" # ... (le reste de la fonction est modifié ci-dessous)
+    """Arrête tout diaporama en cours et en lance un nouveau en mode standard."""
     try:
         # S'assurer que le fichier de playlist personnalisée est supprimé
         if os.path.exists(CUSTOM_PLAYLIST_FILE):
@@ -2500,6 +2543,23 @@ def slideshow_previous():
 def slideshow_toggle_pause():
     return _send_slideshow_signal(signal.SIGTSTP)
 
+@app.route('/api/slideshow/toggle_notifications', methods=['POST'])
+def toggle_notifications_api():
+    """Bascule l'affichage des notifications sur le diaporama."""
+    if not session.get('logged_in') and request.remote_addr != '127.0.0.1':
+        return jsonify({"success": False, "message": "Accès non autorisé."}), 403
+    
+    try:
+        config = load_config()
+        current_state = config.get("display_telegram_notification_overlay", True)
+        new_state = not current_state
+        config["display_telegram_notification_overlay"] = new_state
+        save_config(config)
+        
+        return jsonify({"success": True, "enabled": new_state})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @app.route('/api/slideshow/status')
 def slideshow_status():
     if not is_slideshow_running():
@@ -2507,9 +2567,10 @@ def slideshow_status():
     try:
         with open("/tmp/pimmich_slideshow_status.json", "r") as f:
             status = json.load(f)
-        return jsonify({"running": True, **status})
+        config = load_config()
+        return jsonify({"running": True, "notifications_enabled": config.get("display_telegram_notification_overlay", True), **status})
     except (FileNotFoundError, json.JSONDecodeError):
-        return jsonify({"running": True, "paused": False}) # Assume not paused if file is missing
+        return jsonify({"running": True, "paused": False, "notifications_enabled": True})
 
 @app.route('/api/get_available_resolutions')
 @login_required

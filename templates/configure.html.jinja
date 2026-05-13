@@ -213,6 +213,11 @@
                     <div id="live-preview-controls"
                         class="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-3 hidden">
                         <button type="button"
+                            class="notification-toggle-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-transform transform hover:scale-110"
+                            title="{{ _('Activer/Désactiver les notifications') }}">
+                            <i class="fas fa-bell fa-xs"></i>
+                        </button>
+                        <button type="button"
                             class="slideshow-control-btn bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-transform transform hover:scale-110"
                             data-command="previous" title="{{ _('Photo précédente') }}">
                             <i class="fas fa-backward fa-xs"></i>
@@ -437,6 +442,17 @@
                             value="{{ config.get('favorite_boost_factor', 2) }}" min="0">
                         <p class="text-sm text-gray-600 mt-1">{{ _("Ex: 0 = pas de boost, 2 = 3x plus de chances
                             d'apparaître.") }}</p>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <label>
+                            <input type="checkbox" name="anniversary_boost_enabled" {% if
+                                config.get('anniversary_boost_enabled', False) %}checked{% endif %}>
+                            {{ _("Activer le boost pour les photos à leur date anniversaire de prise de vue") }}
+                        </label>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-top: 8px;">
+                        <label for="anniversary_boost_factor" style="min-width: 200px;">{{ _("Facteur de boost anniversaire :") }}</label>
+                        <input type="number" id="anniversary_boost_factor" name="anniversary_boost_factor" value="{{ config.get('anniversary_boost_factor', 2) }}" min="0">
                     </div>
                     <div style="margin-top: 16px;">
                         <label>
@@ -1490,6 +1506,11 @@
                     </form>
                     <div class="flex justify-center items-center gap-4 mt-4" id="slideshow-controls-actions">
                         <button type="button"
+                            class="notification-toggle-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center"
+                            title="{{ _('Activer/Désactiver les notifications') }}">
+                            <i class="fas fa-bell fa-lg"></i>
+                        </button>
+                        <button type="button"
                             class="slideshow-control-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center"
                             data-command="previous" title="{{ _('Photo précédente') }}">
                             <i class="fas fa-backward fa-lg"></i>
@@ -1939,63 +1960,6 @@
             </fieldset>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-        <script>
-            <style>
-                .action-group {
-                    margin - bottom: 20px;
-}
-                .action-group h4 {
-                    font - size: 1.2em;
-                margin-bottom: 10px;
-                color: #555;
-}
-
-                /* Styles pour les boutons d'import et de contrôle système */
-                .import-button, .system-button {
-                    display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-}
-
-                /* Styles pour la barre de progression et les messages de statut */
-                .progress-container {
-                    width: 100%;
-                background-color: #f3f4f6; /* Tailwind's gray-100 */
-                border-radius: 0.5rem;
-                margin-top: 0.75rem;
-                height: 1.5rem;
-                overflow: hidden;
-                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-                border: 1px solid #d1d5db; /* Tailwind's gray-300 */
-}
-
-                .progress-bar {
-                    height: 100%;
-                text-align: center;
-                white-space: nowrap;
-                transition: width 0.3s ease;
-                color: white;
-                font-weight: 500;
-                background-image: linear-gradient(90deg, #a855f7, #6366f1); /* Indigo-400 et Indigo-500 */
-                box-shadow: 0 0 5px rgba(107, 114, 142, 0.5); /* Ombre subtile */
-}
-
-                .status-messages {
-                    margin - top: 0.75rem;
-                max-height: 10rem;
-                overflow-y: auto;
-                font-size: 0.875rem;
-                color: #6b7280; /* Tailwind's gray-500 */
-}
-
-            </style>
-        </script>
-
-
-
         <div id="tab-apercu" class="tabcontent">
             <fieldset>
                 <legend>
@@ -2106,6 +2070,10 @@
                                         class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}"
                                         data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                             class="fas fa-star"></i></button>
+                                    {% if media.is_anniversary %}
+                                    <i class="fas fa-birthday-cake text-pink-500 text-xs ml-1"
+                                        title="{{ _('Photo anniversaire !') }}"></i>
+                                    {% endif %}
                                     <button type="button"
                                         class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2"
                                         data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i
@@ -2303,6 +2271,10 @@
                                     class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}"
                                     data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                         class="fas fa-star"></i></button>
+                                    {% if media.is_anniversary %}
+                                    <i class="fas fa-birthday-cake text-pink-500 text-xs ml-1"
+                                        title="{{ _('Photo anniversaire !') }}"></i>
+                                    {% endif %}
                                 <button type="button"
                                     class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2"
                                     data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i
@@ -4219,6 +4191,25 @@
                     });
                 });
 
+                // Gestion du basculement des notifications
+                document.querySelectorAll('.notification-toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        try {
+                            const response = await fetch('/api/slideshow/toggle_notifications', { method: 'POST' });
+                            const result = await response.json();
+                            if (result.success) {
+                                showToast(result.enabled ? "{{ _('Notifications activées') }}" : "{{ _('Notifications désactivées') }}");
+                                updateSlideshowControlsState();
+                                // Synchroniser la checkbox dans l'onglet Telegram si elle existe
+                                const cb = document.querySelector('input[name="display_telegram_notification_overlay"]');
+                                if (cb) cb.checked = result.enabled;
+                            }
+                        } catch (error) {
+                            console.error("Erreur toggle notifications:", error);
+                        }
+                    });
+                });
+
                 // NOUVEAU: Bouton pour arrêter la playlist et revenir au standard
                 const stopPlaylistBtn = document.getElementById('stop-playlist-btn');
                 if (stopPlaylistBtn) {
@@ -4273,6 +4264,15 @@
                                 icon.classList.add('fa-pause');
                                 if (btn) btn.classList.remove('pulse-animation');
                             }
+                        });
+
+                        // Mettre à jour l'état du bouton de notification
+                        const notifEnabled = data.notifications_enabled;
+                        document.querySelectorAll('.notification-toggle-btn').forEach(btn => {
+                            const icon = btn.querySelector('i');
+                            btn.classList.toggle('bg-blue-600', notifEnabled);
+                            btn.classList.toggle('bg-gray-400', !notifEnabled);
+                            icon.className = notifEnabled ? 'fas fa-bell fa-xs' : 'fas fa-bell-slash fa-xs';
                         });
 
                     } catch (error) {
