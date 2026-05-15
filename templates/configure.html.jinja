@@ -2068,8 +2068,9 @@
                                         data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                             class="fas fa-star"></i></button>
                                     {% if media.is_anniversary %}
-                                    <i class="fas fa-birthday-cake text-pink-500 text-xs ml-1"
-                                        title="{{ _('Photo anniversaire !') }}"></i>
+                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center" title="{{ _('Photo anniversaire !') }}">
+                                        <i class="fas fa-birthday-cake"></i>
+                                    </span>
                                     {% endif %}
                                     <button type="button"
                                         class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2"
@@ -2269,8 +2270,9 @@
                                     data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                         class="fas fa-star"></i></button>
                                     {% if media.is_anniversary %}
-                                    <i class="fas fa-birthday-cake text-pink-500 text-xs ml-1"
-                                        title="{{ _('Photo anniversaire !') }}"></i>
+                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center" title="{{ _('Photo anniversaire !') }}">
+                                        <i class="fas fa-birthday-cake"></i>
+                                    </span>
                                     {% endif %}
                                 <button type="button"
                                     class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2"
