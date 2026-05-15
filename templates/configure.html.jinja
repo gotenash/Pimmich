@@ -4986,16 +4986,14 @@
 
                         // Mettre à jour visuellement le bouton pour confirmer la fin (enlève le spinner)
                         btn.innerHTML = `<i class="fas fa-sync-alt fa-spin mr-2"></i>{{ _("Redémarrage...") }}`;
-                        btn.classList.remove("bg-purple-600", "hover:bg-purple-700");
-                        btn.classList.add("bg-yellow-600");
+                        btn.className = "system-button bg-yellow-600 text-white font-bold py-2 px-4 rounded inline-flex items-center";
                         
                         displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection vers la page de suivi...') }}", 'success');
 
-                        // Délai augmenté pour laisser le temps au DOM de se mettre à jour et au réseau de respirer
+                        // Redirection plus rapide vers la page de suivi
                         setTimeout(() => {
-                            const redirectUrl = "/rebooting?old_instance={{ APP_INSTANCE_ID }}";
-                            window.location.assign(redirectUrl);
-                        }, 1000);
+                            window.location.href = "/rebooting?old_instance={{ APP_INSTANCE_ID }}";
+                        }, 400);
                     }
 
                     eventSource.onmessage = (event) => {

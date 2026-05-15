@@ -2043,7 +2043,6 @@ def system_reboot():
     return render_template('rebooting.html.jinja')
 
 @app.route('/rebooting', methods=['GET'])
-@login_required
 def rebooting():
     """Affiche la page de redémarrage (accessible en GET pour les redirections)."""
     return render_template('rebooting.html.jinja')
