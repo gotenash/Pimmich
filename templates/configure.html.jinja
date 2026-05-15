@@ -4983,12 +4983,17 @@
                         updateInProgress = false;
                         eventSource.close();
 
-                        displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection...') }}", 'success');
+                        // Mettre à jour visuellement le bouton pour confirmer la fin (enlève le spinner)
+                        btn.innerHTML = `<i class="fas fa-check-circle mr-2"></i>{{ _("Mise à jour terminée") }}`;
+                        btn.classList.remove("bg-purple-600", "hover:bg-purple-700");
+                        btn.classList.add("bg-green-600");
+                        
+                        displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection vers la page de redémarrage...') }}", 'success');
 
-                        // Rediriger vers la page de redémarrage
+                        // Rediriger vers la page de redémarrage plus rapidement
                         setTimeout(() => {
                             window.location.href = "/rebooting";
-                        }, 1000);
+                        }, 500);
                     }
 
                     eventSource.onmessage = (event) => {
@@ -5024,10 +5029,19 @@
                     eventSource.onerror = () => {
                         // Si la connexion est perdue pendant la mise à jour, c'est probablement
                         // parce que le serveur a redémarré. C'est le comportement attendu.
-                        if (updateInProgress) {
+                        // On ne force la redirection que si on était proche de la fin (étape RESTART)
+                        const currentPercent = parseInt(progressBar.style.width) || 0;
+                        if (updateInProgress && currentPercent >= 90) {
                             progressBar.style.width = `100%`;
                             progressBar.textContent = `100%`;
                             performRedirection();
+                        } else if (updateInProgress) {
+                            // C'est une vraie erreur de connexion au milieu du processus
+                            updateInProgress = false;
+                            eventSource.close();
+                            allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
+                            btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>{{ _("Erreur de connexion") }}`;
+                            displayMessage(statusDiv, "{{ _('Erreur : Connexion perdue avec le serveur pendant la mise à jour.') }}", 'error');
                         }
                     };
                 });
