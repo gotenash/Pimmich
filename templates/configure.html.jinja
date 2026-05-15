@@ -4981,19 +4981,31 @@
                     function performRedirection() {
                         if (!updateInProgress) return; // S'assurer de ne pas le lancer deux fois
                         updateInProgress = false;
-                        
-                        if (eventSource) eventSource.close();
 
-                        // Mettre à jour visuellement le bouton pour confirmer la fin (enlève le spinner)
+                        // 1. Changement visuel immédiat du bouton
                         btn.innerHTML = `<i class="fas fa-sync-alt fa-spin mr-2"></i>{{ _("Redémarrage...") }}`;
                         btn.className = "system-button bg-yellow-600 text-white font-bold py-2 px-4 rounded inline-flex items-center";
-                        
-                        displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection vers la page de suivi...') }}", 'success');
 
-                        // Redirection plus rapide vers la page de suivi
+                        displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection forcée vers la page de suivi...') }}", 'success');
+
+                        // 2. Fermeture propre du flux SSE
+                        if (eventSource) {
+                            try { eventSource.close(); } catch (e) { }
+                        }
+
+                        // 3. Redirection avec sécurité
+                        const redirectUrl = "/rebooting?old_instance={{ APP_INSTANCE_ID }}&t=" + Date.now();
+
                         setTimeout(() => {
-                            window.location.href = "/rebooting?old_instance={{ APP_INSTANCE_ID }}";
-                        }, 400);
+                            // On force l'arrêt de tout chargement en cours (libère les sockets)
+                            try { window.stop(); } catch (e) { }
+
+                            // On utilise replace pour écraser l'historique et forcer la navigation
+                            window.location.replace(redirectUrl);
+
+                            // Fallback ultime après 1 seconde si replace a échoué
+                            setTimeout(() => { window.location.href = redirectUrl; }, 1000);
+                        }, 800);
                     }
 
                     eventSource.onmessage = (event) => {

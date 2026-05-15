@@ -3092,7 +3092,7 @@ def update_app():
         if return_code == 0:
             yield stream_event({"stage": "RESTART", "percent": 100, "message": "Mise à jour terminée. Redémarrage du système en cours..."})
             def restart_server():
-                time.sleep(5)
+                time.sleep(10)
                 print("[Update] Redémarrage du système suite à la mise à jour...")
                 os.system('sudo reboot')
             
