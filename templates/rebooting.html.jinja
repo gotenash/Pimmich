@@ -237,6 +237,7 @@
                             slideshowIsUp = true;
                         } else {
                             iconSlideshow.className = 'fas fa-spinner fa-spin text-blue-500';
+                            slideshowIsUp = false;
                         }
 
                         // Redirection finale quand tout est OK
@@ -244,6 +245,7 @@
                             clearInterval(checkInterval);
                             clearInterval(countdownInterval);
                             countdownEl.textContent = '✅';
+                            document.querySelector('.info').innerHTML = "Tout est prêt !<br>Redirection en cours...";
                             setTimeout(() => { window.location.href = '/configure'; }, 1500);
                         }
                     }

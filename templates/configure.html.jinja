@@ -4990,9 +4990,11 @@
                         
                         displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection vers la page de suivi...') }}", 'success');
 
-                        // Navigation immédiate et forcée
-                        // On utilise assign() pour être plus explicite auprès du navigateur
-                        window.location.assign("/rebooting");
+                        // Petite pause pour laisser l'UI s'afficher (bouton jaune) avant de naviguer.
+                        // On passe l'identifiant d'instance actuel pour que la page de reboot sache ce qu'elle doit attendre.
+                        setTimeout(() => {
+                            window.location.href = "/rebooting?old_instance={{ APP_INSTANCE_ID }}";
+                        }, 500);
                     }
 
                     eventSource.onmessage = (event) => {
