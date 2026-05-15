@@ -1037,28 +1037,37 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
         metadata_text_color = parse_color(config.get("photo_metadata_color", "#ffffff"))
         metadata_outline_color = parse_color(config.get("photo_metadata_outline_color", "#000000"))
         
-        # Date de prise de vue (priorité 9 dates)
-        if config.get("show_photo_date", False):
-            date_priority = [
-                "subSecDateTimeOriginal", "dateTimeOriginal", "SubSecDateTimeOriginal", "DateTimeOriginal",
-                "subSecCreateDate", "createDate", "SubSecCreateDate", "CreateDate",
-                "subSecModifyDate", "modifyDate", "SubSecModifyDate",
-                "mediaCreateDate", "dateTimeCreated", "MediaCreateDate", "DateTimeCreated",
-                "fileModifiedAt", "fileCreatedAt"
-            ]
-            date_candidates = [photo_metadata.get(field) for field in date_priority]
-            date_taken_str = next((d for d in date_candidates if d), None)
-            
-            if date_taken_str:
-                try:
-                    photo_date = datetime.fromisoformat(date_taken_str.replace('Z', '+00:00'))
-                    photo_date_format = config.get("photo_date_format", "%d %B %Y")
-                    formatted_date = photo_date.strftime(photo_date_format)
-                    metadata_elements.append(formatted_date)
-                except Exception as e:
-                    logger.info(f"[Display] Erreur formatage date : {e}")        
-       
+        # Extraction de la date de prise de vue (priorité 16 champs)
+        date_priority = [
+            "subSecDateTimeOriginal", "dateTimeOriginal", "SubSecDateTimeOriginal", "DateTimeOriginal",
+            "subSecCreateDate", "createDate", "SubSecCreateDate", "CreateDate",
+            "subSecModifyDate", "modifyDate", "SubSecModifyDate",
+            "mediaCreateDate", "dateTimeCreated", "MediaCreateDate", "DateTimeCreated",
+            "fileModifiedAt", "fileCreatedAt"
+        ]
+        date_candidates = [photo_metadata.get(field) for field in date_priority]
+        date_taken_str = next((d for d in date_candidates if d), None)
 
+        # Affichage de la date de prise de vue
+        if config.get("show_photo_date", False) and date_taken_str:
+            try:
+                photo_date = datetime.fromisoformat(date_taken_str.replace('Z', '+00:00'))
+                photo_date_format = config.get("photo_date_format", "%d %B %Y")
+                metadata_elements.append(photo_date.strftime(photo_date_format))
+            except Exception as e:
+                logger.info(f"[Display] Erreur formatage date : {e}")
+
+        # Mention "Anniversaire" (Il y a X ans)
+        if config.get("anniversary_boost_enabled", True) and date_taken_str:
+            try:
+                p_date = datetime.fromisoformat(date_taken_str.replace('Z', '+00:00'))
+                now = datetime.now()
+                if p_date.month == now.month and p_date.day == now.day:
+                    years_ago = now.year - p_date.year
+                    if years_ago > 0:
+                        metadata_elements.append(f"(Anniversaire) Il y a {years_ago} {'an' if years_ago == 1 else 'ans'}")
+            except:
+                pass
 
         # Localisation
         if config.get("show_photo_location", False):

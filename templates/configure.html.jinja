@@ -2058,7 +2058,7 @@
                                     </option>
                                 </select>
                                 {% endif %}
-                                <div class="flex justify-end w-full gap-x-2">
+                                <div class="flex justify-end items-center w-full gap-x-2">
                                     <button type="button"
                                         class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2"
                                         data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i
@@ -2068,7 +2068,7 @@
                                         data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                             class="fas fa-star"></i></button>
                                     {% if media.is_anniversary %}
-                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center" title="{{ _('Photo anniversaire !') }}">
+                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center border border-blue-400 bg-transparent" title="{{ _('Photo anniversaire !') }}">
                                         <i class="fas fa-birthday-cake"></i>
                                     </span>
                                     {% endif %}
@@ -2260,7 +2260,7 @@
                                 </option>
                             </select>
                             {% endif %}
-                            <div class="flex justify-end w-full gap-x-2">
+                            <div class="flex justify-end items-center w-full gap-x-2">
                                 <button type="button"
                                     class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2"
                                     data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i
@@ -2270,7 +2270,7 @@
                                     data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                         class="fas fa-star"></i></button>
                                     {% if media.is_anniversary %}
-                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center" title="{{ _('Photo anniversaire !') }}">
+                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center border border-blue-400 bg-transparent" title="{{ _('Photo anniversaire !') }}">
                                         <i class="fas fa-birthday-cake"></i>
                                     </span>
                                     {% endif %}
@@ -5131,6 +5131,10 @@
                 });
             }
         </script>
+
+</body>
+
+</html> </script>
 
 </body>
 

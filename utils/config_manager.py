@@ -109,7 +109,7 @@ def create_default_config():
         
         # --- Telegram notification in overlay --- 
         "display_telegram_notification_overlay": True,
-        "anniversary_boost_enabled": False,
+        "anniversary_boost_enabled": True,
         "anniversary_boost_factor": 2
     }
 
