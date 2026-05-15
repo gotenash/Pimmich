@@ -4981,19 +4981,18 @@
                     function performRedirection() {
                         if (!updateInProgress) return; // S'assurer de ne pas le lancer deux fois
                         updateInProgress = false;
-                        eventSource.close();
+                        
+                        if (eventSource) eventSource.close();
 
                         // Mettre à jour visuellement le bouton pour confirmer la fin (enlève le spinner)
-                        btn.innerHTML = `<i class="fas fa-check-circle mr-2"></i>{{ _("Mise à jour terminée") }}`;
-                        btn.classList.remove("bg-purple-600", "hover:bg-purple-700");
-                        btn.classList.add("bg-green-600");
+                        btn.innerHTML = `<i class="fas fa-sync-alt fa-spin mr-2"></i>{{ _("Redémarrage...") }}`;
+                        btn.classList.replace("bg-purple-600", "bg-yellow-600");
                         
-                        displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection vers la page de redémarrage...') }}", 'success');
+                        displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection vers la page de suivi...') }}", 'success');
 
-                        // Rediriger vers la page de redémarrage plus rapidement
-                        setTimeout(() => {
-                            window.location.href = "/rebooting";
-                        }, 500);
+                        // Navigation immédiate et forcée
+                        // On utilise assign() pour être plus explicite auprès du navigateur
+                        window.location.assign("/rebooting");
                     }
 
                     eventSource.onmessage = (event) => {
