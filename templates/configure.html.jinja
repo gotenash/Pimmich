@@ -4986,15 +4986,16 @@
 
                         // Mettre à jour visuellement le bouton pour confirmer la fin (enlève le spinner)
                         btn.innerHTML = `<i class="fas fa-sync-alt fa-spin mr-2"></i>{{ _("Redémarrage...") }}`;
-                        btn.classList.replace("bg-purple-600", "bg-yellow-600");
+                        btn.classList.remove("bg-purple-600", "hover:bg-purple-700");
+                        btn.classList.add("bg-yellow-600");
                         
                         displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection vers la page de suivi...') }}", 'success');
 
-                        // Petite pause pour laisser l'UI s'afficher (bouton jaune) avant de naviguer.
-                        // On passe l'identifiant d'instance actuel pour que la page de reboot sache ce qu'elle doit attendre.
+                        // Délai augmenté pour laisser le temps au DOM de se mettre à jour et au réseau de respirer
                         setTimeout(() => {
-                            window.location.href = "/rebooting?old_instance={{ APP_INSTANCE_ID }}";
-                        }, 500);
+                            const redirectUrl = "/rebooting?old_instance={{ APP_INSTANCE_ID }}";
+                            window.location.assign(redirectUrl);
+                        }, 1000);
                     }
 
                     eventSource.onmessage = (event) => {
