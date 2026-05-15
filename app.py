@@ -2042,6 +2042,12 @@ def system_reboot():
     
     return render_template('rebooting.html.jinja')
 
+@app.route('/update', methods=['GET'])
+@login_required
+def update_view():
+    """Affiche la page dédiée au processus de mise à jour."""
+    return render_template('update.html.jinja')
+
 @app.route('/rebooting', methods=['GET'])
 def rebooting():
     """Affiche la page de redémarrage (accessible en GET pour les redirections)."""

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="{{ get_locale() }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>{{ _("Mise à jour en cours") }} - Pimmich</title>
+    <style>
+        body { background-color: #111827; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; }
+        .container { text-align: center; padding: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); max-width: 600px; width: 90%; }
+        .progress-bar { width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; overflow: hidden; margin: 20px 0; border: 1px solid rgba(255,255,255,0.1); }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #a855f7, #6366f1); width: 0%; transition: width 0.4s ease; }
+        .status-box { background: rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: left; max-height: 150px; overflow-y: auto; font-family: monospace; font-size: 0.85em; border: 1px solid rgba(255,255,255,0.1); }
+        .status-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.05); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='pimmich_logo.png') }}" alt="Logo" style="width: 120px; margin: 0 auto 20px;">
+        
+        <h1 id="main-title" class="text-2xl font-bold mb-2">{{ _("Mise à jour de Pimmich") }}</h1>
+        <p id="main-desc" class="text-gray-400 mb-6">{{ _("Téléchargement et installation des fichiers...") }}</p>
+
+        <!-- Barre de progression principale -->
+        <div class="progress-bar">
+            <div id="pb-fill" class="progress-bar-fill"></div>
+        </div>
+        <div id="pb-text" class="text-right text-xs font-bold text-indigo-400 mt-1">0%</div>
+
+        <!-- Indicateurs d'étapes -->
+        <div class="space-y-2 mt-6">
+            <div class="status-row">
+                <span>{{ _("Mise à jour du code (Git)") }}</span>
+                <i id="step-git" class="fas fa-circle text-gray-600"></i>
+            </div>
+            <div class="status-row">
+                <span>{{ _("Dépendances Python (Pip)") }}</span>
+                <i id="step-pip" class="fas fa-circle text-gray-600"></i>
+            </div>
+            <div class="status-row">
+                <span>{{ _("Redémarrage du système") }}</span>
+                <i id="step-reboot" class="fas fa-circle text-gray-600"></i>
+            </div>
+        </div>
+
+        <!-- Console de logs -->
+        <div id="console" class="status-box">
+            <div class="text-gray-500 italic">{{ _("Initialisation...") }}</div>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-8 italic">{{ _("Ne coupez pas l'alimentation du Raspberry Pi.") }}</p>
+    </div>
+
+    <script>
+        const oldInstance = "{{ APP_INSTANCE_ID }}";
+        const consoleDiv = document.getElementById('console');
+        const pbFill = document.getElementById('pb-fill');
+        const pbText = document.getElementById('pb-text');
+        
+        function log(msg, type='info') {
+            const div = document.createElement('div');
+            const color = type === 'error' ? 'text-red-400' : (type === 'success' ? 'text-green-400' : 'text-gray-300');
+            div.className = `mb-1 ${color}`;
+            div.textContent = `> ${msg}`;
+            consoleDiv.appendChild(div);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function setStep(id, status) {
+            const icon = document.getElementById(id);
+            if (status === 'active') icon.className = 'fas fa-spinner fa-spin text-blue-500';
+            else if (status === 'done') icon.className = 'fas fa-check-circle text-green-500';
+            else if (status === 'error') icon.className = 'fas fa-times-circle text-red-500';
+        }
+
+        // --- PHASE 1 : MISE A JOUR ---
+        const eventSource = new EventSource('/api/update_app');
+        let isRebooting = false;
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                if (data.percent !== undefined) {
+                    pbFill.style.width = data.percent + '%';
+                    pbText.textContent = data.percent + '%';
+                }
+
+                if (data.message) log(data.message, data.type);
+
+                // Gestion des icônes d'étape basées sur les messages du script
+                if (data.message && data.message.includes('git')) setStep('step-git', 'active');
+                if (data.percent >= 25) setStep('step-git', 'done');
+                
+                if (data.message && data.message.includes('Python')) setStep('step-pip', 'active');
+                if (data.percent >= 75) setStep('step-pip', 'done');
+
+                if (data.stage === 'RESTART' || data.percent >= 100) {
+                    eventSource.close();
+                    startRebootPhase();
+                }
+                
+                if (data.type === 'error') {
+                    setStep('step-git', 'error');
+                    setStep('step-pip', 'error');
+                    document.getElementById('main-title').textContent = "{{ _('Échec de la mise à jour') }}";
+                    document.getElementById('main-desc').textContent = "{{ _('Une erreur est survenue.') }}";
+                }
+
+            } catch (e) { console.error("Parse error", e); }
+        };
+
+        eventSource.onerror = () => {
+            // Une déconnexion à la fin (pb > 90%) est signe que le serveur s'éteint pour de bon
+            const currentPercent = parseInt(pbFill.style.width) || 0;
+            if (currentPercent > 80 && !isRebooting) {
+                eventSource.close();
+                startRebootPhase();
+            }
+        };
+
+        // --- PHASE 2 : REDEMARRAGE ---
+        function startRebootPhase() {
+            if (isRebooting) return;
+            isRebooting = true;
+            
+            document.getElementById('main-title').textContent = "{{ _('Redémarrage du système') }}";
+            document.getElementById('main-desc').textContent = "{{ _('Le cadre redémarre pour appliquer les changements...') }}";
+            setStep('step-reboot', 'active');
+            log("{{ _('Serveur hors-ligne. Attente du redémarrage...') }}");
+            
+            pbFill.style.width = '100%';
+            pbText.textContent = '100%';
+            
+            checkSystemAvailability();
+        }
+
+        async function checkSystemAvailability() {
+            try {
+                const response = await fetch('/api/ping', { cache: 'no-cache' });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // On vérifie que c'est bien une nouvelle instance
+                    if (data.instance && data.instance !== oldInstance) {
+                        log("{{ _('Serveur web en ligne !') }}", 'success');
+                        
+                        // On attend que le diaporama soit aussi prêt
+                        if (data.slideshow_running) {
+                            setStep('step-reboot', 'done');
+                            log("{{ _('Diaporama prêt ! Redirection...') }}", 'success');
+                            setTimeout(() => { window.location.href = '/configure'; }, 2000);
+                            return;
+                        } else {
+                            log("{{ _('Initialisation du diaporama...') }}");
+                        }
+                    }
+                }
+            } catch (e) {
+                // C'est normal, le Pi est en train de s'éteindre ou de bouter
+            }
+            
+            setTimeout(checkSystemAvailability, 3000);
+        }
+    </script>
+</body>
+</html>

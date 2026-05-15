@@ -1812,14 +1812,11 @@
                 <p class="text-sm text-gray-600 mb-3">{{ _("Cliquez sur le bouton pour rechercher et installer les
                     dernières mises à jour de Pimmich depuis GitHub. L'application redémarrera automatiquement après la
                     mise à jour.") }}</p>
-                <button type="button" id="update-app-btn"
-                    class="system-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                    <i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}
-                </button>
-                <div id="update-progress-container" class="progress-container hidden mt-4">
-                    <div id="update-progress-bar" class="progress-bar"></div>
-                </div>
-                <div id="update-status" class="status-messages mt-2"></div>
+                <a href="/update" 
+                   class="system-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                   onclick="return confirm('{{ _('Lancer la mise à jour ? Vous allez être redirigé vers la page de suivi.') }}')">
+                    <i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Lancer la mise à jour") }}
+                </a>
             </fieldset>
 
             <fieldset class="mt-6">
@@ -4948,115 +4945,6 @@
                     });
                 }
 
-                // ----- APP UPDATE -----
-                document.getElementById("update-app-btn").addEventListener("click", () => {
-                    if (!confirm("{{ _('Êtes-vous sûr de vouloir lancer la mise à jour ? L\'application sera indisponible pendant le processus et redémarrera automatiquement.') }}")) {
-                        return;
-                    }
-
-                    const btn = document.getElementById("update-app-btn");
-                    const progressBar = document.getElementById("update-progress-bar");
-                    const progressContainer = document.getElementById("update-progress-container");
-                    const statusDiv = document.getElementById("update-status");
-                    const allActionButtons = document.querySelectorAll('.import-button, .system-button, #update-app-btn, #samba-test-btn, #testWeatherApiKeyBtn, #testTelegramBtn, #create-invite-btn, #scan-wifi-btn, #toggle-eth0-btn, #clear-logs-btn');
-
-                    // Disable all major action buttons
-                    allActionButtons.forEach(b => {
-                        b.disabled = true;
-                        b.classList.add("opacity-50", "cursor-not-allowed");
-                    });
-                    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>{{ _("Mise à jour en cours...") }}`;
-
-                    // Reset UI
-                    progressBar.style.width = "0%";
-                    progressBar.textContent = "0%";
-                    progressContainer.classList.remove("hidden");
-                    statusDiv.innerHTML = "";
-
-                    const eventSource = new EventSource('/api/update_app');
-
-                    // Flag pour savoir si une mise à jour est en cours.
-                    let updateInProgress = true;
-
-                    function performRedirection() {
-                        if (!updateInProgress) return; // S'assurer de ne pas le lancer deux fois
-                        updateInProgress = false;
-
-                        // 1. Changement visuel immédiat du bouton
-                        btn.innerHTML = `<i class="fas fa-sync-alt fa-spin mr-2"></i>{{ _("Redémarrage...") }}`;
-                        btn.className = "system-button bg-yellow-600 text-white font-bold py-2 px-4 rounded inline-flex items-center";
-
-                        displayMessage(statusDiv, "{{ _('Mise à jour terminée. Redirection forcée vers la page de suivi...') }}", 'success');
-
-                        // 2. Fermeture propre du flux SSE
-                        if (eventSource) {
-                            try { eventSource.close(); } catch (e) { }
-                        }
-
-                        // 3. Redirection avec sécurité
-                        const redirectUrl = "/rebooting?old_instance={{ APP_INSTANCE_ID }}&t=" + Date.now();
-
-                        setTimeout(() => {
-                            // On force l'arrêt de tout chargement en cours (libère les sockets)
-                            try { window.stop(); } catch (e) { }
-
-                            // On utilise replace pour écraser l'historique et forcer la navigation
-                            window.location.replace(redirectUrl);
-
-                            // Fallback ultime après 1 seconde si replace a échoué
-                            setTimeout(() => { window.location.href = redirectUrl; }, 1000);
-                        }, 800);
-                    }
-
-                    eventSource.onmessage = (event) => {
-                        try {
-                            const data = JSON.parse(event.data);
-
-                            if (data.percent !== undefined) {
-                                progressBar.style.width = `${data.percent}%`;
-                                progressBar.textContent = `${data.percent}%`;
-                                // Redirection immédiate si 100% atteint
-                                if (data.percent >= 100) {
-                                    performRedirection();
-                                }
-                            }
-
-                            if (data.message) {
-                                displayMessage(statusDiv, data.message, data.type || 'info');
-                            }
-
-                            if (data.stage === 'RESTART') {
-                                performRedirection();
-                            } else if (data.type === 'error') {
-                                updateInProgress = false;
-                                eventSource.close();
-                                allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
-                                btn.innerHTML = `<i class="fas fa-cloud-download-alt mr-2"></i>{{ _("Vérifier les mises à jour") }}`;
-                            }
-                        } catch (e) {
-                            displayMessage(statusDiv, "{{ _('Données invalides reçues du serveur.') }}", 'error');
-                        }
-                    };
-
-                    eventSource.onerror = () => {
-                        // Si la connexion est perdue pendant la mise à jour, c'est probablement
-                        // parce que le serveur a redémarré. C'est le comportement attendu.
-                        // On ne force la redirection que si on était proche de la fin (étape RESTART)
-                        const currentPercent = parseInt(progressBar.style.width) || 0;
-                        if (updateInProgress && currentPercent >= 90) {
-                            progressBar.style.width = `100%`;
-                            progressBar.textContent = `100%`;
-                            performRedirection();
-                        } else if (updateInProgress) {
-                            // C'est une vraie erreur de connexion au milieu du processus
-                            updateInProgress = false;
-                            eventSource.close();
-                            allActionButtons.forEach(b => { b.disabled = false; b.classList.remove("opacity-50", "cursor-not-allowed"); });
-                            btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>{{ _("Erreur de connexion") }}`;
-                            displayMessage(statusDiv, "{{ _('Erreur : Connexion perdue avec le serveur pendant la mise à jour.') }}", 'error');
-                        }
-                    };
-                });
 
                 // ----- EXPAND FILESYSTEM -----
                 document.getElementById("expand-fs-btn").addEventListener("click", () => {
