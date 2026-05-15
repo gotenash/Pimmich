@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>Redémarrage en cours - Pimmich</title>
     <style>
         * {
@@ -42,6 +44,16 @@
             font-size: 1.2em;
             margin-bottom: 10px;
             opacity: 0.9;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-top: 10px;
         }
 
         /* Spinner animé - ORIGINAL */
@@ -138,120 +150,109 @@
         <div class="spinner"></div>
 
         <!-- STATUS + COMPTEUR SÉPARÉS -->
-        <p class="status" id="statusText">Redémarrage du système</p>
-        <div id="countdown" class="countdown">50s</div>
+        <div id="status-container" class="space-y-3 mb-6">
+            <div class="status-row">
+                <span>Serveur Web</span>
+                <i id="icon-server" class="fas fa-circle text-red-500"></i>
+            </div>
+            <div class="status-row">
+                <span>Diaporama</span>
+                <i id="icon-slideshow" class="fas fa-circle text-red-500"></i>
+            </div>
+        </div>
+
+        <div id="countdown" class="countdown">60s</div>
 
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
         </div>
 
         <p class="info">
-            Le système va redémarrer dans quelques instants.<br>
+            Le système applique les changements.<br>
             Cette page se rechargera automatiquement une fois le système prêt.
         </p>
     </div>
 
     <script>
-        let countdownInterval = null;
-        let checkInterval = null;
         let rebootTriggered = false;
         let remainingTime = 60;
-        let serverReady = false;  // ✅ État serveur prêt
-
-        const statusText = document.getElementById('statusText');
+        const urlParams = new URLSearchParams(window.location.search);
+        const oldInstance = urlParams.get('old_instance');
         const countdownEl = document.getElementById('countdown');
+        const iconServer = document.getElementById('icon-server');
+        const iconSlideshow = document.getElementById('icon-slideshow');
+
+        let serverIsNew = false;
+        let slideshowIsUp = false;
 
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(triggerReboot, 100);
+            // Si on ne passe pas d'old_instance, on déclenche le reboot (cas du bouton manuel)
+            if (!oldInstance) {
+                setTimeout(triggerReboot, 100);
+            } else {
+                rebootTriggered = true;
+                startCountdownAndChecks();
+            }
         });
 
         function triggerReboot() {
             if (rebootTriggered) return;
             rebootTriggered = true;
-
-            // Déclencher reboot API
             fetch('/api/trigger_reboot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             }).catch(() => console.log('Reboot command sent'));
-
-            // Démarrer compte à rebours + vérifications
             startCountdownAndChecks();
         }
 
         function startCountdownAndChecks() {
-            updateDisplay(); // Affichage initial
-
-            // ✅ COMPTEUR
-            countdownInterval = setInterval(() => {
+            // Compteur de sécurité
+            const countdownInterval = setInterval(() => {
                 remainingTime--;
-                if (!serverReady) {  // N'afficher que si pas prêt
-                    updateDisplay();
-                }
-                if (remainingTime <= 0 && !serverReady) {
-                    switchToCheckingMode();
+                if (remainingTime >= 0) {
+                    countdownEl.textContent = remainingTime + 's';
+                } else {
+                    countdownEl.textContent = '⏳';
                 }
             }, 1000);
 
-            // ✅ PING TOUTES LES 2s (après délai de sécurité)
-            setTimeout(() => {
-                checkInterval = setInterval(checkServerAvailability, 2000);
-            }, 20000); // Attendre 20s que le serveur s'éteigne vraiment avant de tester le retour
-        }
-
-        function checkServerAvailability() {
-            console.log('🔍 Ping test...');
-            fetch('/api/ping', {
-                method: 'GET',
-                cache: 'no-cache',
-                keepalive: true
-            })
-                .then(response => {
-                    console.log('✅ Ping OK:', response.status);
+            // Boucle de vérification
+            const checkInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/ping', { cache: 'no-cache' });
                     if (response.ok) {
-                        serverReady = true;
-                        stopCountdown();
-                        showServerReady();
+                        const data = await response.json();
+                        
+                        // 1. Vérification du Serveur Web (Instance)
+                        if (!oldInstance || (data.instance && data.instance !== oldInstance)) {
+                            iconServer.className = 'fas fa-check-circle text-green-500';
+                            serverIsNew = true;
+                        } else {
+                            iconServer.className = 'fas fa-spinner fa-spin text-blue-500';
+                        }
+
+                        // 2. Vérification du Diaporama
+                        if (data.slideshow_running) {
+                            iconSlideshow.className = 'fas fa-check-circle text-green-500';
+                            slideshowIsUp = true;
+                        } else {
+                            iconSlideshow.className = 'fas fa-spinner fa-spin text-blue-500';
+                        }
+
+                        // Redirection finale quand tout est OK
+                        if (serverIsNew && slideshowIsUp) {
+                            clearInterval(checkInterval);
+                            clearInterval(countdownInterval);
+                            countdownEl.textContent = '✅';
+                            setTimeout(() => { window.location.href = '/configure'; }, 1500);
+                        }
                     }
-                })
-                .catch(error => {
-                    console.log('❌ Ping failed:', error);
-                });
-        }
-
-        function stopCountdown() {
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-        }
-
-        function switchToCheckingMode() {
-            stopCountdown();
-            statusText.textContent = '🔄 Vérification intensive...';
-            countdownEl.textContent = '⏳';
-            // Continue les pings existants
-        }
-
-        function showServerReady() {
-            statusText.textContent = '✅ Serveur disponible !';
-            countdownEl.textContent = 'Redirection...';
-
-            // Arrêter tous les timers
-            if (checkInterval) {
-                clearInterval(checkInterval);
-                checkInterval = null;
-            }
-
-            // Rediriger après 1s
-            setTimeout(() => {
-                window.location.href = '/configure';
-            }, 1000);
-        }
-
-        function updateDisplay() {
-            statusText.textContent = 'Redémarrage du système';
-            countdownEl.textContent = remainingTime + 's';
+                } catch (e) {
+                    // Le serveur est hors-ligne pendant le reboot
+                    iconServer.className = 'fas fa-circle text-red-500';
+                    iconSlideshow.className = 'fas fa-circle text-red-500';
+                }
+            }, 3000);
         }
     </script>
 </body>

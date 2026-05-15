@@ -40,6 +40,9 @@ from utils.voice_control_manager import start_voice_control, stop_voice_control,
 from utils.telegram_bot import PimmichBot
 import smbclient
 from smbprotocol.exceptions import SMBException
+import secrets
+
+APP_INSTANCE_ID = secrets.token_hex(8)
 
 
 # ============================================================
@@ -177,6 +180,11 @@ babel = Babel(app, locale_selector=get_locale)
 def inject_locale():
     """Injecte la fonction get_locale dans le contexte des templates."""
     return dict(get_locale=get_locale)
+
+@app.context_processor
+def inject_instance_id():
+    """Injecte l'ID d'instance pour le suivi du redémarrage."""
+    return dict(APP_INSTANCE_ID=APP_INSTANCE_ID)
 
 
 # Chemins de base
@@ -2062,7 +2070,11 @@ def trigger_reboot():
 @app.route('/api/ping', methods=['GET'])
 def ping():
     """Endpoint simple pour vérifier que le serveur est disponible."""
-    return jsonify({"status": "ok"})
+    return jsonify({
+        "status": "ok",
+        "instance": APP_INSTANCE_ID,
+        "slideshow_running": is_slideshow_running()
+    })
 
 
 @app.route('/restart_app', methods=['POST'])
