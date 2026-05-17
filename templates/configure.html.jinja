@@ -180,6 +180,12 @@
                 |
                 <a href="?lang=es"
                     class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
+                |
+                <a href="?lang=de"
+                    class="{% if current_lang == 'de' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">DE</a>
+                |
+                <a href="?lang=ja"
+                    class="{% if current_lang == 'ja' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">JA</a>
             </div>
             <div class="logout-link">
                 <a href="/logout">{{ _('Se déconnecter') }}</a>
@@ -5097,6 +5103,18 @@
                         runDiagnosticsBtn.disabled = false; // Correction: le bouton doit être réactivé
                         runDiagnosticsBtn.innerHTML = `<i class="fas fa-play-circle mr-2"></i>${i18n.runDiagnostics}`;
                     }
+                });
+            }
+        </script>
+
+</body>
+</html>             }
+                });
+            }
+        </script>
+
+</body>
+</html>             }
                 });
             }
         </script>
