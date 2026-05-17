@@ -170,7 +170,7 @@ def get_locale():
     return request.accept_languages.best_match(list(app.config['LANGUAGES'].keys()))
 
 # --- Configuration de Babel (i18n) ---
-app.config['LANGUAGES'] = {'fr': 'Français', 'en': 'English', 'es': 'Español'}
+app.config['LANGUAGES'] = {'fr': 'Français', 'en': 'English', 'es': 'Español', 'de': 'Deutsch', 'ja': '日本語'}
 app.config['BABEL_DEFAULT_LOCALE'] = 'fr'
 babel = Babel(app, locale_selector=get_locale)
 
@@ -603,21 +603,21 @@ def validate_telegram_invitation(code, user_id, user_name):
     invitations = load_invitations()
     
     if code not in invitations:
-        return {"success": False, "message": "Code d'invitation invalide."}
+        return {"success": False, "message": _("Code d'invitation invalide.")}
 
     invitation = invitations[code]
     
     # Vérifier si le code est expiré
     if datetime.fromisoformat(invitation['expires_at']) < datetime.now():
-        return {"success": False, "message": "Ce code d'invitation a expiré."}
+        return {"success": False, "message": _("Ce code d'invitation a expiré.")}
 
     # Vérifier si le code a déjà été utilisé
     if invitation.get('used_by_user_id'):
         # Si c'est le même utilisateur qui réutilise le code, on l'autorise
         if invitation['used_by_user_id'] == user_id:
-            return {"success": True, "message": "Vous êtes déjà autorisé. Envoyez-moi une photo !"}
+            return {"success": True, "message": _("Vous êtes déjà autorisé. Envoyez-moi une photo !")}
         else:
-            return {"success": False, "message": "Ce code d'invitation a déjà été utilisé."}
+            return {"success": False, "message": _("Ce code d'invitation a déjà été utilisé.")}
 
     # Si le code est valide et non utilisé, on ajoute l'utilisateur à la liste des invités
     add_telegram_guest_user(user_id, invitation['guest_name'])
@@ -628,7 +628,7 @@ def validate_telegram_invitation(code, user_id, user_name):
     invitation['used_at'] = datetime.now().isoformat()
     save_invitations(invitations)
 
-    return {"success": True, "message": f"Félicitations {invitation['guest_name']} ! Vous pouvez maintenant envoyer des cartes postales au cadre."}
+    return {"success": True, "message": _("Félicitations %(name)s ! Vous pouvez maintenant envoyer des cartes postales au cadre.", name=invitation['guest_name'])}
 
 @app.route('/api/telegram/invitations/<code>/revoke', methods=['POST'])
 @login_required
@@ -781,7 +781,7 @@ def manage_pending_photo():
     if action == 'reject':
         try:
             pending_path.unlink()
-            return jsonify({"success": True, "message": "Photo rejetée."})
+            return jsonify({"success": True, "message": _("Photo rejetée.")})
         except Exception as e:
             return jsonify({"success": False, "message": f"Erreur: {e}"}), 500
 
@@ -824,13 +824,13 @@ def manage_pending_photo():
                 if is_slideshow_running():
                     restart_slideshow_for_update()
 
-                return jsonify({"success": True, "message": "Photo approuvée et préparée. Le diaporama a été mis à jour."})
+                return jsonify({"success": True, "message": _("Photo approuvée et préparée. Le diaporama a été mis à jour.")})
             else:
-                return jsonify({"success": False, "message": "La préparation de la photo a échoué. La photo reste en attente."}), 500
+                return jsonify({"success": False, "message": _("La préparation de la photo a échoué. La photo reste en attente.")}), 500
         except Exception as e:
             return jsonify({"success": False, "message": f"Erreur lors de la préparation: {e}"}), 500
 
-    return jsonify({"success": False, "message": "Action inconnue."}), 400
+    return jsonify({"success": False, "message": _("Action inconnue.")}), 400
 
 @app.route('/debug/pending')
 @login_required
@@ -1677,7 +1677,8 @@ def immich_update_worker():
         global _immich_first_run_skipped
         if not _immich_first_run_skipped and skip_initial:
             logger.debug("🖼️🔄 Import initial skipped as per configuration.")
-            immich_status_manager.update_status(message="Import initial ignoré.")
+            with app.app_context():
+                immich_status_manager.update_status(message=_("Import initial ignoré."))
             _immich_first_run_skipped = True
             # Calculate next run and sleep, then continue to next iteration
             sleep_seconds = (interval_hours * 3600) if is_enabled else (15 * 60)
@@ -1689,12 +1690,14 @@ def immich_update_worker():
             continue # Skip the rest of this iteration
         
         if is_enabled:
-            status_msg = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
-            logger.info(f"🖼️🔄  {status_msg}")
-            immich_status_manager.update_status(message=status_msg)
+            with app.app_context():
+                status_msg = _("Mise à jour auto. activée. Intervalle : %(hours)sh.", hours=interval_hours)
+                logger.info(f"🖼️🔄  {status_msg}")
+                immich_status_manager.update_status(message=status_msg)
             
             try:
-                immich_status_manager.update_status(message="Lancement du téléchargement...")
+                with app.app_context():
+                    immich_status_manager.update_status(message=_("Lancement du téléchargement..."))
                 logger.info("🖼️🔄 Lancement du téléchargement et de la préparation...")
                 
                 # Étape 1: Téléchargement
@@ -1725,7 +1728,8 @@ def immich_update_worker():
                             filename = path_obj.name
                             final_description_map[filename] = caption
 
-                    immich_status_manager.update_status(message="Préparation des photos...")
+                    with app.app_context():
+                        immich_status_manager.update_status(message=_("Préparation des photos..."))
                     screen_width = config.get("display_width", 1920) # Utiliser la résolution configurée
                     screen_height = config.get("display_height", 1080) # Utiliser la résolution configurée
                     prep_successful = False
@@ -1739,20 +1743,23 @@ def immich_update_worker():
                             prep_successful = True
                     
                     if prep_successful:
-                        immich_status_manager.update_status(message="Mise à jour terminée. Redémarrage du diaporama...")
+                        with app.app_context():
+                            immich_status_manager.update_status(message=_("Mise à jour terminée. Redémarrage du diaporama..."))
                         print("🖼️🔄✅ Mise à jour terminée avec succès. Redémarrage du diaporama.")
                         if is_slideshow_running():
                             restart_slideshow_for_update()
-                        immich_status_manager.update_status(last_run=datetime.now(), message="Dernière mise à jour réussie.")
+                        with app.app_context():
+                            immich_status_manager.update_status(last_run=datetime.now(), message=_("Dernière mise à jour réussie."))
                     else:
-                        immich_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
+                        with app.app_context():
+                            immich_status_manager.update_status(message=_("Mise à jour terminée avec avertissements/erreurs."))
 
             except Exception as e:
                 logger.error(f"🖼️🔄❌ Erreur critique dans le worker : {e}", exc_info=True)
                 immich_status_manager.update_status(message=f"Erreur critique : {e}")
 
         else:
-            status_msg = "Mise à jour automatique désactivée."
+            status_msg = _("Mise à jour automatique désactivée.")
             logger.info(f"🖼️🔄❌ {status_msg}")
             immich_status_manager.update_status(message=status_msg)
         
@@ -1778,7 +1785,8 @@ def samba_update_worker():
         global _samba_first_run_skipped
         if not _samba_first_run_skipped and skip_initial:
             print("[Auto-Update Samba] Import initial skipped as per configuration.")
-            samba_status_manager.update_status(message="Import initial ignoré.")
+            with app.app_context():
+                samba_status_manager.update_status(message=_("Import initial ignoré."))
             _samba_first_run_skipped = True
             # Calculate next run and sleep, then continue to next iteration
             sleep_seconds = (interval_hours * 3600) if is_enabled else (15 * 60)
@@ -1790,12 +1798,14 @@ def samba_update_worker():
             continue # Skip the rest of this iteration
         
         if is_enabled:
-            status_msg = f"Mise à jour auto. activée. Intervalle : {interval_hours}h."
-            logger.info(f"[Auto-Update Samba] {status_msg}")
-            samba_status_manager.update_status(message=status_msg)
+            with app.app_context():
+                status_msg = _("Mise à jour auto. activée. Intervalle : %(hours)sh.", hours=interval_hours)
+                logger.info(f"[Auto-Update Samba] {status_msg}")
+                samba_status_manager.update_status(message=status_msg)
             
             try:
-                samba_status_manager.update_status(message="Lancement de l'import...")
+                with app.app_context():
+                    samba_status_manager.update_status(message=_("Lancement de l'import..."))
                 print("[Auto-Update Samba] Lancement de l'import et de la préparation...")
                 
                 import_success = False
@@ -1808,7 +1818,8 @@ def samba_update_worker():
                         import_success = True
 
                 if import_success:
-                    samba_status_manager.update_status(message="Préparation des photos...")
+                    with app.app_context():
+                        samba_status_manager.update_status(message=_("Préparation des photos..."))
                     # Charger les légendes manuelles pour Samba
                     manual_captions = load_text_states()
                     final_description_map = {}
@@ -1830,18 +1841,22 @@ def samba_update_worker():
                             prep_successful = True
                     
                     if prep_successful:
-                        samba_status_manager.update_status(message="Mise à jour terminée. Redémarrage du diaporama...")
+                        with app.app_context():
+                            samba_status_manager.update_status(message=_("Mise à jour terminée. Redémarrage du diaporama..."))
                         print("[Auto-Update Samba] Mise à jour terminée. Redémarrage du diaporama.")
                         if is_slideshow_running():
                             restart_slideshow_for_update()
-                        samba_status_manager.update_status(last_run=datetime.now(), message="Dernière mise à jour réussie.")
+                        with app.app_context():
+                            samba_status_manager.update_status(last_run=datetime.now(), message=_("Dernière mise à jour réussie."))
                     else:
-                        samba_status_manager.update_status(message="Mise à jour terminée avec avertissements/erreurs.")
+                        with app.app_context():
+                            samba_status_manager.update_status(message=_("Mise à jour terminée avec avertissements/erreurs."))
             except Exception as e:
                 logger.error(f"[Auto-Update Samba] Erreur critique dans le worker : {e}", exc_info=True)
                 samba_status_manager.update_status(message=f"Erreur critique : {e}")
         else:
-            samba_status_manager.update_status(message="Mise à jour automatique Samba désactivée.")
+            with app.app_context():
+                samba_status_manager.update_status(message=_("Mise à jour automatique Samba désactivée."))
         
         sleep_seconds = (interval_hours * 3600) if is_enabled else (15 * 60)
         next_run_time = datetime.now() + timedelta(seconds=sleep_seconds)
@@ -2075,10 +2090,30 @@ def trigger_reboot():
 @app.route('/api/ping', methods=['GET'])
 def ping():
     """Endpoint simple pour vérifier que le serveur est disponible."""
+    # Calcul de la plage d'activité pour informer la page d'update
+    config = load_config()
+    now = datetime.now()
+    is_weekend = now.weekday() >= 5
+    if is_weekend:
+        start_str = config.get("active_start_weekend", config.get("active_start", "07:00"))
+        end_str = config.get("active_end_weekend", config.get("active_end", "23:00"))
+    else:
+        start_str = config.get("active_start_weekday", config.get("active_start", "07:00"))
+        end_str = config.get("active_end_weekday", config.get("active_end", "22:00"))
+    
+    is_active = True
+    try:
+        start_t = datetime.strptime(start_str, "%H:%M").time()
+        end_t = datetime.strptime(end_str, "%H:%M").time()
+        now_t = now.time()
+        is_active = (start_t <= now_t <= end_t) if start_t <= end_t else (now_t >= start_t or now_t <= end_t)
+    except: pass
+
     return jsonify({
         "status": "ok",
         "instance": APP_INSTANCE_ID,
-        "slideshow_running": is_slideshow_running()
+        "slideshow_running": is_slideshow_running(),
+        "is_active_hours": is_active
     })
 
 

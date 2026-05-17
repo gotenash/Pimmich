@@ -6,7 +6,7 @@ from deep_translator import GoogleTranslator
 
 def protect_placeholders(text):
     """Remplace les placeholders par des balises non traduisibles."""
-    placeholders = re.findall(r'%\([a-zA-Z0-9_]+\)s|%s|%d', text)
+    placeholders = re.findall(r'%\([a-zA-Z0-9_]+\)s|%s|%d|%%', text)
     protected_text = text
     for i, p in enumerate(placeholders):
         protected_text = protected_text.replace(p, f'<span class="notranslate">{i}</span>', 1)
@@ -42,6 +42,10 @@ def translate_po_file(file_path, target_lang):
                 
                 # Restaurer les placeholders
                 final_translated_text = restore_placeholders(translated_protected_text, placeholders)
+                
+                # Supprimer le flag 'fuzzy' si présent pour forcer l'affichage
+                if 'fuzzy' in entry.flags:
+                    entry.flags.remove('fuzzy')
                 
                 entry.msgstr = final_translated_text
                 print(f"  ({i+1}/{len(untranslated_entries)}) '{entry.msgid[:30]}...' -> '{final_translated_text[:30]}...'")

@@ -146,10 +146,11 @@
                     if (data.instance && data.instance !== oldInstance) {
                         log("{{ _('Serveur web en ligne !') }}", 'success');
                         
-                        // On attend que le diaporama soit aussi prêt
-                        if (data.slideshow_running) {
+                        // On valide si le diaporama tourne OU si on est hors plage horaire
+                        if (data.slideshow_running || data.is_active_hours === false) {
                             setStep('step-reboot', 'done');
-                            log("{{ _('Diaporama prêt ! Redirection...') }}", 'success');
+                            const msg = data.slideshow_running ? "{{ _('Diaporama prêt ! Redirection...') }}" : "{{ _('Système prêt (Mode veille planifié). Redirection...') }}";
+                            log(msg, 'success');
                             setTimeout(() => { window.location.href = '/configure'; }, 2000);
                             return;
                         } else {

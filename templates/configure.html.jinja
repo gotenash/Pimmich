@@ -180,6 +180,12 @@
                 |
                 <a href="?lang=es"
                     class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
+                |
+                <a href="?lang=de"
+                    class="{% if current_lang == 'de' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">DE</a>
+                |
+                <a href="?lang=ja"
+                    class="{% if current_lang == 'ja' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">JA</a>
             </div>
             <div class="logout-link">
                 <a href="/logout">{{ _('Se déconnecter') }}</a>
@@ -205,9 +211,9 @@
             <div id="live-preview-container" class="cadre-bois p-4 flex flex-col items-center">
                 <p id="live-preview-status" class="text-gray-500 italic hidden">{{ _("Le diaporama est arrêté.") }}</p>
 
-                <div class="relative mt-1">
+                <div id="live-preview-box" class="relative mt-1 w-64 h-40 flex items-center justify-center bg-gray-100 rounded-lg shadow-inner overflow-hidden border border-gray-200 hidden">
                     <img id="live-preview-image" src="" alt="{{ _('Photo en cours') }}"
-                        class="mx-auto max-w-xs max-h-32 rounded shadow hidden">
+                        class="max-w-full max-h-full object-contain">
 
                     <!-- Boutons de contrôle toujours visibles, en bas de l'image -->
                     <div id="live-preview-controls"
@@ -339,8 +345,7 @@
                             <option value="portrait" {% if config.get('screen_orientation')=='portrait' %}selected{%
                                 endif %}>{{ _("Portrait (Vertical)") }}</option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">{{ _("Si vous changez l'orientation, pensez à relancer une
-                            préparation des photos (onglet Actions) pour adapter le contenu.") }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ _("Si vous changez l'orientation, pensez à relancer une préparation des photos (onglet Actions) pour adapter le contenu.") }}</p>
                     </div>
 
                     <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -373,8 +378,7 @@
                                 _("Appliquer") }}</button>
                         </div>
                         <span id="resolution-status" class="text-sm mt-2"></span>
-                        <p class="text-xs text-gray-500 mt-1">{{ _("Force une résolution spécifique. Utile si l'écran
-                            n'est pas détecté correctement au démarrage.") }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ _("Force une résolution spécifique. Utile si l'écran n'est pas détecté correctement au démarrage.") }}</p>
                     </div>
 
                     <label for="screen_height_percent">{{ _("Hauteur utile de l'écran (%% affiché) :") }}</label>
@@ -395,28 +399,18 @@
                             title="{{ _('Détecter la résolution de l\'écran actif') }}">{{ _('Détecter') }}</button>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label>
-                            <input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False)
-                                %}checked{% endif %}>
-                            {{ _("Activer l'effet Pan/Zoom sur les photos") }}
-                        </label>
+                        <label><input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False) %}checked{% endif %}>{{ _('Activer l\'effet Pan/Zoom sur les photos') }}</label>
                     </div>
                     <div style="display: flex; align-items: center; margin-top: 8px;">
-                        <label for="pan_zoom_factor" style="min-width: 200px;">{{ _("Amplitude du zoom (ex: 1.15 pour
-                            15%% de zoom) :") }}</label>
+                        <label for="pan_zoom_factor" style="min-width: 200px;">{{ _("Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :") }}</label>
                         <input type="number" step="0.01" id="pan_zoom_factor" name="pan_zoom_factor"
                             value="{{ config.get('pan_zoom_factor', 1.15) }}">
                     </div>
                     <div style="margin-top: 16px;">
-                        <label>
-                            <input type="checkbox" name="transition_enabled" {% if config.get('transition_enabled',
-                                True) %}checked{% endif %}>
-                            {{ _("Activer l'effet de transition entre les photos") }}
-                        </label>
+                        <label><input type="checkbox" name="transition_enabled" {% if config.get('transition_enabled', True) %}checked{% endif %}>{{ _('Activer l\'effet de transition entre les photos') }}</label>
                     </div>
                     <div class="flex items-center mt-2">
-                        <label for="transition_duration" class="w-52 flex-shrink-0">{{ _("Durée de transition (secondes)
-                            :") }}</label>
+                        <label for="transition_duration" class="w-52 flex-shrink-0">{{ _("Durée de transition (secondes) :") }}</label>
                         <input type="number" step="0.1" id="transition_duration" name="transition_duration"
                             value="{{ config.get('transition_duration', 1.0) }}">
                     </div>
@@ -436,47 +430,27 @@
                         </select>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label for="favorite_boost_factor">{{ _("Fréquence des favoris (nombre d'ajouts supplémentaires
-                            dans la liste de lecture) :") }}</label>
+                        <label for="favorite_boost_factor">{{ _("Fréquence des favoris (nombre d'ajouts supplémentaires dans la liste de lecture) :") }}</label>
                         <input type="number" id="favorite_boost_factor" name="favorite_boost_factor"
                             value="{{ config.get('favorite_boost_factor', 2) }}" min="0">
-                        <p class="text-sm text-gray-600 mt-1">{{ _("Ex: 0 = pas de boost, 2 = 3x plus de chances
-                            d'apparaître.") }}</p>
+                        <p class="text-sm text-gray-600 mt-1">{{ _("Ex: 0 = pas de boost, 2 = 3x plus de chances d'apparaître.") }}</p>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label>
-                            <input type="checkbox" name="anniversary_boost_enabled" {% if
-                                config.get('anniversary_boost_enabled', False) %}checked{% endif %}>
-                            {{ _("Activer le boost pour les photos à leur date anniversaire de prise de vue") }}
-                        </label>
+                        <label><input type="checkbox" name="anniversary_boost_enabled" {% if config.get('anniversary_boost_enabled', False) %}checked{% endif %}>{{ _('Activer le boost pour les photos à leur date anniversaire de prise de vue') }}</label>
                     </div>
                     <div style="display: flex; align-items: center; margin-top: 8px;">
                         <label for="anniversary_boost_factor" style="min-width: 200px;">{{ _("Facteur de boost anniversaire :") }}</label>
                         <input type="number" id="anniversary_boost_factor" name="anniversary_boost_factor" value="{{ config.get('anniversary_boost_factor', 2) }}" min="0">
                     </div>
                     <div style="margin-top: 16px;">
-                        <label>
-                            <input type="checkbox" name="slideshow_video_enabled" {% if
-                                config.get('slideshow_video_enabled', True) %}checked{% endif %}>
-                            {{ _("Afficher les vidéos dans le diaporama") }}
-                        </label>
+                        <label><input type="checkbox" name="slideshow_video_enabled" {% if config.get('slideshow_video_enabled', True) %}checked{% endif %}>{{ _('Afficher les vidéos dans le diaporama') }}</label>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label>
-                            <input type="checkbox" id="video_audio_enabled" name="video_audio_enabled" {% if
-                                config.get('video_audio_enabled', False) %}checked{% endif %}>
-                            {{ _("Activer le son pour les vidéos") }}
-                        </label>
+                        <label><input type="checkbox" id="video_audio_enabled" name="video_audio_enabled" {% if config.get('video_audio_enabled', False) %}checked{% endif %}>{{ _('Activer le son pour les vidéos') }}</label>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label>
-                            <input type="checkbox" name="video_hwdec_enabled" {% if config.get('video_hwdec_enabled',
-                                False) %}checked{% endif %}>
-                            {{ _("Activer le décodage vidéo matériel (plus fluide, mais peut être instable)") }}
-                        </label>
-                        <p class="text-sm text-gray-600 mt-1">{{ _("Cochez cette case pour une lecture plus fluide sur
-                            les Raspberry Pi. Décochez si vous rencontrez des écrans bleus/noirs après les vidéos.") }}
-                        </p>
+                        <label><input type="checkbox" name="video_hwdec_enabled" {% if config.get('video_hwdec_enabled', False) %}checked{% endif %}>{{ _('Activer le décodage vidéo matériel (plus fluide, mais peut être instable)') }}</label>
+                        <p class="text-sm text-gray-600 mt-1">{{ _("Cochez cette case pour une lecture plus fluide sur les Raspberry Pi. Décochez si vous rencontrez des écrans bleus/noirs après les vidéos.") }}</p>
                     </div>
                     <div id="audio-output-selector"
                         style="display: flex; align-items: center; margin-top: 8px; {% if not config.get('video_audio_enabled', False) %}display: none;{% endif %}">
@@ -506,11 +480,8 @@
                     <legend>
                         <h3><i class="fas fa-plug mr-2"></i>{{ _("Gestion de l'alimentation (Prise Connectée)") }}</h3>
                     </legend>
-                    <p class="text-sm text-gray-600 mb-3">
-                        {{ _("Si votre écran ne se met pas complètement en veille, vous pouvez utiliser une prise
-                        connectée (Wi-Fi) pour couper son alimentation. Pimmich enverra une simple requête HTTP aux URLs
-                        que vous spécifiez.") }}<br>
-                        <strong>{{ _("Exemples d'URLs :") }}</strong>
+                    <p class="text-sm text-gray-600 mb-3">{{ _("Si votre écran ne se met pas complètement en veille, vous pouvez utiliser une prise connectée (Wi-Fi) pour couper son alimentation. Pimmich enverra une simple requête HTTP aux URLs que vous spécifiez.") }}<br>
+                    <strong>{{ _("Exemples d'URLs :") }}</strong>
                     <ul class="list-disc list-inside text-xs text-gray-500 mt-1">
                         <li><strong>Tasmota:</strong> `http://IP_PRISE/cm?cmnd=Power%20On`</li>
                         <li><strong>Home Assistant (Webhook):</strong> `http://IP_HA:8123/api/webhook/pimmich_on`</li>
@@ -567,9 +538,7 @@
                             <input type="number" id="smart_plug_on_delay" name="smart_plug_on_delay"
                                 value="{{ config.get('smart_plug_on_delay', 5) }}" min="0" max="30"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:w-32">
-                            <p class="text-xs text-gray-500 mt-1">{{ _("Temps d'attente pour que l'écran s'initialise
-                                avant de forcer la résolution. Augmentez si la résolution est toujours incorrecte.") }}
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1">{{ _("Temps d'attente pour que l'écran s'initialise avant de forcer la résolution. Augmentez si la résolution est toujours incorrecte.") }}</p>
                         </div>
                         <div class="pt-4 border-t">
                             <label for="smart_plug_status_url" class="block text-sm font-medium text-gray-700">{{ _("URL
@@ -588,8 +557,7 @@
                             <input type="password" id="home_assistant_token" name="home_assistant_token"
                                 value="{{ config.get('home_assistant_token', '') }}"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            <p class="text-xs text-gray-500 mt-1">{{ _("Créez un \"Token d'accès longue durée\" dans
-                                votre profil Home Assistant.") }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ _("Créez un \"Token d'accès longue durée\" dans votre profil Home Assistant.") }}</p>
                         </div>
                         <span id="plug-test-status" class="text-sm font-medium"></span>
                     </div>
@@ -1011,9 +979,7 @@
                         <label class="form-check-label" for="skip_initial_auto_import">{{ _("Ignorer le premier import
                             automatique au démarrage") }}</label>
                     </div>
-                    <p class="text-sm text-gray-600 mt-2">{{ _("Si cette option est cochée, les mises à jour
-                        automatiques (Immich, Samba) ne se lanceront pas immédiatement après un redémarrage du cadre,
-                        mais attendront le prochain cycle programmé.") }}</p>
+                    <p class="text-sm text-gray-600 mt-2">{{ _("Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne se lanceront pas immédiatement après un redémarrage du cadre, mais attendront le prochain cycle programmé.") }}</p>
                 </fieldset>
             </div>
 
@@ -1303,8 +1269,7 @@
                         <input type="text" id="photo_date_format" name="photo_date_format"
                             value="{{ config.get('photo_date_format', '%Y') }}"
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                        <p class="text-xs text-gray-500 mt-1">{{ _("Utilise les codes de formatage Python (ex:
-                            %%d/%%m/%%Y, %%B %%Y).") }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ _('Utilise les codes de formatage Python (ex: %%d/%%m/%%Y, %%B %%Y).') }}</p>
                     </div>
 
                     <!-- Location -->
@@ -1467,8 +1432,7 @@
                         <input class="form-check-input" type="checkbox" id="photo_metadata_background_enabled"
                             name="photo_metadata_background_enabled" {% if
                             config.get('photo_metadata_background_enabled') %}checked{% endif %}>
-                        <label class="form-check-label" for="photo_metadata_background_enabled">{{ _("Afficher un fond
-                            semi-transparent derrière les métadonnées") }}</label>
+                        <label class="form-check-label" for="photo_metadata_background_enabled">{{ _("Afficher un fond semi-transparent derrière les métadonnées") }}</label>
                     </div>
                     <div class="mb-4">
                         <label for="photo_metadata_background_color" class="block text-sm font-medium text-gray-700">{{
@@ -1973,8 +1937,7 @@
                         <h4 class="text-xl font-semibold text-gray-800">{{ source_name.capitalize() }}</h4>
                         <div class="flex items-center gap-x-4">
                             <!-- Compteur de photos -->
-                            <span class="text-sm text-gray-500 font-medium">{{ ngettext('%(num)d photo', '%(num)d
-                                photos', photos|length) }}</span>
+                            <span class="text-sm text-gray-500 font-medium">{{ ngettext('%(num)d photo', '%(num)d photos', photos|length) }}</span>
                             <!-- Bouton pour supprimer tous les médias de la source -->
                             <button type="button"
                                 class="delete-all-btn bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded inline-flex items-center"
@@ -2060,20 +2023,30 @@
                                 {% endif %}
                                 <div class="flex justify-end items-center w-full gap-x-2">
                                     <button type="button"
-                                        class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2"
+                                        class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center"
                                         data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i
                                             class="fas fa-list-ul"></i></button>
                                     <button type="button"
-                                        class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}"
+                                        class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 inline-flex items-center justify-center {% if media.is_favorite %}text-yellow-400{% endif %}"
                                         data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                             class="fas fa-star"></i></button>
+                                    {% if source_name in ['telegram', 'invités'] %}
+                                    <button type="button" 
+                                       class="save-original-btn text-gray-400 hover:text-green-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center"
+                                       data-url="{{ url_for('static', filename='photos/' + media.path) }}"
+                                       data-filename="{{ media.path.split('/')[-1] }}"
+                                       data-photo="{{ photo_path }}"
+                                       title="{{ _('Sauvegarder la photo originale') }}">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                    {% endif %}
                                     {% if media.is_anniversary %}
-                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center border border-blue-400 bg-transparent" title="{{ _('Photo anniversaire !') }}">
+                                    <button type="button" class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center cursor-default" title="{{ _('Photo anniversaire !') }}">
                                         <i class="fas fa-birthday-cake"></i>
-                                    </span>
+                                    </button>
                                     {% endif %}
                                     <button type="button"
-                                        class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2"
+                                        class="delete-button text-gray-400 hover:text-red-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center"
                                         data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i
                                             class="fas fa-trash-alt"></i></button>
                                 </div>
@@ -2262,20 +2235,30 @@
                             {% endif %}
                             <div class="flex justify-end items-center w-full gap-x-2">
                                 <button type="button"
-                                    class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2"
+                                    class="add-to-playlist-btn text-gray-400 hover:text-blue-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center"
                                     data-photo="{{ photo_path }}" title="{{ _('Ajouter à une playlist') }}"><i
                                         class="fas fa-list-ul"></i></button>
                                 <button type="button"
-                                    class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 {% if media.is_favorite %}text-yellow-400{% endif %}"
+                                    class="favorite-btn text-gray-400 hover:text-yellow-400 text-xs rounded py-1 px-2 inline-flex items-center justify-center {% if media.is_favorite %}text-yellow-400{% endif %}"
                                     data-photo="{{ photo_path }}" title="{{ _('Mettre en favori') }}"><i
                                         class="fas fa-star"></i></button>
+                                {% if media.path.split('/')[0] in ['telegram', 'invités'] %}
+                                <button type="button" 
+                                   class="save-original-btn text-gray-400 hover:text-green-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center"
+                                   data-url="{{ url_for('static', filename='photos/' + media.path) }}"
+                                   data-filename="{{ media.path.split('/')[-1] }}"
+                                   data-photo="{{ photo_path }}"
+                                   title="{{ _('Sauvegarder la photo originale') }}">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                {% endif %}
                                     {% if media.is_anniversary %}
-                                    <span class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center border border-blue-400 bg-transparent" title="{{ _('Photo anniversaire !') }}">
+                                <button type="button" class="text-pink-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center cursor-default" title="{{ _('Photo anniversaire !') }}">
                                         <i class="fas fa-birthday-cake"></i>
-                                    </span>
+                                    </button>
                                     {% endif %}
                                 <button type="button"
-                                    class="delete-button bg-gray-500 hover:bg-gray-600 text-white text-xs rounded py-1 px-2"
+                                    class="delete-button text-gray-400 hover:text-red-500 text-xs rounded py-1 px-2 inline-flex items-center justify-center"
                                     data-photo="{{ photo_path }}" title="{{ _('Supprimer ce média') }}"><i
                                         class="fas fa-trash-alt"></i></button>
                             </div>
@@ -2323,11 +2306,11 @@
                 headerSignal: "{{ _('Signal') }}",
                 noSecurity: "{{ _('Aucune') }}",
                 favoriteTooltip: "{{ _('Mettre en favori') }}",
-                noFavorites: "{{ _("Vous n'avez aucune photo en favori pour le moment.") }}",
+                noFavorites: "{{ _('Vous n\'avez aucune photo en favori pour le moment.') }}",
+                noPhotosInPlaylist: "{{ _('Cette playlist est vide.') }}",
     polaroidPlaceholder: "{{ _('Ajouter une légende...') }}",
                 selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
             };
-
 
             // Ajouter les traductions pour l'onglet Telegram
             i18n.testing = "{{ _('Test en cours...') }}";
@@ -2830,7 +2813,7 @@
                         playlistEl.className = 'playlist-card p-4 bg-white border rounded-lg shadow-sm';
                         playlistEl.dataset.id = playlist.id;
 
-                        let photosHtml = `<p class="text-sm italic text-gray-500 col-span-full">${i18n.noPhotosInPlaylist || 'Cette playlist est vide.'}</p>`;
+                        let photosHtml = `<p class="text-sm italic text-gray-500 col-span-full">${i18n.noPhotosInPlaylist}</p>`;
                         if (playlist.photos.length > 0) {
                             photosHtml = playlist.photos.map(photoPath => {
                                 const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(photoPath);
@@ -3512,6 +3495,21 @@
                     } else if (!event.target.closest('.add-to-playlist-menu')) {
                         // Fermer tous les menus si on clique en dehors
                         document.querySelectorAll('.add-to-playlist-menu').forEach(m => m.classList.add('hidden'));
+                    }
+                });
+
+                // --- Gestion du téléchargement des photos originales ---
+                document.body.addEventListener('click', (event) => {
+                    const btn = event.target.closest('.save-original-btn');
+                    if (btn && btn.tagName === 'BUTTON') {
+                        const url = btn.dataset.url;
+                        const filename = btn.dataset.filename;
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
                     }
                 });
 
@@ -4548,6 +4546,7 @@
                     const actionsLivePreviewStatus = document.getElementById('live-preview-status');
                     const actionsLivePreviewImage = document.getElementById('live-preview-image');
                     const actionsLivePreviewControls = document.getElementById('live-preview-controls');
+                    const actionsLivePreviewBox = document.getElementById('live-preview-box');
 
                     // Get elements for the 'Playlists' tab
                     const playlistLivePreviewStatus = document.getElementById('playlist-live-preview-status');
@@ -4561,7 +4560,7 @@
                         const data = await response.json();
 
                         // Function to update a specific set of live preview elements
-                        function updateElements(statusElement, imageElement, controlsElement) {
+                        function updateElements(statusElement, imageElement, controlsElement, boxElement) {
                             if (!statusElement || !imageElement) return; // Skip if elements don't exist
 
                             if (data.status === 'stopped') {
@@ -4569,6 +4568,7 @@
                                 statusElement.classList.remove('hidden');
                                 imageElement.classList.add('hidden');
                                 if (controlsElement) controlsElement.classList.add('hidden');
+                                if (boxElement) boxElement.classList.add('hidden');
                             } else {
                                 if (data.current_photo) {
                                     // Mettre à jour la source de l'image uniquement si elle a changé
@@ -4578,16 +4578,18 @@
                                     statusElement.classList.add('hidden');
                                     imageElement.classList.remove('hidden');
                                     if (controlsElement) controlsElement.classList.remove('hidden');
+                                    if (boxElement) boxElement.classList.remove('hidden');
                                 } else {
                                     statusElement.textContent = "{{ _('En attente de la prochaine photo...') }}";
                                     statusElement.classList.remove('hidden');
                                     imageElement.classList.add('hidden');
                                     if (controlsElement) controlsElement.classList.add('hidden');
+                                    if (boxElement) boxElement.classList.add('hidden');
                                 }
                             }
                         }
 
-                        updateElements(actionsLivePreviewStatus, actionsLivePreviewImage, actionsLivePreviewControls);
+                        updateElements(actionsLivePreviewStatus, actionsLivePreviewImage, actionsLivePreviewControls, actionsLivePreviewBox);
                         updateElements(playlistLivePreviewStatus, playlistLivePreviewImage);
                     } catch (error) {
                         console.error('Erreur de mise à jour de l\'aperçu en direct:', error);
@@ -5133,9 +5135,4 @@
         </script>
 
 </body>
-
-</html> </script>
-
-</body>
-
 </html>

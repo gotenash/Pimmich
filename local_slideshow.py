@@ -23,6 +23,9 @@ from utils.text_drawer import draw_text_with_outline
 from utils.metadata_utils import get_photo_metadata, load_photo_metadata_cache # Import from new utility
 from utils.config_manager import load_config
 
+# Helper minimal pour l'extraction des traductions (Pybabel)
+def _(text, **kwargs): return text
+
 # Définition des chemins
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PREPARED_BASE_DIR = Path(BASE_DIR) / 'static' / 'prepared'
@@ -968,7 +971,7 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                     tide_text = " | ".join(tide_parts)
             else:
                 # Afficher un message si les données ne sont pas disponibles mais que la fonction est activée
-                tide_text = "Données de marée non disponibles"
+                tide_text = _("Données de marée non disponibles")
                 try:
                     # Utiliser une police légèrement plus petite pour le message d'erreur
                     font_path = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
@@ -1065,7 +1068,8 @@ def draw_overlay(screen, screen_width, screen_height, config, main_font, photo_m
                 if p_date.month == now.month and p_date.day == now.day:
                     years_ago = now.year - p_date.year
                     if years_ago > 0:
-                        metadata_elements.append(f"(Anniversaire) Il y a {years_ago} {'an' if years_ago == 1 else 'ans'}")
+                        msg = _("(Anniversaire) Il y a %(num)d an") if years_ago == 1 else _("(Anniversaire) Il y a %(num)d ans")
+                        metadata_elements.append(msg % {"num": years_ago})
             except:
                 pass
 
@@ -1962,11 +1966,11 @@ def start_slideshow():
 
                 ip_address = get_local_ip()
                 messages = [
-                    (message_font, "Aucune photo trouvée."),
-                    (ip_font, f"Configurez sur : http://{ip_address}"),
-                    (small_font, "(Identifiants dans credentials.json à la racine de la SD)"),
-                    (message_font, f"Résolution de l'écran : [{SCREEN_WIDTH} x {SCREEN_HEIGHT}]"),
-                    (message_font, "Nouvelle tentative dans 60 secondes...")
+                    (message_font, _("Aucune photo trouvée.")),
+                    (ip_font, _("Configurez sur : http://%(ip)s", ip=ip_address)),
+                    (small_font, _("(Identifiants dans credentials.json à la racine de la SD)")),
+                    (message_font, _("Résolution de l'écran : [%(w)s x %(h)s]", w=SCREEN_WIDTH, h=SCREEN_HEIGHT)),
+                    (message_font, _("Nouvelle tentative dans 60 secondes..."))
                 ]
                 
                 line_spacing = 20
@@ -1992,7 +1996,7 @@ def start_slideshow():
                 # Affichage du QR Code
                 if qr_surface:
                     current_y += qr_spacing - line_spacing # Ajuster l'espacement avant le QR
-                    qr_title_text = "Scannez pour configurer"
+                    qr_title_text = _("Scannez pour configurer")
                     qr_title_surface = small_font.render(qr_title_text, True, text_color)
                     qr_title_rect = qr_title_surface.get_rect(centerx=SCREEN_WIDTH // 2, top=current_y)
                     draw_text_with_outline(screen, qr_title_text, small_font, text_color, outline_color, qr_title_rect.topleft, anchor="topleft")
