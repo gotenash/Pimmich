@@ -180,12 +180,6 @@
                 |
                 <a href="?lang=es"
                     class="{% if current_lang == 'es' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">ES</a>
-                |
-                <a href="?lang=de"
-                    class="{% if current_lang == 'de' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">DE</a>
-                |
-                <a href="?lang=ja"
-                    class="{% if current_lang == 'ja' %}font-bold text-indigo-600{% else %}text-blue-600 hover:underline{% endif %}">JA</a>
             </div>
             <div class="logout-link">
                 <a href="/logout">{{ _('Se déconnecter') }}</a>
@@ -399,7 +393,9 @@
                             title="{{ _('Détecter la résolution de l\'écran actif') }}">{{ _('Détecter') }}</button>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label><input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False) %}checked{% endif %}>{{ _('Activer l\'effet Pan/Zoom sur les photos') }}</label>
+                        <label>
+                            <input type="checkbox" name="pan_zoom_enabled" {% if config.get('pan_zoom_enabled', False) %}checked{% endif %}> <span class="ml-2">{{ _("Activer l'effet Pan/Zoom sur les photos") }}</span>
+                        </label>
                     </div>
                     <div style="display: flex; align-items: center; margin-top: 8px;">
                         <label for="pan_zoom_factor" style="min-width: 200px;">{{ _("Amplitude du zoom (ex: 1.15 pour 15%% de zoom) :") }}</label>
@@ -407,7 +403,9 @@
                             value="{{ config.get('pan_zoom_factor', 1.15) }}">
                     </div>
                     <div style="margin-top: 16px;">
-                        <label><input type="checkbox" name="transition_enabled" {% if config.get('transition_enabled', True) %}checked{% endif %}>{{ _('Activer l\'effet de transition entre les photos') }}</label>
+                        <label>
+                            <input type="checkbox" name="transition_enabled" {% if config.get('transition_enabled', True) %}checked{% endif %}> <span class="ml-2">{{ _("Activer l'effet de transition entre les photos") }}</span>
+                        </label>
                     </div>
                     <div class="flex items-center mt-2">
                         <label for="transition_duration" class="w-52 flex-shrink-0">{{ _("Durée de transition (secondes) :") }}</label>
@@ -436,20 +434,30 @@
                         <p class="text-sm text-gray-600 mt-1">{{ _("Ex: 0 = pas de boost, 2 = 3x plus de chances d'apparaître.") }}</p>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label><input type="checkbox" name="anniversary_boost_enabled" {% if config.get('anniversary_boost_enabled', False) %}checked{% endif %}>{{ _('Activer le boost pour les photos à leur date anniversaire de prise de vue') }}</label>
+                        <label>
+                            <input type="checkbox" name="anniversary_boost_enabled" {% if
+                                config.get('anniversary_boost_enabled', False) %}checked{% endif %}>
+                            {{ _("Activer le boost pour les photos à leur date anniversaire de prise de vue") }}
+                        </label>
                     </div>
                     <div style="display: flex; align-items: center; margin-top: 8px;">
                         <label for="anniversary_boost_factor" style="min-width: 200px;">{{ _("Facteur de boost anniversaire :") }}</label>
                         <input type="number" id="anniversary_boost_factor" name="anniversary_boost_factor" value="{{ config.get('anniversary_boost_factor', 2) }}" min="0">
                     </div>
                     <div style="margin-top: 16px;">
-                        <label><input type="checkbox" name="slideshow_video_enabled" {% if config.get('slideshow_video_enabled', True) %}checked{% endif %}>{{ _('Afficher les vidéos dans le diaporama') }}</label>
+                        <label>
+                            <input type="checkbox" name="slideshow_video_enabled" {% if config.get('slideshow_video_enabled', True) %}checked{% endif %}> <span class="ml-2">{{ _("Afficher les vidéos dans le diaporama") }}</span>
+                        </label>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label><input type="checkbox" id="video_audio_enabled" name="video_audio_enabled" {% if config.get('video_audio_enabled', False) %}checked{% endif %}>{{ _('Activer le son pour les vidéos') }}</label>
+                        <label>
+                            <input type="checkbox" id="video_audio_enabled" name="video_audio_enabled" {% if config.get('video_audio_enabled', False) %}checked{% endif %}> <span class="ml-2">{{ _("Activer le son pour les vidéos") }}</span>
+                        </label>
                     </div>
                     <div style="margin-top: 16px;">
-                        <label><input type="checkbox" name="video_hwdec_enabled" {% if config.get('video_hwdec_enabled', False) %}checked{% endif %}>{{ _('Activer le décodage vidéo matériel (plus fluide, mais peut être instable)') }}</label>
+                        <label>
+                            <input type="checkbox" name="video_hwdec_enabled" {% if config.get('video_hwdec_enabled', False) %}checked{% endif %}> <span class="ml-2">{{ _("Activer le décodage vidéo matériel (plus fluide, mais peut être instable)") }}</span>
+                        </label>
                         <p class="text-sm text-gray-600 mt-1">{{ _("Cochez cette case pour une lecture plus fluide sur les Raspberry Pi. Décochez si vous rencontrez des écrans bleus/noirs après les vidéos.") }}</p>
                     </div>
                     <div id="audio-output-selector"
@@ -572,9 +580,7 @@
 
                     <div style="margin-bottom: 8px;">
                         <label>
-                            <input type="checkbox" name="show_clock" {% if config.get('show_clock', False) %}checked{%
-                                endif %}>
-                            {{ _("Afficher l'heure") }}
+                            <input type="checkbox" name="show_clock" {% if config.get('show_clock', False) %}checked{% endif %}> <span class="ml-2">{{ _("Afficher l'heure") }}</span>
                         </label>
                     </div>
 
@@ -635,9 +641,7 @@
                     </div>
                     <div style="margin-bottom: 8px;">
                         <label>
-                            <input type="checkbox" name="clock_background_enabled" {% if
-                                config.get('clock_background_enabled', False) %}checked{% endif %}>
-                            {{ _("Afficher un fond derrière l'heure/date/météo") }}
+                            <input type="checkbox" name="clock_background_enabled" {% if config.get('clock_background_enabled', False) %}checked{% endif %}> <span class="ml-2">{{ _("Afficher un fond derrière l'heure/date/météo") }}</span>
                         </label>
                     </div>
                     <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -652,9 +656,7 @@
                     <legend><strong>{{ _("Affichage de la date") }}</strong></legend>
                     <div style="margin-bottom: 8px;">
                         <label>
-                            <input type="checkbox" name="show_date" {% if config.get('show_date', False) %}checked{%
-                                endif %}>
-                            {{ _("Afficher la date (sous l'heure)") }}
+                            <input type="checkbox" name="show_date" {% if config.get('show_date', False) %}checked{% endif %}> <span class="ml-2">{{ _("Afficher la date (sous l'heure)") }}</span>
                         </label>
                     </div>
                     <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -668,9 +670,7 @@
 
                     <div style="margin-bottom: 8px;">
                         <label>
-                            <input type="checkbox" name="show_weather" {% if config.get('show_weather', False)
-                                %}checked{% endif %}>
-                            {{ _("Afficher la météo") }}
+                            <input type="checkbox" name="show_weather" {% if config.get('show_weather', False) %}checked{% endif %}> <span class="ml-2">{{ _("Afficher la météo") }}</span>
                         </label>
                     </div>
 
@@ -723,9 +723,7 @@
 
                     <div style="margin-bottom: 8px;">
                         <label>
-                            <input type="checkbox" name="show_tides" {% if config.get('show_tides', False) %}checked{%
-                                endif %}>
-                            {{ _("Afficher les informations de marée") }}
+                            <input type="checkbox" name="show_tides" {% if config.get('show_tides', False) %}checked{% endif %}> <span class="ml-2">{{ _("Afficher les informations de marée") }}</span>
                         </label>
                     </div>
 
@@ -849,10 +847,8 @@
                     <hr class="my-4">
                     <h5 class="text-lg font-semibold mt-2">{{ _("Mise à jour automatique (Immich)") }}</h5>
                     <div class="form-check form-switch my-3">
-                        <input class="form-check-input" type="checkbox" id="immich_auto_update"
-                            name="immich_auto_update" {% if config.get('immich_auto_update') %}checked{% endif %}>
-                        <label class="form-check-label" for="immich_auto_update">{{ _("Activer la mise à jour
-                            automatique") }}</label>
+                        <input class="form-check-input" type="checkbox" id="immich_auto_update" name="immich_auto_update" {% if config.get('immich_auto_update') %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="immich_auto_update">{{ _("Activer la mise à jour automatique") }}</label>
                     </div>
                     <label for="immich_update_interval_hours">{{ _("Intervalle de mise à jour (heures):") }}</label>
                     <input type="number" id="immich_update_interval_hours" name="immich_update_interval_hours"
@@ -878,41 +874,28 @@
                         Les photos seront mélangées entre les sources sélectionnées.") }}</p>
 
                     <div class="form-check form-switch my-2">
-                        <input class="form-check-input" type="checkbox" id="display_source_immich"
-                            name="display_sources" value="immich" {% if 'immich' in config.display_sources %}checked{%
-                            endif %}>
-                        <label class="form-check-label" for="display_source_immich">{{ _("Photos Immich") }}</label>
+                        <input class="form-check-input" type="checkbox" id="display_source_immich" name="display_sources" value="immich" {% if 'immich' in config.display_sources %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="display_source_immich">{{ _("Photos Immich") }}</label>
                     </div>
                     <div class="form-check form-switch my-2">
-                        <input class="form-check-input" type="checkbox" id="display_source_usb" name="display_sources"
-                            value="usb" {% if 'usb' in config.display_sources %}checked{% endif %}>
-                        <label class="form-check-label" for="display_source_usb">{{ _("Photos USB") }}</label>
+                        <input class="form-check-input" type="checkbox" id="display_source_usb" name="display_sources" value="usb" {% if 'usb' in config.display_sources %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="display_source_usb">{{ _("Photos USB") }}</label>
                     </div>
                     <div class="form-check form-switch my-2">
-                        <input class="form-check-input" type="checkbox" id="display_source_samba" name="display_sources"
-                            value="samba" {% if 'samba' in config.display_sources %}checked{% endif %}>
-                        <label class="form-check-label" for="display_source_samba">{{ _("Photos Samba") }}</label>
+                        <input class="form-check-input" type="checkbox" id="display_source_samba" name="display_sources" value="samba" {% if 'samba' in config.display_sources %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="display_source_samba">{{ _("Photos Samba") }}</label>
                     </div>
                     <div class="form-check form-switch my-2">
-                        <input class="form-check-input" type="checkbox" id="display_source_smartphone"
-                            name="display_sources" value="smartphone" {% if 'smartphone' in config.display_sources
-                            %}checked{% endif %}>
-                        <label class="form-check-label" for="display_source_smartphone">{{ _("Photos Smartphone")
-                            }}</label>
+                        <input class="form-check-input" type="checkbox" id="display_source_smartphone" name="display_sources" value="smartphone" {% if 'smartphone' in config.display_sources %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="display_source_smartphone">{{ _("Photos Smartphone") }}</label>
                     </div>
                     <div class="form-check form-switch my-2">
-                        <input class="form-check-input" type="checkbox" id="display_source_telegram"
-                            name="display_sources" value="telegram" {% if 'telegram' in config.display_sources
-                            %}checked{% endif %}>
-                        <label class="form-check-label" for="display_source_telegram">{{ _('Photos reçues par Telegram')
-                            }}</label>
+                        <input class="form-check-input" type="checkbox" id="display_source_telegram" name="display_sources" value="telegram" {% if 'telegram' in config.display_sources %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="display_source_telegram">{{ _('Photos reçues par Telegram') }}</label>
                     </div>
                     <div class="form-check form-switch my-2">
-                        <input class="form-check-input" type="checkbox" id="display_source_invites"
-                            name="display_sources" value="invités" {% if 'invités' in config.display_sources %}checked{%
-                            endif %}>
-                        <label class="form-check-label" for="display_source_invites">{{ _('Photos des invités
-                            (validées)') }}</label>
+                        <input class="form-check-input" type="checkbox" id="display_source_invites" name="display_sources" value="invités" {% if 'invités' in config.display_sources %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="display_source_invites">{{ _('Photos des invités (validées)') }}</label>
                     </div>
                 </fieldset>
                 <fieldset class="mt-4">
@@ -948,10 +931,8 @@
                     <hr class="my-4">
                     <h5 class="text-lg font-semibold mt-2">{{ _("Mise à jour automatique (Samba)") }}</h5>
                     <div class="form-check form-switch my-3">
-                        <input class="form-check-input" type="checkbox" id="smb_auto_update" name="smb_auto_update" {%
-                            if config.get('smb_auto_update') %}checked{% endif %}>
-                        <label class="form-check-label" for="smb_auto_update">{{ _("Activer la mise à jour automatique")
-                            }}</label>
+                        <input class="form-check-input" type="checkbox" id="smb_auto_update" name="smb_auto_update" {% if config.get('smb_auto_update') %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="smb_auto_update">{{ _("Activer la mise à jour automatique") }}</label>
                     </div>
                     <label for="smb_update_interval_hours">{{ _("Intervalle de mise à jour (heures):") }}</label>
                     <input type="number" id="smb_update_interval_hours" name="smb_update_interval_hours"
@@ -973,11 +954,8 @@
                         <h3>{{ _("Options de démarrage") }}</h3>
                     </legend>
                     <div class="form-check form-switch my-3">
-                        <input class="form-check-input" type="checkbox" id="skip_initial_auto_import"
-                            name="skip_initial_auto_import" {% if config.get('skip_initial_auto_import', False)
-                            %}checked{% endif %}>
-                        <label class="form-check-label" for="skip_initial_auto_import">{{ _("Ignorer le premier import
-                            automatique au démarrage") }}</label>
+                        <input class="form-check-input" type="checkbox" id="skip_initial_auto_import" name="skip_initial_auto_import" {% if config.get('skip_initial_auto_import', False) %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="skip_initial_auto_import">{{ _("Ignorer le premier import automatique au démarrage") }}</label>
                     </div>
                     <p class="text-sm text-gray-600 mt-2">{{ _("Si cette option est cochée, les mises à jour automatiques (Immich, Samba) ne se lanceront pas immédiatement après un redémarrage du cadre, mais attendront le prochain cycle programmé.") }}</p>
                 </fieldset>
@@ -999,10 +977,7 @@
                     </p>
 
                     <div style="margin-top: 16px;">
-                        <label>
-                            <input type="checkbox" name="telegram_bot_enabled" {% if config.get('telegram_bot_enabled',
-                                False) %}checked{% endif %}>
-                            {{ _("Activer le bot de réception Telegram") }}
+                        <label><input type="checkbox" name="telegram_bot_enabled" {% if config.get('telegram_bot_enabled', False) %}checked{% endif %}> <span class="ml-2">{{ _("Activer le bot de réception Telegram") }}</span>
                         </label>
                     </div>
 
@@ -1151,10 +1126,8 @@
                     </div>
 
                     <div class="form-check form-switch my-3">
-                        <input class="form-check-input" type="checkbox" id="voice_control_enabled"
-                            name="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
-                        <label class="form-check-label" for="voice_control_enabled">{{ _("Activer le contrôle vocal
-                            (action immédiate)") }}</label>
+                        <input class="form-check-input" type="checkbox" id="voice_control_enabled" name="voice_control_enabled" {% if config.get('voice_control_enabled') %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="voice_control_enabled">{{ _("Activer le contrôle vocal (action immédiate)") }}</label>
                     </div>
 
                     <div class="mt-4">
@@ -1258,10 +1231,8 @@
 
                     <!-- Date -->
                     <div class="form-check form-switch my-3">
-                        <input class="form-check-input" type="checkbox" id="show_photo_date" name="show_photo_date" {%
-                            if config.get('show_photo_date') %}checked{% endif %}>
-                        <label class="form-check-label" for="show_photo_date">{{ _("Afficher la date de prise de vue")
-                            }}</label>
+                        <input class="form-check-input" type="checkbox" id="show_photo_date" name="show_photo_date" {% if config.get('show_photo_date') %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="show_photo_date">{{ _("Afficher la date de prise de vue") }}</label>
                     </div>
                     <div class="mb-4">
                         <label for="photo_date_format" class="block text-sm font-medium text-gray-700">{{ _("Format de
@@ -1269,15 +1240,13 @@
                         <input type="text" id="photo_date_format" name="photo_date_format"
                             value="{{ config.get('photo_date_format', '%Y') }}"
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                        <p class="text-xs text-gray-500 mt-1">{{ _('Utilise les codes de formatage Python (ex: %%d/%%m/%%Y, %%B %%Y).') }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ _("Utilise les codes de formatage Python (ex: %%d/%%m/%%Y, %%B %%Y).") }}</p>
                     </div>
 
                     <!-- Location -->
                     <div class="form-check form-switch my-3">
-                        <input class="form-check-input" type="checkbox" id="show_photo_location"
-                            name="show_photo_location" {% if config.get('show_photo_location') %}checked{% endif %}>
-                        <label class="form-check-label" for="show_photo_location">{{ _("Afficher la localisation
-                            (ville/pays)") }}</label>
+                        <input class="form-check-input" type="checkbox" id="show_photo_location" name="show_photo_location" {% if config.get('show_photo_location') %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="show_photo_location">{{ _("Afficher la localisation (ville/pays)") }}</label>
                     </div>
                     <div class="mb-4">
                         <label for="photo_location_format" class="block text-sm font-medium text-gray-700">{{ _("Format
@@ -1295,10 +1264,8 @@
 
                     <!-- Country Flag -->
                     <div class="form-check form-switch my-3">
-                        <input class="form-check-input" type="checkbox" id="show_country_flag" name="show_country_flag"
-                            {% if config.get('show_country_flag') %}checked{% endif %}>
-                        <label class="form-check-label" for="show_country_flag">{{ _("Afficher le drapeau du pays")
-                            }}</label>
+                        <input class="form-check-input" type="checkbox" id="show_country_flag" name="show_country_flag" {% if config.get('show_country_flag') %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="show_country_flag">{{ _("Afficher le drapeau du pays") }}</label>
                     </div>
                     <div class="mb-4">
                         <label for="country_flag_size" class="block text-sm font-medium text-gray-700">{{ _("Taille du
@@ -1429,10 +1396,8 @@
 
                     <!-- Background -->
                     <div class="form-check form-switch my-3 pt-4 border-t">
-                        <input class="form-check-input" type="checkbox" id="photo_metadata_background_enabled"
-                            name="photo_metadata_background_enabled" {% if
-                            config.get('photo_metadata_background_enabled') %}checked{% endif %}>
-                        <label class="form-check-label" for="photo_metadata_background_enabled">{{ _("Afficher un fond semi-transparent derrière les métadonnées") }}</label>
+                        <input class="form-check-input" type="checkbox" id="photo_metadata_background_enabled" name="photo_metadata_background_enabled" {% if config.get('photo_metadata_background_enabled') %}checked{% endif %}>
+                        <label class="form-check-label ml-2" for="photo_metadata_background_enabled">{{ _("Afficher un fond semi-transparent derrière les métadonnées") }}</label>
                     </div>
                     <div class="mb-4">
                         <label for="photo_metadata_background_color" class="block text-sm font-medium text-gray-700">{{
@@ -1937,7 +1902,8 @@
                         <h4 class="text-xl font-semibold text-gray-800">{{ source_name.capitalize() }}</h4>
                         <div class="flex items-center gap-x-4">
                             <!-- Compteur de photos -->
-                            <span class="text-sm text-gray-500 font-medium">{{ ngettext('%(num)d photo', '%(num)d photos', photos|length) }}</span>
+                            <span class="text-sm text-gray-500 font-medium">{{ ngettext('%(num)d photo', '%(num)d
+                                photos', photos|length) }}</span>
                             <!-- Bouton pour supprimer tous les médias de la source -->
                             <button type="button"
                                 class="delete-all-btn bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded inline-flex items-center"
@@ -2306,11 +2272,12 @@
                 headerSignal: "{{ _('Signal') }}",
                 noSecurity: "{{ _('Aucune') }}",
                 favoriteTooltip: "{{ _('Mettre en favori') }}",
-                noFavorites: "{{ _('Vous n\'avez aucune photo en favori pour le moment.') }}",
+                noFavorites: "{{ _("Vous n'avez aucune photo en favori pour le moment.") }}",
                 noPhotosInPlaylist: "{{ _('Cette playlist est vide.') }}",
     polaroidPlaceholder: "{{ _('Ajouter une légende...') }}",
                 selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
             };
+
 
             // Ajouter les traductions pour l'onglet Telegram
             i18n.testing = "{{ _('Test en cours...') }}";
