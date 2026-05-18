@@ -49,6 +49,7 @@ paused = False
 next_photo_requested = False
 previous_photo_requested = False
 
+_current_background_music = None # Pour rejouer après une vidéo
 # Chemin et cache pour les codes pays ISO 3166 (drapeaux)
 COUNTRY_CODES_PATH = Path(BASE_DIR) / 'static' / 'flags' / 'country_codes.json'
 _country_codes_cache = None  # Cache chargé une fois
@@ -1588,9 +1589,36 @@ def fade_to_black(screen, previous_surface, duration, clock):
         screen.blit(black_surface, (0, 0))
         pygame.display.flip()
         clock.tick(60)
+        
+def play_background_music(filename):
+    """Charge et joue une musique de fond en boucle."""
+    if not filename: return
+    music_path = Path(BASE_DIR) / 'static' / 'music' / filename
+    if music_path.exists():
+        try:
+            if not pygame.mixer.get_init(): pygame.mixer.init()
+            pygame.mixer.music.load(str(music_path))
+            pygame.mixer.music.play(-1) # -1 pour boucler à l'infini
+            logger.info(f"🎵 Musique de fond lancée : {filename}")
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de la lecture de la musique : {e}")
+        
+def play_background_music(filename):
+    """Charge et joue une musique de fond en boucle."""
+    if not filename: return
+    music_path = Path(BASE_DIR) / 'static' / 'music' / filename
+    if music_path.exists():
+        try:
+            if not pygame.mixer.get_init(): pygame.mixer.init()
+            pygame.mixer.music.load(str(music_path))
+            pygame.mixer.music.play(-1) # -1 pour boucler à l'infini
+            logger.info(f"🎵 Musique de fond lancée : {filename}")
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de la lecture de la musique : {e}")
 
 def display_video(screen, video_path, screen_width, screen_height, config, main_font, previous_surface, clock):
     """Affiche une vidéo en plein écran en utilisant le lecteur externe mpv."""
+    global _current_background_music
     audio_enabled = config.get("video_audio_enabled", False)
     audio_output = config.get("video_audio_output", "auto")
     audio_volume = int(config.get("video_audio_volume", 100))
@@ -1599,6 +1627,8 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
 
     # Libérer le mixer de Pygame avant de lancer la vidéo pour éviter les conflits
     if audio_enabled:
+        if pygame.mixer.music.get_busy():
+            pygame.mixer.music.stop()
         logger.info(f"📸 Quitting pygame.mixer to free audio device for mpv.")
         pygame.mixer.quit()
 
@@ -1683,9 +1713,15 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                 pygame.mixer.init()
             except pygame.error as e:
                 logger.info(f"AVERTISSEMENT: Impossible de réinitialiser pygame.mixer: {e}")
+        
+        # Relancer la musique de fond de la playlist si nécessaire
+        if _current_background_music:
+            play_background_music(_current_background_music)
+
 
 # Boucle principale du diaporama
 def start_slideshow():
+    global _current_background_music
     try:
         logger.debug(f"📸 Starting slideshow initialization.")
         config = load_config()
@@ -1795,6 +1831,12 @@ def start_slideshow():
                 
                 # Convertir les chemins relatifs en chemins absolus
                 custom_playlist = [str(Path(BASE_DIR) / 'static' / 'prepared' / p) for p in custom_playlist_paths]
+                
+                # Gestion de la musique
+                _current_background_music = playlist_data.get('music_file')
+                if _current_background_music:
+                    play_background_music(_current_background_music)
+
                 logger.info(f"📸 Playlist personnalisée '{playlist_name or 'Sans nom'}' chargée avec {len(custom_playlist)} photos.")
                 is_custom_run = True # On active le drapeau pour le premier passage
                 os.remove(CUSTOM_PLAYLIST_FILE) # Supprimer pour ne pas la réutiliser au prochain démarrage
@@ -2110,6 +2152,9 @@ def start_slideshow():
             # --- Logique de fin de playlist personnalisée ---
             if is_custom_run:
                 logger.info(f"🖼️ Playlist personnalisée terminée. Retour au diaporama standard.")
+                if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
+                    pygame.mixer.music.fadeout(2000)
+                _current_background_music = None
                 is_custom_run = False # Le prochain tour de boucle while True construira la playlist par défaut.
                 playlist = [] # Vider la playlist pour forcer la reconstruction.
     except KeyboardInterrupt:

@@ -1524,6 +1524,21 @@
                         <div id="smartphone-progress-bar" class="progress-bar"></div>
                     </div>
                     <div id="smartphone-import-status" class="status-messages"></div>
+
+                    <hr class="my-6">
+                    <h5 class="text-lg font-semibold mb-2 flex items-center gap-2"><i class="fas fa-file-audio"></i> {{ _("Importation de musique") }}</h5>
+                    <p class="text-sm text-gray-600 mb-3">{{ _("Téléchargez vos propres fichiers MP3 ou WAV pour accompagner vos playlists.") }}</p>
+                    <div class="flex items-center gap-4">
+                        <input type="file" id="music-upload-input" accept=".mp3,.wav" class="hidden">
+                        <button type="button" onclick="document.getElementById('music-upload-input').click()" class="system-button bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">
+                            <i class="fas fa-music"></i> {{ _("Sélectionner un fichier") }}
+                        </button>
+                        <span id="music-upload-filename" class="text-sm text-gray-500 italic"></span>
+                        <button type="button" id="music-upload-btn" class="hidden bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                            <i class="fas fa-upload"></i> {{ _("Uploader") }}
+                        </button>
+                    </div>
+                    <div id="music-upload-status" class="status-messages mt-2"></div>
                 </div>
             </fieldset>
         </div>
@@ -2107,6 +2122,12 @@
                     <div class="flex items-center gap-4">
                         <input type="text" id="new-playlist-name" class="flex-grow rounded-md border-gray-300 shadow-sm"
                             placeholder="{{ _('Nom de la playlist (ex: Vacances 2024)') }}">
+                        <select id="new-playlist-music" class="rounded-md border-gray-300 shadow-sm">
+                            <option value="">{{ _('Pas de musique') }}</option>
+                        </select>
+                        <button type="button" class="play-music-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-3 rounded text-sm" data-target-select="new-playlist-music" disabled title="{{ _('Écouter la musique') }}">
+                            <i class="fas fa-play"></i>
+                        </button>
                         <button type="button" id="create-playlist-btn"
                             class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
                             <i class="fas fa-plus mr-2"></i>{{ _("Créer") }}
@@ -2280,7 +2301,13 @@
                 favoriteTooltip: "{{ _('Mettre en favori') }}",
                 noFavorites: "{{ _("Vous n'avez aucune photo en favori pour le moment.") }}",
                 noPhotosInPlaylist: "{{ _('Cette playlist est vide.') }}",
-    polaroidPlaceholder: "{{ _('Ajouter une légende...') }}",
+                polaroidPlaceholder: "{{ _('Ajouter une légende...') }}",
+                noMusic: "{{ _('Pas de musique') }}",
+                musicUpdated: "{{ _('Musique de la playlist mise à jour !') }}",
+                errorUpdatingMusic: "{{ _('Erreur lors de la mise à jour de la musique de la playlist.') }}",
+                listenToMusic: "{{ _('Écouter la musique') }}",
+                stopMusic: "{{ _('Arrêter la musique') }}",
+                noMusicSelected: "{{ _('Aucune musique sélectionnée.') }}",
                 selectNetworkTitle: "{{ _('Cliquer pour sélectionner ce réseau') }}"
             };
 
@@ -2786,6 +2813,13 @@
                         playlistEl.className = 'playlist-card p-4 bg-white border rounded-lg shadow-sm';
                         playlistEl.dataset.id = playlist.id;
 
+                        // Construire les options du sélecteur de musique
+                        let musicOptionsHtml = `<option value="">${i18n.noMusic}</option>`;
+                        availableMusicFiles.forEach(file => {
+                            const selected = (playlist.music_file === file) ? 'selected' : '';
+                            musicOptionsHtml += `<option value="${file}" ${selected}>${file}</option>`;
+                        });
+
                         let photosHtml = `<p class="text-sm italic text-gray-500 col-span-full">${i18n.noPhotosInPlaylist}</p>`;
                         if (playlist.photos.length > 0) {
                             photosHtml = playlist.photos.map(photoPath => {
@@ -2825,6 +2859,12 @@
                         <p class="text-sm text-gray-500" id="photo-count-${playlist.id}">${photoCountText}</p>
                     </div>
                     <div class="flex items-center gap-4">
+                        <select class="playlist-music-select text-sm rounded-md border-gray-300 shadow-sm" data-playlist-id="${playlist.id}">
+                            ${musicOptionsHtml}
+                        </select>
+                        <button type="button" class="play-music-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-3 rounded text-sm" data-target-select-id="${playlist.id}" data-music-file="${playlist.music_file || ''}" ${playlist.music_file ? '' : 'disabled'} title="${i18n.listenToMusic}">
+                            <i class="fas fa-play"></i>
+                        </button>
                         <button class="rename-playlist-btn text-gray-500 hover:text-blue-600" data-id="${playlist.id}" title="${i18n.renamePlaylist}">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -2842,6 +2882,29 @@
                 </div>
             `;
                         playlistsContainer.appendChild(playlistEl);
+                    });
+
+                    // Ajouter les écouteurs pour les sélecteurs de musique
+                    document.querySelectorAll('.playlist-music-select').forEach(select => {
+                        select.addEventListener('change', async (event) => {
+                            const playlistId = event.target.dataset.playlistId;
+                            const musicFile = event.target.value;
+                            try {
+                                const response = await fetch(`/api/playlists/${playlistId}/update_music`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ music_file: musicFile })
+                                });
+                                const result = await response.json();
+                                if (result.success) {
+                                    showToast(i18n.musicUpdated);
+                                } else {
+                                    alert(`${i18n.errorPrefix} ${result.message}`);
+                                }
+                            } catch (e) {
+                                alert(i18n.commErrorServer);
+                            }
+                        });
                     });
 
                     // Initialiser le glisser-déposer sur les grilles nouvellement créées
@@ -2914,8 +2977,73 @@
                 }
             }
 
+            let availableMusicFiles = []; 
+
+            async function loadMusicFiles() {
+                try {
+                    const response = await fetch('/api/music_files');
+                    const data = await response.json();
+                    if (data.success) {
+                        availableMusicFiles = data.files;
+                        const newPlaylistMusicSelect = document.getElementById('new-playlist-music');
+                        if (newPlaylistMusicSelect) {
+                            newPlaylistMusicSelect.innerHTML = `<option value="">${i18n.noMusic}</option>`;
+                            availableMusicFiles.forEach(file => {
+                                const option = document.createElement('option');
+                                option.value = file;
+                                option.textContent = file;
+                                newPlaylistMusicSelect.appendChild(option);
+                            });
+                        }
+                    } else { console.error("Error loading music files:", data.message); }
+                } catch (error) { console.error("Communication error loading music files:", error); }
+            }
+
+            let currentAudioPlayer = null;
+            let currentPlayingButton = null;
+
+            function resetPlayButton(button) {
+                if (button) {
+                    button.innerHTML = '<i class="fas fa-play"></i>';
+                    button.title = i18n.listenToMusic;
+                }
+            }
+
+            function toggleMusicPlayback(button, musicFile) {
+                const musicUrl = `/static/music/${musicFile}`;
+                const absoluteMusicUrl = new URL(musicUrl, window.location.origin).href;
+
+                if (currentAudioPlayer && currentAudioPlayer.src !== absoluteMusicUrl) {
+                    currentAudioPlayer.pause();
+                    currentAudioPlayer.currentTime = 0;
+                    resetPlayButton(currentPlayingButton);
+                }
+
+                if (currentAudioPlayer && currentAudioPlayer.src === absoluteMusicUrl && !currentAudioPlayer.paused) {
+                    currentAudioPlayer.pause();
+                    currentAudioPlayer.currentTime = 0;
+                    resetPlayButton(button);
+                    currentAudioPlayer = null;
+                    currentPlayingButton = null;
+                } else {
+                    if (!currentAudioPlayer || currentAudioPlayer.src !== absoluteMusicUrl) {
+                        currentAudioPlayer = new Audio(musicUrl);
+                        currentAudioPlayer.volume = 0.7;
+                        currentAudioPlayer.addEventListener('ended', () => {
+                            resetPlayButton(button);
+                            currentAudioPlayer = null;
+                            currentPlayingButton = null;
+                        });
+                    }
+                    currentAudioPlayer.play();
+                    button.innerHTML = '<i class="fas fa-stop"></i>';
+                    button.title = i18n.stopMusic;
+                    currentPlayingButton = button;
+                }
+            }
+
             // Restaurer l'onglet actif au chargement de la page
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', async function () {
                 // --- Nouvelle gestion de la navigation par groupes ---
                 const mainNavLinks = document.querySelectorAll('.main-nav-link');
                 const subNavGroups = document.querySelectorAll('.sub-nav-group');
@@ -2968,6 +3096,22 @@
                 // On utilise l'événement 'load' (au lieu de DOMContentLoaded) pour s'assurer que tout est prêt.
 
 
+                // Initialiser le bouton de lecture pour la nouvelle playlist
+                const newPlaylistMusicSelect = document.getElementById('new-playlist-music');
+                const newPlaylistPlayButton = document.querySelector('.play-music-btn[data-target-select="new-playlist-music"]');
+                if (newPlaylistMusicSelect && newPlaylistPlayButton) {
+                    newPlaylistMusicSelect.addEventListener('change', (event) => {
+                        newPlaylistPlayButton.disabled = !event.target.value;
+                        resetPlayButton(newPlaylistPlayButton);
+                    });
+                    newPlaylistPlayButton.addEventListener('click', () => {
+                        const musicFile = newPlaylistMusicSelect.value;
+                        if (musicFile) toggleMusicPlayback(newPlaylistPlayButton, musicFile);
+                    });
+                }
+
+                await loadMusicFiles(); // Charger les fichiers musicaux AVANT d'activer les onglets
+
                 // Activer le bon groupe et le bon onglet
                 switchMainGroup(activeMainGroup);
                 openTab(null, activeTabId);
@@ -2980,8 +3124,7 @@
                 setInterval(refreshValidationTab, 15000); // Et le mettre à jour périodiquement
 
                 // Mettre à jour le badge des favoris
-                const favoritesCount = {{ favorite_photos| length
-            }};
+                const favoritesCount = {{ favorite_photos | length }};
             const favoritesBadge = document.getElementById('favorites-count-badge');
             if (favoritesBadge) {
                 if (favoritesCount > 0) {
@@ -3314,6 +3457,7 @@
                 if (createPlaylistBtn) {
                     createPlaylistBtn.addEventListener('click', async () => {
                         const name = newPlaylistNameInput.value.trim();
+                        const musicFile = document.getElementById('new-playlist-music').value;
                         if (!name) {
                             alert("{{ _('Veuillez entrer un nom pour la playlist.') }}");
                             return;
@@ -3322,7 +3466,7 @@
                             const response = await fetch('/api/playlists', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ name })
+                                body: JSON.stringify({ name, music_file: musicFile })
                             });
                             const result = await response.json();
                             if (result.success) {
@@ -3425,6 +3569,21 @@
                                     startBtn.innerHTML = '<i class="fas fa-play mr-2"></i>{{ _("Lancer") }}';
                                 }, 2000);
                             }
+                        }
+                    });
+                }
+
+                // --- Gérer les clics sur les boutons de lecture des playlists existantes via délégation ---
+                const playlistsListContainer = document.getElementById('playlists-list-container');
+                if (playlistsListContainer) {
+                    playlistsListContainer.addEventListener('click', (event) => {
+                        const btn = event.target.closest('.play-music-btn');
+                        if (btn && !btn.dataset.targetSelect) {
+                            const playlistId = btn.dataset.targetSelectId;
+                            const selectElement = document.querySelector(`.playlist-music-select[data-playlist-id="${playlistId}"]`);
+                            const musicFile = selectElement ? selectElement.value : btn.dataset.musicFile;
+                            if (musicFile) toggleMusicPlayback(btn, musicFile);
+                            else showToast(i18n.noMusicSelected, 3000);
                         }
                     });
                 }
@@ -4012,6 +4171,51 @@
                             btn.innerHTML = '<i class="fas fa-upload"></i> {{ _("Envoyer les photos") }}';
                         });
                 });
+
+                // --- GESTION DE L'UPLOAD DE MUSIQUE ---
+                const musicUploadInput = document.getElementById('music-upload-input');
+                const musicUploadFilename = document.getElementById('music-upload-filename');
+                const musicUploadBtn = document.getElementById('music-upload-btn');
+                const musicUploadStatus = document.getElementById('music-upload-status');
+
+                if (musicUploadInput) {
+                    musicUploadInput.addEventListener('change', function() {
+                        if (this.files && this.files[0]) {
+                            musicUploadFilename.textContent = this.files[0].name;
+                            musicUploadBtn.classList.remove('hidden');
+                        } else {
+                            musicUploadFilename.textContent = '';
+                            musicUploadBtn.classList.add('hidden');
+                        }
+                    });
+                }
+
+                if (musicUploadBtn) {
+                    musicUploadBtn.addEventListener('click', async function() {
+                        const file = musicUploadInput.files[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('music_file', file);
+                        this.disabled = true;
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Envoi...") }}';
+                        try {
+                            const response = await fetch('/api/upload_music', { method: 'POST', body: formData });
+                            const result = await response.json();
+                            if (result.success) {
+                                displayMessage(musicUploadStatus, result.message, 'success');
+                                musicUploadInput.value = '';
+                                musicUploadFilename.textContent = '';
+                                musicUploadBtn.classList.add('hidden');
+                                await loadMusicFiles(); // Rafraîchir les listes de sélection de musique
+                            } else { displayMessage(musicUploadStatus, result.message, 'error'); }
+                        } catch (error) {
+                            displayMessage(musicUploadStatus, "{{ _('Erreur de communication.') }}", 'error');
+                        } finally {
+                            this.disabled = false;
+                            this.innerHTML = '<i class="fas fa-upload"></i> {{ _("Uploader") }}';
+                        }
+                    });
+                }
 
                 // ----- GESTION DE LA VALIDATION (Écouteurs d'événements) -----
                 // Ces écouteurs utilisent les fonctions globales définies plus haut.
@@ -5106,18 +5310,5 @@
                 });
             }
         </script>
-
-</body>
-</html>             }
-                });
-            }
-        </script>
-
-</body>
-</html>             }
-                });
-            }
-        </script>
-
 </body>
 </html>

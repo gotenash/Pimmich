@@ -198,6 +198,20 @@ Pour toute question ou problème, consultez notre **Foire Aux Questions (FAQ.md)
 - **Projet du :** Gadgetaulab
 
 
+> 🎂 **SORTIE IMMINENTE : Version Anniversaire - 27 Mai**
+> Cette mise à jour majeure marque une étape clé dans le développement de Pimmich :
+> - 🚀 **Mise à jour fiabilisée :** Le moteur de mise à jour via l'interface est désormais 100% opérationnel et sécurisé.
+> - 📅 **Boost Anniversaire :** Revivez vos souvenirs avec une priorité d'affichage pour les photos prises à la même date les années passées.
+> - 🌍 **Métadonnées & Drapeaux :** Affichage personnalisable du lieu, de la date et du drapeau du pays d'origine.
+> - 📊 **Monitoring Avancé :** Nouveaux graphiques temps réel pour surveiller la santé de votre Raspberry Pi.
+> - 🔌 **Domotique :** Support des prises connectées pour une extinction totale de l'écran.
+> - 🖱️ **Playlists UX :** Organisation des albums par glisser-déposer.
+> - ⚡ **Hardware Accel :** Lecture vidéo optimisée pour Pi 4 et Pi 5.
+> - 🔘 **Bouton Physique :** Support GPIO pour le contrôle matériel de la veille.
+
+---
+
+### 🗓️ Historique des versions
 
 > 🗓️ À partir de juin 2025 — Une version majeure chaque mois
 
@@ -209,7 +223,7 @@ Pour toute question ou problème, consultez notre **Foire Aux Questions (FAQ.md)
 - 🔘 **Bouton Physique :**
     - ✅ Ajout du support pour un bouton physique (via GPIO) pour mettre en veille et réveiller le cadre.
 - �️ **Contrôle Vocal :**
-    - ✅ Ajout de la commande vocale ("Cadre Magique"pge :iee nt le système de fichiers.
+    - ✅ Ajout de la commande vocale ("Cadre Magique") et intégration profonde avec le système.
 - 🚀 **Optimisations et Stabilité :**
     - ✅ Amélioration de la réactivité de l'onglet "Système" grâce à une lecture optimisée des logs.
     - ✅ Fiabilisation du script de mise à jour pour éviter les blocages.

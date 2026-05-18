@@ -2179,10 +2179,11 @@ def play_playlist():
         if not target_playlist.get('photos'):
             return jsonify({"success": False, "message": "La playlist est vide."}), 400
 
-        # CORRECTION : Créer un objet JSON avec le nom ET les photos
+        # CORRECTION : Créer un objet JSON avec le nom, les photos ET la musique
         playlist_data_to_save = {
-            "name": target_playlist.get('name', 'Playlist'), # Utilise le nom, ou 'Playlist' par défaut
-            "photos": target_playlist.get('photos', [])
+            "name": target_playlist.get('name', 'Playlist'),
+            "photos": target_playlist.get('photos', []),
+            "music_file": target_playlist.get('music_file') # Nouveau champ optionnel
         }
 
         # Écrire les données dans le fichier temporaire que le diaporama lira
@@ -2248,6 +2249,7 @@ def create_playlist():
     """Crée une nouvelle playlist."""
     data = request.get_json()
     name = data.get('name')
+    music_file = data.get('music_file') # Cette ligne doit être en dehors du bloc 'if'
     if not name or not name.strip():
         return jsonify({"success": False, "message": "Le nom de la playlist est requis."}), 400
 
@@ -2260,11 +2262,66 @@ def create_playlist():
     new_playlist = {
         "id": secrets.token_hex(8),
         "name": name.strip(),
-        "photos": []
+        "photos": [],
+        "music_file": music_file
     }
     playlists.append(new_playlist)
     save_playlists(playlists)
     return jsonify({"success": True, "playlist": new_playlist}), 201
+
+@app.route('/api/playlists/<playlist_id>/update_music', methods=['POST'])
+@login_required
+def update_playlist_music(playlist_id):
+    """Met à jour le fichier musical d'une playlist existante."""
+    data = request.get_json()
+    music_file = data.get('music_file')
+
+    playlists = load_playlists()
+    found = False
+    for playlist in playlists:
+        if playlist.get('id') == playlist_id:
+            playlist['music_file'] = music_file
+            found = True
+            break
+    
+    if not found:
+        return jsonify({"success": False, "message": "Playlist non trouvée."}), 404
+
+    save_playlists(playlists)
+    return jsonify({"success": True, "message": "Musique de la playlist mise à jour."})
+
+@app.route('/api/music_files', methods=['GET'])
+@login_required
+def get_music_files():
+    """Returns a list of available music files in static/music/."""
+    music_dir = BASE_DIR / "static" / "music"
+    music_files = []
+    if music_dir.exists():
+        for f in music_dir.iterdir():
+            if f.is_file() and f.suffix.lower() in ['.mp3', '.wav']:
+                music_files.append(f.name)
+    return jsonify({"success": True, "files": sorted(music_files)})
+
+@app.route('/api/upload_music', methods=['POST'])
+@login_required
+def upload_music():
+    """Télécharge un nouveau fichier musical vers static/music/."""
+    if 'music_file' not in request.files:
+        return jsonify({"success": False, "message": "Aucun fichier sélectionné."}), 400
+    
+    file = request.files['music_file']
+    if file.filename == '':
+        return jsonify({"success": False, "message": "Aucun fichier sélectionné."}), 400
+    
+    if file and file.filename.lower().endswith(('.mp3', '.wav')):
+        filename = secure_filename(file.filename)
+        music_dir = BASE_DIR / "static" / "music"
+        music_dir.mkdir(parents=True, exist_ok=True)
+        file.save(music_dir / filename)
+        logger.info(f"🎵 Nouvelle musique importée : {filename}")
+        return jsonify({"success": True, "message": f"Fichier '{filename}' téléchargé avec succès."})
+    else:
+        return jsonify({"success": False, "message": "Format de fichier non supporté. MP3 ou WAV uniquement."}), 400
 
 @app.route('/api/playlists/<playlist_id>', methods=['DELETE'])
 def delete_playlist(playlist_id):
