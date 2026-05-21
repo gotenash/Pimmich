@@ -2302,6 +2302,26 @@ def get_music_files():
                 music_files.append(f.name)
     return jsonify({"success": True, "files": sorted(music_files)})
 
+@app.route('/api/music_files/<filename>', methods=['DELETE'])
+@login_required
+def delete_music_file(filename):
+    """Supprime un fichier musical de static/music/."""
+    # Le nom de fichier est déjà sécurisé lors de l'upload et est passé tel quel depuis la liste des fichiers.
+    # secure_filename() est donc inutile ici et peut causer des problèmes si le nom de fichier
+    # n'est pas exactement le même après sécurisation (ex: espaces vs underscores).
+    music_path = BASE_DIR / "static" / "music" / filename
+    
+    if music_path.exists() and music_path.is_file():
+        try:
+            music_path.unlink()
+            logger.info(f"🎵 Musique supprimée : {filename}")
+            return jsonify({"success": True, "message": f"Fichier '{filename}' supprimé avec succès."})
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Erreur lors de la suppression : {str(e)}"}), 500
+    else:
+        logger.warning(f"❌ Tentative de suppression de fichier introuvable: {music_path}")
+        return jsonify({"success": False, "message": "Fichier introuvable."}), 404
+
 @app.route('/api/upload_music', methods=['POST'])
 @login_required
 def upload_music():

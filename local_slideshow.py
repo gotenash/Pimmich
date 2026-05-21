@@ -49,6 +49,9 @@ paused = False
 next_photo_requested = False
 previous_photo_requested = False
 
+# État interne pour le fichier de statut
+_current_status = {"paused": False, "is_custom": False}
+
 _current_background_music = None # Pour rejouer après une vidéo
 # Chemin et cache pour les codes pays ISO 3166 (drapeaux)
 COUNTRY_CODES_PATH = Path(BASE_DIR) / 'static' / 'flags' / 'country_codes.json'
@@ -131,11 +134,13 @@ def load_country_codes():
             _country_codes_cache = {}
     return _country_codes_cache
 
-def update_status_file(status_dict):
-    """Met à jour le fichier de statut JSON pour la communication avec l'app web."""
+def update_status_file(new_fields):
+    """Met à jour le fichier de statut JSON en préservant les autres champs."""
+    global _current_status
+    _current_status.update(new_fields)
     try:
         with open(STATUS_FILE, "w") as f:
-            json.dump(status_dict, f)
+            json.dump(_current_status, f)
     except IOError as e:
         logger.info(f"Erreur écriture fichier statut : {e}")
 
@@ -1839,6 +1844,7 @@ def start_slideshow():
 
                 logger.info(f"📸 Playlist personnalisée '{playlist_name or 'Sans nom'}' chargée avec {len(custom_playlist)} photos.")
                 is_custom_run = True # On active le drapeau pour le premier passage
+                update_status_file({"is_custom": True})
                 os.remove(CUSTOM_PLAYLIST_FILE) # Supprimer pour ne pas la réutiliser au prochain démarrage
             except Exception as e:
                 logger.info(f"📸 Erreur chargement playlist personnalisée: {e}. Utilisation de la playlist par défaut.")
@@ -2156,6 +2162,7 @@ def start_slideshow():
                     pygame.mixer.music.fadeout(2000)
                 _current_background_music = None
                 is_custom_run = False # Le prochain tour de boucle while True construira la playlist par défaut.
+                update_status_file({"is_custom": False})
                 playlist = [] # Vider la playlist pour forcer la reconstruction.
     except KeyboardInterrupt:
         logger.info(f"Arrêt manuel du diaporama.")

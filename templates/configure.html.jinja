@@ -568,9 +568,18 @@
                         <div>
                             <label for="home_assistant_token" class="block text-sm font-medium text-gray-700">{{
                                 _("Token d'accès Home Assistant (si URL de statut HA) :") }}</label>
-                            <input type="password" id="home_assistant_token" name="home_assistant_token"
-                                value="{{ config.get('home_assistant_token', '') }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <div class="relative mt-1">
+                                <input type="password" id="home_assistant_token" name="home_assistant_token"
+                                    value="{{ config.get('home_assistant_token', '') }}"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm pr-10">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <button type="button"
+                                        class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                                        data-target="home_assistant_token" title="{{ _('Afficher/Cacher le token') }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
                             <p class="text-xs text-gray-500 mt-1">{{ _("Créez un \"Token d'accès longue durée\" dans votre profil Home Assistant.") }}</p>
                         </div>
                         <span id="plug-test-status" class="text-sm font-medium"></span>
@@ -688,8 +697,17 @@
 
                     <div style="display: flex; align-items: center; margin-bottom: 8px;">
                         <label for="weather_api_key" style="min-width: 200px;">{{ _("Clé API :") }}</label>
-                        <input type="text" id="weather_api_key" name="weather_api_key"
-                            value="{{ config.get('weather_api_key', '') }}">
+                        <div class="relative flex-grow">
+                            <input type="password" id="weather_api_key" name="weather_api_key"
+                                value="{{ config.get('weather_api_key', '') }}" class="w-full pr-10">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button type="button"
+                                    class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                                    data-target="weather_api_key" title="{{ _('Afficher/Cacher la clé API') }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mt-2 mb-4">
@@ -749,8 +767,17 @@
                     <div style="display: flex; align-items: center; margin-bottom: 8px;">
                         <label for="stormglass_api_key" style="min-width: 200px;">{{ _("Clé API StormGlass :")
                             }}</label>
-                        <input type="text" id="stormglass_api_key" name="stormglass_api_key"
-                            value="{{ config.get('stormglass_api_key', '') }}">
+                        <div class="relative flex-grow">
+                            <input type="password" id="stormglass_api_key" name="stormglass_api_key"
+                                value="{{ config.get('stormglass_api_key', '') }}" class="w-full pr-10">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button type="button"
+                                    class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                                    data-target="stormglass_api_key" title="{{ _('Afficher/Cacher la clé API') }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -834,7 +861,17 @@
                     <input type="url" id="immich_url" name="immich_url" value="{{ config.immich_url }}">
 
                     <label for="immich_token">{{ _("Token d'accès Immich :") }}</label>
-                    <input type="text" id="immich_token" name="immich_token" value="{{ config.immich_token }}">
+                    <div class="relative mt-1">
+                        <input type="password" id="immich_token" name="immich_token" value="{{ config.immich_token }}"
+                            class="block w-full rounded-md border-gray-300 shadow-sm pr-10">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button"
+                                class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                                data-target="immich_token" title="{{ _('Afficher/Cacher le token') }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
                     <label for="max_photos_to_download_immich" class="block text-sm font-medium text-gray-700">{{
                         _('Limite de photos à télécharger (Immich)') }}</label>
                     <input type="number" id="max_photos_to_download_immich" name="max_photos_to_download_immich"
@@ -924,8 +961,17 @@
                     <input type="text" id="smb_user" name="smb_user" value="{{ config.get('smb_user', '') }}">
 
                     <label for="smb_password">{{ _("Mot de passe (optionnel) :") }}</label>
-                    <input type="password" id="smb_password" name="smb_password"
-                        value="{{ config.get('smb_password', '') }}">
+                    <div class="relative mt-1">
+                        <input type="password" id="smb_password" name="smb_password"
+                            value="{{ config.get('smb_password', '') }}" class="block w-full rounded-md border-gray-300 shadow-sm pr-10">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button"
+                                class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                                data-target="smb_password" title="{{ _('Afficher/Cacher le mot de passe') }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
 
                     <div class="mt-4">
                         <button type="button" id="samba-test-btn"
@@ -990,8 +1036,17 @@
                     <div style="display: flex; align-items: center; margin-top: 8px;">
                         <label for="telegram_bot_token" style="min-width: 200px;">{{ _("Token du Bot Telegram :")
                             }}</label>
-                        <input type="text" id="telegram_bot_token" name="telegram_bot_token"
-                            value="{{ config.get('telegram_bot_token', '') }}" class="w-full">
+                        <div class="relative flex-grow">
+                            <input type="password" id="telegram_bot_token" name="telegram_bot_token"
+                                value="{{ config.get('telegram_bot_token', '') }}" class="w-full pr-10">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button type="button"
+                                    class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                                    data-target="telegram_bot_token" title="{{ _('Afficher/Cacher le token') }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div style="display: flex; align-items: center; margin-top: 8px;">
@@ -1153,10 +1208,19 @@
                     <div class="mt-4">
                         <label for="porcupine_access_key" class="block text-sm font-medium text-gray-700">{{ _("Clé
                             d'accès Picovoice Porcupine") }}</label>
-                        <input type="text" id="porcupine_access_key" name="porcupine_access_key"
-                            value="{{ config.get('porcupine_access_key', '') }}"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="{{ _(" Collez
-                            votre clé d'accès ici") }}">
+                        <div class="relative mt-1">
+                            <input type="password" id="porcupine_access_key" name="porcupine_access_key"
+                                value="{{ config.get('porcupine_access_key', '') }}"
+                                class="block w-full rounded-md border-gray-300 shadow-sm pr-10"
+                                placeholder="{{ _('Collez votre clé d\'accès ici') }}">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button type="button"
+                                    class="toggle-password-btn text-gray-500 hover:bg-gray-200 rounded-md transition-colors w-auto p-2 flex items-center justify-center mt-0 bg-transparent border-none font-normal"
+                                    data-target="porcupine_access_key" title="{{ _('Afficher/Cacher la clé d\'accès') }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
                         <p class="text-xs text-gray-500 mt-1">{{ _("Obtenez votre clé via le compte gratuit (Free Tier)
                             sur la") }} <a href="https://console.picovoice.ai/" target="_blank"
                                 class="text-blue-600 hover:underline">Picovoice Console</a>.</p>
@@ -1539,6 +1603,13 @@
                         </button>
                     </div>
                     <div id="music-upload-status" class="status-messages mt-2"></div>
+
+                    <div id="music-files-management" class="mt-4">
+                        <h6 class="text-md font-semibold text-gray-700 mb-2">{{ _("Musiques disponibles") }}</h6>
+                        <div id="music-files-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 bg-gray-50 rounded border">
+                            <!-- La liste sera peuplée par JS -->
+                        </div>
+                    </div>
                 </div>
             </fieldset>
         </div>
@@ -2097,9 +2168,16 @@
 
                                 <!-- Bouton Stop -->
                                 <button type="button" id="stop-playlist-btn"
-                                    class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                                    class="hidden bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded inline-flex items-center"
                                     title="{{ _('Arrête la playlist en cours et relance le diaporama avec toutes les sources activées.') }}">
                                     <i class="fas fa-stop-circle mr-2"></i>{{ _("Retour au diaporama standard") }}
+                                </button>
+
+                                <!-- Bouton Informatif (quand pas de playlist) -->
+                                <button type="button" id="no-playlist-idle-btn"
+                                    class="bg-gray-400 text-white font-bold py-2 px-4 rounded inline-flex items-center cursor-not-allowed"
+                                    disabled>
+                                    <i class="fas fa-info-circle mr-2"></i>{{ _("Aucune playlist en cours") }}
                                 </button>
                             </div>
                         </div>
@@ -2125,8 +2203,8 @@
                         <select id="new-playlist-music" class="rounded-md border-gray-300 shadow-sm">
                             <option value="">{{ _('Pas de musique') }}</option>
                         </select>
-                        <button type="button" class="play-music-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-3 rounded text-sm" data-target-select="new-playlist-music" disabled title="{{ _('Écouter la musique') }}">
-                            <i class="fas fa-play"></i>
+                        <button type="button" class="play-music-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold w-10 h-10 flex items-center justify-center rounded text-sm" data-target-select="new-playlist-music" disabled title="{{ _('Écouter la musique') }}">
+                            <i class="fas fa-play fa-fw"></i>
                         </button>
                         <button type="button" id="create-playlist-btn"
                             class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
@@ -2862,8 +2940,8 @@
                         <select class="playlist-music-select text-sm rounded-md border-gray-300 shadow-sm" data-playlist-id="${playlist.id}">
                             ${musicOptionsHtml}
                         </select>
-                        <button type="button" class="play-music-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-3 rounded text-sm" data-target-select-id="${playlist.id}" data-music-file="${playlist.music_file || ''}" ${playlist.music_file ? '' : 'disabled'} title="${i18n.listenToMusic}">
-                            <i class="fas fa-play"></i>
+                        <button type="button" class="play-music-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold w-10 h-10 flex items-center justify-center rounded text-sm" data-target-select-id="${playlist.id}" data-music-file="${playlist.music_file || ''}" ${playlist.music_file ? '' : 'disabled'} title="${i18n.listenToMusic}">
+                            <i class="fas fa-play fa-fw"></i>
                         </button>
                         <button class="rename-playlist-btn text-gray-500 hover:text-blue-600" data-id="${playlist.id}" title="${i18n.renamePlaylist}">
                             <i class="fas fa-edit"></i>
@@ -2985,6 +3063,8 @@
                     const data = await response.json();
                     if (data.success) {
                         availableMusicFiles = data.files;
+                        
+                        // 1. Remplir les sélecteurs de playlist
                         const newPlaylistMusicSelect = document.getElementById('new-playlist-music');
                         if (newPlaylistMusicSelect) {
                             newPlaylistMusicSelect.innerHTML = `<option value="">${i18n.noMusic}</option>`;
@@ -2995,6 +3075,31 @@
                                 newPlaylistMusicSelect.appendChild(option);
                             });
                         }
+
+                        // 2. Remplir la liste de gestion (Actions)
+                        const listContainer = document.getElementById('music-files-list');
+                        if (listContainer) {
+                            if (availableMusicFiles.length === 0) {
+                                listContainer.innerHTML = `<p class="text-sm text-gray-500 italic col-span-full">${i18n.noMusicSelected}</p>`;
+                            } else {
+                                listContainer.innerHTML = availableMusicFiles.map(file => `
+                                    <div class="flex items-center justify-between bg-white p-2 rounded shadow-sm border border-gray-200">
+                                        <div class="flex items-center gap-2 overflow-hidden">
+                                            <i class="fas fa-music text-purple-500 text-xs"></i>
+                                            <span class="text-xs truncate font-mono" title="${file}">${file}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <button type="button" class="preview-music-btn text-blue-500 hover:text-blue-700 p-1 w-6 h-6 flex items-center justify-center" data-file="${file}" title="${i18n.listenToMusic}">
+                                                <i class="fas fa-play fa-fw text-xs"></i>
+                                            </button>
+                                            <button type="button" class="delete-music-btn text-red-500 hover:text-red-700 p-1" data-file="${file}" title="${i18n.deletePlaylist}">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('');
+                            }
+                        }
                     } else { console.error("Error loading music files:", data.message); }
                 } catch (error) { console.error("Communication error loading music files:", error); }
             }
@@ -3004,7 +3109,11 @@
 
             function resetPlayButton(button) {
                 if (button) {
-                    button.innerHTML = '<i class="fas fa-play"></i>';
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-stop');
+                        icon.classList.add('fa-play');
+                    }
                     button.title = i18n.listenToMusic;
                 }
             }
@@ -3036,7 +3145,11 @@
                         });
                     }
                     currentAudioPlayer.play();
-                    button.innerHTML = '<i class="fas fa-stop"></i>';
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-play');
+                        icon.classList.add('fa-stop');
+                    }
                     button.title = i18n.stopMusic;
                     currentPlayingButton = button;
                 }
@@ -4217,6 +4330,34 @@
                     });
                 }
 
+                // --- GESTION DE LA SUPPRESSION DE MUSIQUE ---
+                const musicFilesList = document.getElementById('music-files-list');
+                if (musicFilesList) {
+                    musicFilesList.addEventListener('click', async (event) => {
+                        const deleteBtn = event.target.closest('.delete-music-btn');
+                        const previewBtn = event.target.closest('.preview-music-btn');
+
+                        if (deleteBtn) {
+                            const filename = deleteBtn.dataset.file;
+                            if (confirm(`{{ _("Supprimer le fichier musical") }} '${filename}' ?`)) {
+                                try {
+                                    const response = await fetch(`/api/music_files/${filename}`, { method: 'DELETE' });
+                                    const result = await response.json();
+                                    if (result.success) {
+                                        showToast(result.message);
+                                        await loadMusicFiles(); // Rafraîchir les listes partout
+                                    } else { alert(result.message); }
+                                } catch (e) { alert(i18n.commErrorServer); }
+                            }
+                        }
+
+                        if (previewBtn) {
+                            const filename = previewBtn.dataset.file;
+                            toggleMusicPlayback(previewBtn, filename);
+                        }
+                    });
+                }
+
                 // ----- GESTION DE LA VALIDATION (Écouteurs d'événements) -----
                 // Ces écouteurs utilisent les fonctions globales définies plus haut.
                 const grid = document.getElementById('pending-photos-grid');
@@ -4448,6 +4589,20 @@
                             btn.classList.toggle('bg-gray-400', !notifEnabled);
                             icon.className = notifEnabled ? 'fas fa-bell fa-xs' : 'fas fa-bell-slash fa-xs';
                         });
+
+                        // Gérer la visibilité du bouton d'arrêt de playlist
+                        const stopPlaylistBtn = document.getElementById('stop-playlist-btn');
+                        const noPlaylistIdleBtn = document.getElementById('no-playlist-idle-btn');
+                        if (stopPlaylistBtn && noPlaylistIdleBtn) {
+                            // On affiche le bouton d'arrêt seulement si le diaporama tourne ET qu'une playlist est active
+                            if (isRunning && data.is_custom) {
+                                stopPlaylistBtn.classList.remove('hidden');
+                                noPlaylistIdleBtn.classList.add('hidden');
+                            } else {
+                                stopPlaylistBtn.classList.add('hidden');
+                                noPlaylistIdleBtn.classList.remove('hidden');
+                            }
+                        }
 
                     } catch (error) {
                         console.error("Impossible de récupérer l'état du diaporama:", error);
