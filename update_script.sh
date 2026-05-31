@@ -63,8 +63,8 @@ SWAY_CONFIG_DIR="$HOME/.config/sway"
 SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
 
 # Utiliser tee -a avec sudo pour ajouter les lignes si elles ne sont pas déjà présentes
-grep -q 'for_window \[app_id="mpv"\]' "$SWAY_CONFIG_FILE" || echo 'for_window [app_id="mpv"] floating enable, border none, fullscreen enable' | sudo tee -a "$SWAY_CONFIG_FILE" > /dev/null
-grep -q 'for_window \[class="python3"\]' "$SWAY_CONFIG_FILE" || echo 'for_window [class="python3"] floating enable, border none, fullscreen enable' | sudo tee -a "$SWAY_CONFIG_FILE" > /dev/null
+grep -q 'for_window \[app_id="mpv"\]' "$SWAY_CONFIG_FILE" || echo 'for_window [app_id="mpv"] floating enable, border none, fullscreen enable' | sudo -n tee -a "$SWAY_CONFIG_FILE" > /dev/null
+grep -q 'for_window \[class="python3"\]' "$SWAY_CONFIG_FILE" || echo 'for_window [class="python3"] floating enable, border none, fullscreen enable' | sudo -n tee -a "$SWAY_CONFIG_FILE" > /dev/null
 
 # Recharger la configuration Sway pour appliquer les changements immédiatement
 export SWAYSOCK=$(ls /run/user/$(id -u)/sway-ipc.* | head -n 1) # Trouver le socket Sway
