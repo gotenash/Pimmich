@@ -188,7 +188,7 @@ def set_display_power(on=True):
             flag_path.parent.mkdir(exist_ok=True)
             flag_path.touch()
             logger.info("✅ ⏻ Reboot pour résolution HDMI...")
-            os.system("sudo reboot")
+            subprocess.run(["sudo", "-n", "reboot"], check=False)
             return True, "Reboot initié"
         else:
             # Extinction DPMS puis prise
