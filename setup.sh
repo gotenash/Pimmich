@@ -209,6 +209,13 @@ if [ ! -f "$CREDENTIALS_FILE" ]; then
     # L'option -E de sudo préserve l'environnement, ce qui peut aider.
     # Le script python affichera lui-même le mot de passe généré.
     sudo -E "$VENV_PYTHON" utils/create_initial_user.py --output "$CREDENTIALS_FILE"
+    
+    echo "🔑 Configuration des droits sudo (Sécurité, Reboot, Shutdown)..."
+    SUDOERS_CONF="/etc/sudoers.d/pimmich-auth"
+    # Autorisations NOPASSWD pour toutes les fonctions critiques (Réseau, Disques, Système)
+    COMMANDS="/usr/bin/tee $CREDENTIALS_FILE, /usr/sbin/reboot, /usr/sbin/shutdown, /usr/bin/nmcli, /usr/bin/raspi-config, /usr/bin/mount, /usr/bin/umount"
+    echo "$REAL_USER ALL=(ALL) NOPASSWD: $COMMANDS" | sudo tee "$SUDOERS_CONF" > /dev/null
+    sudo chmod 440 "$SUDOERS_CONF"
 else
     echo "✅ Le fichier d'identification $CREDENTIALS_FILE existe déjà. Aucune modification."
 fi
@@ -249,6 +256,12 @@ if ! grep -q 'start_pimmich.sh' "$SWAY_CONFIG_FILE" 2>/dev/null; then
     echo "Ajout de start_pimmich.sh dans la config sway"
 else
     echo "✅ start_pimmich.sh déjà présent dans la config sway"
+fi
+
+# Configuration des règles de fenêtres pour assurer que les vidéos mpv passent au premier plan
+if ! grep -q 'app_id="mpv"' "$SWAY_CONFIG_FILE" 2>/dev/null; then
+    echo 'for_window [app_id="mpv"] floating enable, border none, fullscreen enable' >> "$SWAY_CONFIG_FILE"
+    echo 'for_window [class="python3"] floating enable, border none, fullscreen enable' >> "$SWAY_CONFIG_FILE"
 fi
 
 echo "=== [12/12] Installation terminée ==="

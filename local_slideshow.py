@@ -24,7 +24,11 @@ from utils.metadata_utils import get_photo_metadata, load_photo_metadata_cache #
 from utils.config_manager import load_config
 
 # Helper minimal pour l'extraction des traductions (Pybabel)
-def _(text, **kwargs): return text
+def _(text, **kwargs):
+    try:
+        return text % kwargs if kwargs else text
+    except (KeyError, TypeError, ValueError):
+        return text
 
 # Définition des chemins
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -180,6 +184,20 @@ def handle_slideshow_events(screen_width):
                     logger.info("📸 Zone centrale de l'écran touchée -> Pause/Reprise")
                     paused = not paused
                     update_status_file({"paused": paused})
+
+def play_background_music(filename):
+    """Charge et joue une musique de fond en boucle."""
+    if not filename: return
+    music_path = Path(BASE_DIR) / 'static' / 'music' / filename
+    if music_path.exists():
+        try:
+            if not pygame.mixer.get_init(): pygame.mixer.init()
+            pygame.mixer.music.load(str(music_path))
+            pygame.mixer.music.play(-1) # -1 pour boucler à l'infini
+            logger.info(f"🎵 Musique de fond lancée : {filename}")
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de la lecture de la musique : {e}")
+
 VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
 
 def reinit_pygame():
@@ -1594,32 +1612,6 @@ def fade_to_black(screen, previous_surface, duration, clock):
         screen.blit(black_surface, (0, 0))
         pygame.display.flip()
         clock.tick(60)
-        
-def play_background_music(filename):
-    """Charge et joue une musique de fond en boucle."""
-    if not filename: return
-    music_path = Path(BASE_DIR) / 'static' / 'music' / filename
-    if music_path.exists():
-        try:
-            if not pygame.mixer.get_init(): pygame.mixer.init()
-            pygame.mixer.music.load(str(music_path))
-            pygame.mixer.music.play(-1) # -1 pour boucler à l'infini
-            logger.info(f"🎵 Musique de fond lancée : {filename}")
-        except Exception as e:
-            logger.error(f"❌ Erreur lors de la lecture de la musique : {e}")
-        
-def play_background_music(filename):
-    """Charge et joue une musique de fond en boucle."""
-    if not filename: return
-    music_path = Path(BASE_DIR) / 'static' / 'music' / filename
-    if music_path.exists():
-        try:
-            if not pygame.mixer.get_init(): pygame.mixer.init()
-            pygame.mixer.music.load(str(music_path))
-            pygame.mixer.music.play(-1) # -1 pour boucler à l'infini
-            logger.info(f"🎵 Musique de fond lancée : {filename}")
-        except Exception as e:
-            logger.error(f"❌ Erreur lors de la lecture de la musique : {e}")
 
 def display_video(screen, video_path, screen_width, screen_height, config, main_font, previous_surface, clock):
     """Affiche une vidéo en plein écran en utilisant le lecteur externe mpv."""
@@ -1629,17 +1621,19 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
     audio_volume = int(config.get("video_audio_volume", 100))
     transition_duration = float(config.get("transition_duration", 1.0))
     hwdec_enabled = config.get("video_hwdec_enabled", True)
+    pi_model = get_pi_model()
 
-    # Libérer le mixer de Pygame avant de lancer la vidéo pour éviter les conflits
-    if audio_enabled:
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.stop()
-        logger.info(f"📸 Quitting pygame.mixer to free audio device for mpv.")
-        pygame.mixer.quit()
+    # Sur Pi 3, on quitte totalement Pygame pour libérer les ressources graphiques (CMA)
+    # car Trixie/Sway consomment trop pour avoir deux surfaces plein écran en même temps.
+    if pi_model == 3:
+        logger.info(f"📸 [Pi 3] Quitting Pygame entirely to free resources for video playback.")
+        pygame.quit()
+    elif audio_enabled:
+        if pygame.mixer.get_init(): pygame.mixer.quit()
 
     try:
-        # 1. Fondu au noir avant de lancer la vidéo
-        if previous_surface:
+        # 1. Fondu au noir avant de lancer la vidéo (Uniquement si Pygame n'est pas déjà fermé)
+        if previous_surface and pi_model != 3:
             fade_to_black(screen, previous_surface, transition_duration / 2, clock)
         
         logger.info(f"📸 Lancement de la vidéo avec mpv : {video_path}")
@@ -1651,21 +1645,26 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             'mpv',
             '--no-config',
             '--no-terminal',
-            '--fs', '--no-osc', '--no-osd-bar', '--loop=no', '--ontop'
+            '--fs', '--no-osc', '--no-osd-bar', '--loop=no'
         ]
+        
+        # On retire impérativement --ontop pour le Pi 3 sur Trixie/Wayland
+        if pi_model != 3:
+            command.append('--ontop')
 
         if hwdec_enabled:
             # --- MODIFICATION SIGALOU 28/01/2026 ---
             # Logique de décodage matériel spécifique au modèle de Raspberry Pi
             # pour une performance optimale, notamment sur Pi 4.
-            pi_model = get_pi_model()
             if pi_model in [4, 5]:
                 # MODIFICATION: Retour à vo=gpu pour la stabilité (dmabuf-wayland provoque des erreurs sur certaines configs)
                 logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Utilisation de 'v4l2m2m,mmal' pour le décodage et 'gpu' pour la sortie vidéo.")
                 command.extend(['--hwdec=v4l2m2m,mmal', '--vo=gpu'])
             elif pi_model == 3:
-                logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Utilisation de 'mmal' pour le décodage matériel.")
-                command.extend(['--hwdec=mmal', '--vo=gpu'])
+                logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Mode compatibilité Trixie (Clean Switch).")
+                command.append('-v') # Mode verbeux pour capturer l'erreur réelle
+                # Sur Pi 3 Trixie, on utilise un mode plus robuste et on force un fichier de log externe
+                command.extend(['--hwdec=v4l2m2m-copy', '--vo=gpu', '--gpu-context=wayland', '--wayland-app-id=mpv', '--log-file=/tmp/mpv_pimmich.log'])
             else:
                 # Fallback pour les autres systèmes ou si la détection échoue
                 logger.info(f"[Video Playback] Modèle de Pi non spécifique détecté. Utilisation de '--hwdec=auto'.")
@@ -1675,7 +1674,6 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             # Mode logiciel par défaut (plus stable sur certains systèmes mais plus lent)
             logger.info(f"[Video Playback] Décodage matériel désactivé. Utilisation du mode logiciel.")
             # MODIFICATION: Sur Pi 4/5, x11 est trop lent. On utilise gpu même en mode logiciel.
-            pi_model = get_pi_model()
             if pi_model in [4, 5]:
                 command.extend(['--hwdec=no', '--vo=gpu'])
             else:
@@ -1697,15 +1695,34 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
 
         
         logger.info(f"📸 Executing mpv command: {' '.join(command)}")
-        # On capture la sortie pour un meilleur diagnostic en cas d'erreur.
-        subprocess.run(command, check=True, capture_output=True, text=True)
-
-    except FileNotFoundError:
-        logger.info(f"ERREUR: Commande introuvable. Assurez-vous que 'mpv' et 'amixer' (alsa-utils) sont installés.")
-    except subprocess.CalledProcessError as e:
-        logger.info(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur.")
-        logger.info(f"Sortie de mpv (stdout):\n{e.stdout}")
-        logger.info(f"Erreur de mpv (stderr):\n{e.stderr}")
+        # Petite pause pour laisser le système d'affichage se stabiliser
+        time.sleep(1)
+        
+        # On redirige stderr vers stdout pour ne rien rater du tout dans le diagnostic
+        try:
+            result = subprocess.run(
+                command, 
+                check=True, 
+                env=os.environ.copy(), 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.STDOUT, 
+                text=True
+            )
+        except subprocess.CalledProcessError as e:
+            logger.info(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur.")
+            
+            # Extraction du log de diagnostic réel
+            log_content = ""
+            if os.path.exists("/tmp/mpv_pimmich.log"):
+                try:
+                    with open("/tmp/mpv_pimmich.log", "r") as f:
+                        # On ne prend que les 50 dernières lignes pour ne pas saturer le log Pimmich
+                        log_content = "".join(f.readlines()[-50:])
+                except Exception: 
+                    pass
+            
+            combined_output = e.stdout if (e.stdout and e.stdout.strip()) else (log_content if log_content.strip() else "Aucun message d'erreur capturé.")
+            logger.info(f"Détails de l'erreur mpv :\n{combined_output}")
     except Exception as e:
         logger.info(f"Erreur inattendue lors de la lecture de la vidéo {video_path}: {e}")
     finally:
@@ -1726,6 +1743,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
 
 # Boucle principale du diaporama
 def start_slideshow():
+    pi_model = get_pi_model()
     global _current_background_music
     try:
         logger.debug(f"📸 Starting slideshow initialization.")
@@ -2107,9 +2125,20 @@ def start_slideshow():
 
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
-                    # Réappliquer le mode plein écran et cacher la souris après la vidéo pour éviter les bordures
-                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-                    pygame.mouse.set_visible(False)
+                    # Réappliquer le mode plein écran
+                    if pi_model == 3:
+                        screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
+                        # Recharger la police car pygame.quit() l'a invalidée
+                        font_path_config = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+                        clock_font_size_config = int(config.get("clock_font_size", 72))
+                        try:
+                            main_font_loaded = pygame.font.Font(font_path_config, clock_font_size_config)
+                        except Exception:
+                            main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
+                    else:
+                        # Réappliquer le mode plein écran et cacher la souris après la vidéo pour éviter les bordures
+                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                        pygame.mouse.set_visible(False)
                 else: # C'est une image
                     current_pil_image = None # Initialize to None to ensure it's always defined
                     try:

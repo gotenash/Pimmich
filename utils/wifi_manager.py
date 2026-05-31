@@ -46,7 +46,7 @@ def set_wifi_config(ssid: str, password: str, country_code: str = "FR"):
     try:
         print(f"Définition du pays Wi-Fi sur : {country_code}")
         subprocess.run(
-            ['sudo', '/usr/bin/raspi-config', 'nonint', 'do_wifi_country', country_code],
+            ['sudo', '-n', '/usr/bin/raspi-config', 'nonint', 'do_wifi_country', country_code],
             check=True, capture_output=True, text=True, timeout=15
         )
     except subprocess.CalledProcessError as e:
@@ -61,11 +61,10 @@ def set_wifi_config(ssid: str, password: str, country_code: str = "FR"):
         print(f"Tentative de connexion au Wi-Fi '{ssid}' via nmcli...")
         
         # Supprimer l'ancienne connexion si elle existe pour forcer une nouvelle configuration
-        # Le `|| true` à la fin évite une erreur si la connexion n'existe pas.
-        subprocess.run(f"sudo nmcli connection delete '{ssid}' || true", shell=True, capture_output=True)
+        subprocess.run(['sudo', '-n', 'nmcli', 'connection', 'delete', ssid], capture_output=True, check=False)
         
         # Créer la nouvelle connexion
-        cmd = ['sudo', '/usr/bin/nmcli', 'device', 'wifi', 'connect', ssid]
+        cmd = ['sudo', '-n', '/usr/bin/nmcli', 'device', 'wifi', 'connect', ssid]
         if password:
             cmd.extend(['password', password])
         

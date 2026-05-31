@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, stream_with_context, Response, jsonify, send_from_directory
 import os
 import json
+import sys
 import re
 from flask_babel import Babel, _
 import subprocess
@@ -158,6 +159,12 @@ app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
 
 
 def get_locale():
+    # Vérifier si nous sommes dans un contexte de requête (HTTP)
+    # Si appelé depuis un thread en arrière-plan (worker), on retourne la langue par défaut
+    from flask import has_request_context
+    if not has_request_context():
+        return app.config.get('BABEL_DEFAULT_LOCALE', 'fr')
+
     # 1. Si un argument 'lang' est passé dans l'URL
     lang = request.args.get('lang')
     if lang and lang in app.config['LANGUAGES']:
@@ -2029,13 +2036,13 @@ def delete_source_photos(source_name):
 @app.route('/shutdown', methods=['POST'])
 @login_required
 def shutdown():
-    os.system('sudo shutdown now')
+    subprocess.run(['sudo', '-n', 'shutdown', 'now'], check=False)
     return redirect(url_for('configure'))
 
 @app.route('/reboot', methods=['POST'])
 @login_required
 def reboot():
-    os.system('sudo reboot')
+    subprocess.run(['sudo', '-n', 'reboot'], check=False)
     return redirect(url_for('configure'))
 
 @app.route('/system_reboot', methods=['POST'])
@@ -2077,7 +2084,7 @@ def trigger_reboot():
         import threading
         def delayed_reboot():
             time.sleep(1)  # Attendre 1 seconde pour que la page se charge
-            os.system("sudo reboot")
+            subprocess.run(['sudo', '-n', 'reboot'], check=False)
         
         reboot_thread = threading.Thread(target=delayed_reboot)
         reboot_thread.daemon = True
@@ -2516,7 +2523,7 @@ def system_shutdown():
     if request.remote_addr != '127.0.0.1':
         return jsonify({"success": False, "message": "Accès non autorisé."}), 403
     print("Arrêt du système demandé via API.")
-    subprocess.run(['sudo', 'shutdown', '-h', 'now'])
+    subprocess.run(['sudo', '-n', 'shutdown', '-h', 'now'])
     return jsonify({"success": True, "message": "Arrêt en cours."})
 
 @app.route('/api/display/power', methods=['POST'])
@@ -3212,7 +3219,7 @@ def update_app():
             def restart_server():
                 time.sleep(10)
                 print("[Update] Redémarrage du système suite à la mise à jour...")
-                os.system('sudo reboot')
+                subprocess.run(['sudo', '-n', 'reboot'], check=False)
             
             restart_thread = threading.Thread(target=restart_server)
             restart_thread.start()
@@ -3519,13 +3526,13 @@ def scan_wifi():
         # Cette commande ne retourne rien mais déclenche le scan en arrière-plan.
         # On ignore les erreurs au cas où un scan serait déjà en cours.
         # C'est plus fiable sur du matériel moins performant comme le Pi Zero 2W.
-        subprocess.run(['sudo', 'nmcli', 'device', 'wifi', 'rescan'], timeout=15, check=False)
+        subprocess.run(['sudo', '-n', 'nmcli', 'device', 'wifi', 'rescan'], timeout=15, check=False)
         
         # Attendre un peu que le scan se termine. 5 secondes est un bon compromis.
         time.sleep(5)
 
         # Étape 2: Lister les résultats du scan qui vient d'être fait.
-        cmd = ['sudo', 'nmcli', '--terse', '--fields', 'SSID,SIGNAL,SECURITY', 'dev', 'wifi', 'list']
+        cmd = ['sudo', '-n', 'nmcli', '--terse', '--fields', 'SSID,SIGNAL,SECURITY', 'dev', 'wifi', 'list']
         result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=10)
         
         output = result.stdout.strip()

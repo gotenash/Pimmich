@@ -38,7 +38,7 @@ def set_interface_state(interface_name: str, state: str):
     try:
         # Utiliser nmcli pour gérer l'état de l'interface
         subprocess.run(
-            ['sudo', '/usr/bin/nmcli', 'device', action, interface_name],
+            ['sudo', '-n', '/usr/bin/nmcli', 'device', action, interface_name],
             check=True,
             capture_output=True,
             text=True,
