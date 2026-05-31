@@ -39,11 +39,9 @@ from utils.import_samba import import_samba_photos
 from utils.image_filters import apply_filter_to_image, add_text_to_polaroid, add_text_to_image, create_polaroid_effect
 from utils.voice_control_manager import start_voice_control, stop_voice_control, is_voice_control_running
 from utils.telegram_bot import PimmichBot
-import smbclient
 from smbprotocol.exceptions import SMBException
 import secrets
-
-APP_INSTANCE_ID = secrets.token_hex(8)
+import smbclient
 
 
 # ============================================================

@@ -1638,7 +1638,8 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         
         logger.info(f"📸 Lancement de la vidéo avec mpv : {video_path}")
         # On réaffiche la souris au cas où l'utilisateur voudrait interagir avec mpv (barre de progression, etc.)
-        pygame.mouse.set_visible(True)
+        if pi_model != 3:
+            pygame.mouse.set_visible(True)
         
         # --- NOUVELLE APPROCHE : Retour à MPV avec une configuration robuste ---
         command = [
@@ -1659,7 +1660,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             if pi_model in [4, 5]:
                 # MODIFICATION: Retour à vo=gpu pour la stabilité (dmabuf-wayland provoque des erreurs sur certaines configs)
                 logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Utilisation de 'v4l2m2m,mmal' pour le décodage et 'gpu' pour la sortie vidéo.")
-                command.extend(['--hwdec=v4l2m2m,mmal', '--vo=gpu'])
+                command.extend(['--hwdec=v4l2m2m,mmal', '--vo=gpu', '--gpu-context=wayland', '--wayland-app-id=mpv'])
             elif pi_model == 3:
                 logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Mode compatibilité Trixie (Clean Switch).")
                 command.append('-v') # Mode verbeux pour capturer l'erreur réelle
@@ -1729,7 +1730,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # --- Ré-initialiser le mixer de Pygame après la lecture vidéo ---
         # C'est crucial pour que Pygame puisse potentiellement jouer des sons plus tard,
         # et pour maintenir un état cohérent.
-        if audio_enabled:
+        if audio_enabled and pi_model != 3:
             logger.info(f"📸 Re-initializing pygame.mixer.")
             try:
                 pygame.mixer.init()
@@ -1737,7 +1738,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                 logger.info(f"AVERTISSEMENT: Impossible de réinitialiser pygame.mixer: {e}")
         
         # Relancer la musique de fond de la playlist si nécessaire
-        if _current_background_music:
+        if _current_background_music and pi_model != 3:
             play_background_music(_current_background_music)
 
 
@@ -2135,6 +2136,9 @@ def start_slideshow():
                             main_font_loaded = pygame.font.Font(font_path_config, clock_font_size_config)
                         except Exception:
                             main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
+                        # Relancer la musique si elle était active
+                        if _current_background_music:
+                            play_background_music(_current_background_music)
                     else:
                         # Réappliquer le mode plein écran et cacher la souris après la vidéo pour éviter les bordures
                         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)

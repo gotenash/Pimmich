@@ -58,4 +58,16 @@ if ! pip install --timeout 60 -r requirements.txt > logs/update_pip.log 2>&1; th
     echo "STEP:WARNING:Consultez le fichier 'logs/update_pip.log' depuis l'onglet Système pour les détails."
 fi
 
+echo "--- Réapplication des règles Sway pour mpv et python3 ---"
+SWAY_CONFIG_DIR="$HOME/.config/sway"
+SWAY_CONFIG_FILE="$SWAY_CONFIG_DIR/config"
+
+# Utiliser tee -a avec sudo pour ajouter les lignes si elles ne sont pas déjà présentes
+grep -q 'for_window \[app_id="mpv"\]' "$SWAY_CONFIG_FILE" || echo 'for_window [app_id="mpv"] floating enable, border none, fullscreen enable' | sudo tee -a "$SWAY_CONFIG_FILE" > /dev/null
+grep -q 'for_window \[class="python3"\]' "$SWAY_CONFIG_FILE" || echo 'for_window [class="python3"] floating enable, border none, fullscreen enable' | sudo tee -a "$SWAY_CONFIG_FILE" > /dev/null
+
+# Recharger la configuration Sway pour appliquer les changements immédiatement
+export SWAYSOCK=$(ls /run/user/$(id -u)/sway-ipc.* | head -n 1) # Trouver le socket Sway
+swaymsg reload || true # Utiliser || true pour ne pas faire échouer le script si swaymsg échoue (ex: pas de session Sway)
+
 echo "STEP:RESTART:Mise à jour des fichiers terminée. L'application va redémarrer."
