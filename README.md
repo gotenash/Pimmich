@@ -93,7 +93,7 @@ Cette méthode est destinée aux utilisateurs avancés ou à ceux qui souhaitent
 
 #### ✅ Pré-requis
 
-- Un Raspberry Pi (modèle 3B+, 4 ou 5 recommandé) avec Raspberry Pi OS Desktop (64-bit).
+- Un Raspberry Pi (modèle 3B+, 4 ou 5 recommandé) avec **Raspberry Pi OS Trixie (Debian 13)** Desktop (64-bit) — **Version recommandée**.
 - Une carte SD, une alimentation, un écran.
 - Une connexion Internet.
 
@@ -214,6 +214,13 @@ Pour toute question ou problème, consultez notre **Foire Aux Questions (FAQ.md)
 ### 🗓️ Historique des versions
 
 > 🗓️ À partir de juin 2025 — Une version majeure chaque mois
+
+## ✅ Mai 2026
+- 🚀 **Compatibilité Debian Trixie (Debian 13) :**
+    - ✅ Migration complète vers **Python 3.13**.
+    - ✅ Optimisation du rendu vidéo pour **Sway/Wayland** (DMABUF et V4L2-copy).
+    - ✅ Support natif du Raspberry Pi 3 sur les nouveaux noyaux Linux.
+    - ✅ Sécurisation non-interactive des commandes `sudo` via règles ciblées.
 
 ## ✅ Septembre 2025 - (Sortie prévue le 15 septembre)
 - 🎨 **Refonte de l'Interface :** Nouvelle navigation par groupes et onglets pour une expérience plus claire et intuitive.

@@ -43,6 +43,7 @@ from smbprotocol.exceptions import SMBException
 import secrets
 import smbclient
 
+APP_INSTANCE_ID = secrets.token_hex(8)
 
 # ============================================================
 # Configuration du logging avec émojis
