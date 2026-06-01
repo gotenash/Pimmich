@@ -213,7 +213,7 @@ if [ ! -f "$CREDENTIALS_FILE" ]; then
     echo "🔑 Configuration des droits sudo (Sécurité, Reboot, Shutdown)..."
     SUDOERS_CONF="/etc/sudoers.d/pimmich-auth"
     # Autorisations NOPASSWD pour toutes les fonctions critiques (Réseau, Disques, Système)
-    COMMANDS="/usr/bin/tee $CREDENTIALS_FILE, /usr/sbin/reboot, /usr/sbin/shutdown, /usr/bin/nmcli, /usr/bin/raspi-config, /usr/bin/mount, /usr/bin/umount"
+    COMMANDS="/usr/bin/tee $CREDENTIALS_FILE, /usr/sbin/reboot, /usr/sbin/shutdown, /usr/bin/nmcli, /usr/bin/raspi-config, /usr/bin/mount, /usr/bin/umount, /usr/bin/timedatectl"
     echo "$REAL_USER ALL=(ALL) NOPASSWD: $COMMANDS" | sudo tee "$SUDOERS_CONF" > /dev/null
     sudo chmod 440 "$SUDOERS_CONF"
 else

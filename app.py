@@ -39,7 +39,6 @@ from utils.import_samba import import_samba_photos
 from utils.image_filters import apply_filter_to_image, add_text_to_polaroid, add_text_to_image, create_polaroid_effect
 from utils.voice_control_manager import start_voice_control, stop_voice_control, is_voice_control_running
 from utils.telegram_bot import PimmichBot
-from smbprotocol.exceptions import SMBException
 import secrets
 import smbclient
 
@@ -945,7 +944,8 @@ def configure():
             'telegram_authorized_users', 'voice_control_language',
             'voice_control_engine', 'skip_initial_auto_import',
             'tide_latitude', 'tide_longitude', 'stormglass_api_key', 'tide_offset_x', 'tide_offset_y', 'notification_sound_volume'
-            , 'button_pin'
+            , 'button_pin',
+            'timezone'
         ]:
             if key in request.form:
                 value = request.form.get(key)
@@ -968,6 +968,16 @@ def configure():
                 else: # Gérer les champs texte
                     config[key] = value
         
+        # Appliquer le fuseau horaire au système si modifié
+        if 'timezone' in request.form:
+            new_tz = request.form.get('timezone')
+            if new_tz and new_tz != config.get('timezone', 'Europe/Paris'):
+                try:
+                    subprocess.run(['sudo', '-n', 'timedatectl', 'set-timezone', new_tz], check=True)
+                    logger.info(f"📅 Fuseau horaire système mis à jour : {new_tz}")
+                except Exception as e:
+                    logger.error(f"❌ Erreur lors du réglage du fuseau horaire : {e}")
+
         # Traiter les clés de métadonnées (Style et Positionnement)
         # Champs texte / select
         for key in ['photo_date_format', 'country_flag_size', 'photo_location_format', 'photo_metadata_color', 'photo_metadata_outline_color', 'photo_metadata_font_path', 'photo_metadata_position', 'photo_metadata_background_color', 'country_flag_position']:

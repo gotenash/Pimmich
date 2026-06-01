@@ -1623,22 +1623,22 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
     hwdec_enabled = config.get("video_hwdec_enabled", True)
     pi_model = get_pi_model()
 
-    # Sur Pi 3, on quitte totalement Pygame pour libérer les ressources graphiques (CMA)
+    # Sur RPi, on quitte totalement Pygame pour libérer les ressources graphiques (CMA)
     # car Trixie/Sway consomment trop pour avoir deux surfaces plein écran en même temps.
-    if pi_model == 3:
-        logger.info(f"📸 [Pi 3] Quitting Pygame entirely to free resources for video playback.")
+    if pi_model in [3, 4, 5]:
+        logger.info(f"📸 [Pi {pi_model}] Quitting Pygame entirely to free resources for video playback.")
         pygame.quit()
     elif audio_enabled:
         if pygame.mixer.get_init(): pygame.mixer.quit()
 
     try:
         # 1. Fondu au noir avant de lancer la vidéo (Uniquement si Pygame n'est pas déjà fermé)
-        if previous_surface and pi_model != 3:
+        if previous_surface and pi_model not in [3, 4, 5]:
             fade_to_black(screen, previous_surface, transition_duration / 2, clock)
         
         logger.info(f"📸 Lancement de la vidéo avec mpv : {video_path}")
         # On réaffiche la souris au cas où l'utilisateur voudrait interagir avec mpv (barre de progression, etc.)
-        if pi_model != 3:
+        if pi_model not in [3, 4, 5]:
             pygame.mouse.set_visible(True)
         
         # --- NOUVELLE APPROCHE : Retour à MPV avec une configuration robuste ---
@@ -1658,9 +1658,8 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             # Logique de décodage matériel spécifique au modèle de Raspberry Pi
             # pour une performance optimale, notamment sur Pi 4.
             if pi_model in [4, 5]:
-                # MODIFICATION: Retour à vo=gpu pour la stabilité (dmabuf-wayland provoque des erreurs sur certaines configs)
-                logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Utilisation de 'v4l2m2m,mmal' pour le décodage et 'gpu' pour la sortie vidéo.")
-                command.extend(['--hwdec=v4l2m2m,mmal', '--vo=gpu', '--gpu-context=wayland', '--wayland-app-id=mpv'])
+                logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Mode DMABUF Haute Performance.")
+                command.extend(['-v', '--hwdec=v4l2m2m', '--vo=dmabuf-wayland', '--wayland-app-id=mpv', '--log-file=/tmp/mpv_pimmich.log'])
             elif pi_model == 3:
                 logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Mode compatibilité Trixie (Clean Switch).")
                 command.append('-v') # Mode verbeux pour capturer l'erreur réelle
@@ -1730,7 +1729,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # --- Ré-initialiser le mixer de Pygame après la lecture vidéo ---
         # C'est crucial pour que Pygame puisse potentiellement jouer des sons plus tard,
         # et pour maintenir un état cohérent.
-        if audio_enabled and pi_model != 3:
+        if audio_enabled and pi_model not in [3, 4, 5]:
             logger.info(f"📸 Re-initializing pygame.mixer.")
             try:
                 pygame.mixer.init()
@@ -1738,7 +1737,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                 logger.info(f"AVERTISSEMENT: Impossible de réinitialiser pygame.mixer: {e}")
         
         # Relancer la musique de fond de la playlist si nécessaire
-        if _current_background_music and pi_model != 3:
+        if _current_background_music and pi_model not in [3, 4, 5]:
             play_background_music(_current_background_music)
 
 
@@ -2127,7 +2126,7 @@ def start_slideshow():
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
                     # Réappliquer le mode plein écran
-                    if pi_model == 3:
+                    if pi_model in [3, 4, 5]:
                         screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
                         # Recharger la police car pygame.quit() l'a invalidée
                         font_path_config = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")

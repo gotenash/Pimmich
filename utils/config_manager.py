@@ -67,6 +67,7 @@ def create_default_config():
         "wifi_ssid": "",
         "wifi_country": "FR",
         "wifi_password": "",
+        "timezone": "Europe/Paris",
         "skip_initial_auto_import": False,
         "info_display_duration": 5,
         "screen_height_percent": 100,
