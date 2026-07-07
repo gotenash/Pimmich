@@ -236,11 +236,48 @@ def download_and_extract_album(config):
 
         # yield {"type": "progress", "stage": "FETCHING_ASSETS", "percent": 15, "message": "Récupération de la liste des photos..."}
 
-        assets_url = f"{server_url}/api/albums/{album_id}"
-        response = requests.get(assets_url, headers=headers, timeout=30)
-        response.raise_for_status()
-        album_data = response.json()
-        assets = album_data.get("assets", [])
+        assets_url = f"{server_url}/api/search/metadata"
+        assets = []
+        page = 1
+        
+        while True:
+            # Si le mode aléatoire n'est pas actif et qu'on a déjà atteint la limite, on s'arrête
+            if not random_content_in_album and max_photos_to_download is not None and len(assets) >= max_photos_to_download:
+                break
+            
+            # Si on n'est pas en mode aléatoire, on peut limiter la taille demandée pour optimiser
+            request_size = 1000
+            if not random_content_in_album and max_photos_to_download is not None:
+                request_size = min(1000, max_photos_to_download - len(assets))
+                if request_size <= 0:
+                    break
+            
+            payload = {
+                "albumIds": [album_id],
+                "page": page,
+                "size": request_size,
+                "withExif": True
+            }
+            
+            try:
+                response = requests.post(assets_url, headers=headers, json=payload, timeout=30)
+                response.raise_for_status()
+                data = response.json()
+                # Les assets retournés par POST /api/search/metadata sont imbriqués sous la clé "assets"
+                assets_obj = data.get("assets", {})
+                items = assets_obj.get("items", [])
+                if not items:
+                    break
+                assets.extend(items)
+                if len(items) < request_size:
+                    break
+                page += 1
+            except requests.exceptions.RequestException as e:
+                yield yield_and_log(
+                    msg_type="error",
+                    message=f"Impossible de récupérer les photos de l'album : {str(e)}",
+                )
+                return
 
         # Application de la limite max_photos_to_download
         total_assets = len(assets)
