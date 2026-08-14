@@ -138,6 +138,12 @@ def get_pi_model():
                 return 5
             if 'Raspberry Pi 3' in model_str:
                 return 3
+            if 'Raspberry Pi 2' in model_str:
+                return 2
+            if 'Zero' in model_str:
+                return 1
+            if 'Raspberry Pi' in model_str:
+                return 1
     except (FileNotFoundError, Exception):
         return None
     return None

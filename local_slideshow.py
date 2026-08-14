@@ -285,6 +285,12 @@ def get_pi_model():
                 return 5
             if 'Raspberry Pi 3' in model_str:
                 return 3
+            if 'Raspberry Pi 2' in model_str:
+                return 2
+            if 'Zero' in model_str:
+                return 1
+            if 'Raspberry Pi' in model_str:
+                return 1
     except FileNotFoundError:
         # Pas un Raspberry Pi ou un système où ce fichier n'existe pas
         return None
@@ -312,7 +318,7 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
     elif fps_config == "60":
         fps = 60
     else: # "auto"
-        fps = 30 if get_pi_model() == 3 else 60
+        fps = 30 if get_pi_model() in [1, 2, 3] else 60
     num_frames = int(duration * fps)
     if num_frames == 0: # Avoid division by zero if duration is too small
         num_frames = 1
@@ -349,9 +355,9 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
     overlay_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
     draw_overlay(overlay_surface, screen_width, screen_height, config, main_font, photo_metadata)
 
-    # Pi 3 downscaling optimization for transitions
-    is_pi3 = (get_pi_model() == 3)
-    if is_pi3:
+    # Pi 1, 2, 3 downscaling optimization for transitions
+    is_low_end_pi = (get_pi_model() in [1, 2, 3])
+    if is_low_end_pi:
         small_width, small_height = screen_width // 2, screen_height // 2
         old_image_small = pygame.transform.scale(old_image_surface, (small_width, small_height)).convert()
         new_surface_small = pygame.transform.scale(new_surface_scaled, (small_width, small_height)).convert()
@@ -362,7 +368,7 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
 
         if transition_type == "fade":
             alpha = int(255 * progress)
-            if is_pi3:
+            if is_low_end_pi:
                 new_surface_small.set_alpha(alpha)
                 temp_surface_small.blit(old_image_small, (0, 0))
                 temp_surface_small.blit(new_surface_small, (0, 0))
@@ -1649,7 +1655,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
 
     # Sur RPi, on quitte totalement Pygame pour libérer les ressources graphiques (CMA)
     # car Trixie/Sway consomment trop pour avoir deux surfaces plein écran en même temps.
-    if pi_model in [3, 4, 5]:
+    if pi_model in [1, 2, 3, 4, 5]:
         logger.info(f"📸 [Pi {pi_model}] Quitting Pygame entirely to free resources for video playback.")
         pygame.quit()
     elif audio_enabled:
@@ -1657,12 +1663,12 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
 
     try:
         # 1. Fondu au noir avant de lancer la vidéo (Uniquement si Pygame n'est pas déjà fermé)
-        if previous_surface and pi_model not in [3, 4, 5]:
+        if previous_surface and pi_model not in [1, 2, 3, 4, 5]:
             fade_to_black(screen, previous_surface, transition_duration / 2, clock)
         
         logger.info(f"📸 Lancement de la vidéo avec mpv : {video_path}")
         # On réaffiche la souris au cas où l'utilisateur voudrait interagir avec mpv (barre de progression, etc.)
-        if pi_model not in [3, 4, 5]:
+        if pi_model not in [1, 2, 3, 4, 5]:
             pygame.mouse.set_visible(True)
         
         # --- NOUVELLE APPROCHE : Retour à MPV avec une configuration robuste ---
@@ -1673,8 +1679,8 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             '--fs', '--no-osc', '--no-osd-bar', '--loop=no'
         ]
         
-        # On retire impérativement --ontop pour le Pi 3 sur Trixie/Wayland
-        if pi_model != 3:
+        # On retire impérativement --ontop pour les Pi 1, 2, 3 sur Trixie/Wayland
+        if pi_model not in [1, 2, 3]:
             command.append('--ontop')
 
         if hwdec_enabled:
@@ -1684,10 +1690,10 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             if pi_model in [4, 5]:
                 logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Mode DMABUF Haute Performance.")
                 command.extend(['-v', '--hwdec=v4l2m2m', '--vo=dmabuf-wayland', '--wayland-app-id=mpv', '--log-file=/tmp/mpv_pimmich.log'])
-            elif pi_model == 3:
-                logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Mode compatibilité optimisé.")
+            elif pi_model in [1, 2, 3]:
+                logger.info(f"[Video Playback] Raspberry Pi {pi_model} détecté. Mode compatibilité optimisé.")
                 command.append('-v') # Mode verbeux pour capturer l'erreur réelle
-                # Sur Pi 3, on utilise v4l2m2m-copy avec gpu, mais on active des optimisations pour soulager la bande passante mémoire et le GPU
+                # Sur Pi 1, 2, 3, on utilise v4l2m2m-copy avec gpu, mais on active des optimisations pour soulager la bande passante mémoire et le GPU
                 command.extend([
                     '--profile=fast',
                     '--hwdec=v4l2m2m-copy',
@@ -1732,7 +1738,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # Si on est sur Pi 3 et que l'accélération matérielle est activée, on tente d'abord le mode DMABUF Haute Performance,
         # puis le mode compatibilité optimisé en cas d'échec.
         commands_to_try = [command]
-        if hwdec_enabled and pi_model == 3:
+        if hwdec_enabled and pi_model in [1, 2, 3]:
             # Construction de la commande DMABUF (similaire au Pi 4/5)
             cmd_high_perf = [
                 'mpv',
@@ -1795,7 +1801,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
         # --- Ré-initialiser le mixer de Pygame après la lecture vidéo ---
         # C'est crucial pour que Pygame puisse potentiellement jouer des sons plus tard,
         # et pour maintenir un état cohérent.
-        if audio_enabled and pi_model not in [3, 4, 5]:
+        if audio_enabled and pi_model not in [1, 2, 3, 4, 5]:
             logger.info(f"📸 Re-initializing pygame.mixer.")
             try:
                 pygame.mixer.init()
@@ -1803,7 +1809,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                 logger.info(f"AVERTISSEMENT: Impossible de réinitialiser pygame.mixer: {e}")
         
         # Relancer la musique de fond de la playlist si nécessaire
-        if _current_background_music and pi_model not in [3, 4, 5]:
+        if _current_background_music and pi_model not in [1, 2, 3, 4, 5]:
             play_background_music(_current_background_music)
 
 
@@ -2192,7 +2198,7 @@ def start_slideshow():
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
                     # Réappliquer le mode plein écran
-                    if pi_model in [3, 4, 5]:
+                    if pi_model in [1, 2, 3, 4, 5]:
                         screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
                         # Recharger la police car pygame.quit() l'a invalidée
                         font_path_config = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
