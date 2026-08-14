@@ -1661,10 +1661,21 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                 logger.info(f"[Video Playback] Raspberry Pi 4/5 détecté. Mode DMABUF Haute Performance.")
                 command.extend(['-v', '--hwdec=v4l2m2m', '--vo=dmabuf-wayland', '--wayland-app-id=mpv', '--log-file=/tmp/mpv_pimmich.log'])
             elif pi_model == 3:
-                logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Mode compatibilité Trixie (Clean Switch).")
+                logger.info(f"[Video Playback] Raspberry Pi 3 détecté. Mode compatibilité optimisé.")
                 command.append('-v') # Mode verbeux pour capturer l'erreur réelle
-                # Sur Pi 3 Trixie, on utilise un mode plus robuste et on force un fichier de log externe
-                command.extend(['--hwdec=v4l2m2m-copy', '--vo=gpu', '--gpu-context=wayland', '--wayland-app-id=mpv', '--log-file=/tmp/mpv_pimmich.log'])
+                # Sur Pi 3, on utilise v4l2m2m-copy avec gpu, mais on active des optimisations pour soulager la bande passante mémoire et le GPU
+                command.extend([
+                    '--profile=fast',
+                    '--hwdec=v4l2m2m-copy',
+                    '--vo=gpu',
+                    '--gpu-context=wayland',
+                    '--scale=bilinear',
+                    '--cscale=bilinear',
+                    '--dscale=bilinear',
+                    '--vd-lavc-dr=yes',
+                    '--wayland-app-id=mpv',
+                    '--log-file=/tmp/mpv_pimmich.log'
+                ])
             else:
                 # Fallback pour les autres systèmes ou si la détection échoue
                 logger.info(f"[Video Playback] Modèle de Pi non spécifique détecté. Utilisation de '--hwdec=auto'.")
@@ -1694,21 +1705,52 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
              command.append('--no-audio')
 
         
-        logger.info(f"📸 Executing mpv command: {' '.join(command)}")
-        # Petite pause pour laisser le système d'affichage se stabiliser
-        time.sleep(1)
-        
-        # On redirige stderr vers stdout pour ne rien rater du tout dans le diagnostic
-        try:
-            result = subprocess.run(
-                command, 
-                check=True, 
-                env=os.environ.copy(), 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.STDOUT, 
-                text=True
-            )
-        except subprocess.CalledProcessError as e:
+        # Si on est sur Pi 3 et que l'accélération matérielle est activée, on tente d'abord le mode DMABUF Haute Performance,
+        # puis le mode compatibilité optimisé en cas d'échec.
+        commands_to_try = [command]
+        if hwdec_enabled and pi_model == 3:
+            # Construction de la commande DMABUF (similaire au Pi 4/5)
+            cmd_high_perf = [
+                'mpv',
+                '--no-config',
+                '--no-terminal',
+                '--fs', '--no-osc', '--no-osd-bar', '--loop=no',
+                '-v', '--hwdec=v4l2m2m', '--vo=dmabuf-wayland',
+                '--wayland-app-id=mpv', '--log-file=/tmp/mpv_pimmich.log',
+                video_path
+            ]
+            if audio_enabled:
+                cmd_high_perf.extend([f'--volume={audio_volume}', '--no-mute'])
+            else:
+                cmd_high_perf.append('--no-audio')
+            
+            # La commande actuelle sert de repli
+            commands_to_try = [cmd_high_perf, command]
+
+        success = False
+        last_error = None
+
+        for idx, cmd_to_run in enumerate(commands_to_try):
+            logger.info(f"📸 Executing mpv command (try {idx+1}/{len(commands_to_try)}): {' '.join(cmd_to_run)}")
+            # Petite pause pour laisser le système d'affichage se stabiliser
+            time.sleep(1)
+            
+            try:
+                result = subprocess.run(
+                    cmd_to_run, 
+                    check=True, 
+                    env=os.environ.copy(), 
+                    stdout=subprocess.PIPE, 
+                    stderr=subprocess.STDOUT, 
+                    text=True
+                )
+                success = True
+                break
+            except subprocess.CalledProcessError as e:
+                last_error = e
+                logger.info(f"⚠️ Échec du mode d'affichage de l'essai {idx+1}. Tentative suivante...")
+                
+        if not success:
             logger.info(f"Erreur lors de l'exécution de mpv pour la vidéo {video_path}. mpv a retourné un code d'erreur.")
             
             # Extraction du log de diagnostic réel
@@ -1721,7 +1763,7 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                 except Exception: 
                     pass
             
-            combined_output = e.stdout if (e.stdout and e.stdout.strip()) else (log_content if log_content.strip() else "Aucun message d'erreur capturé.")
+            combined_output = last_error.stdout if (last_error and last_error.stdout and last_error.stdout.strip()) else (log_content if log_content.strip() else "Aucun message d'erreur capturé.")
             logger.info(f"Détails de l'erreur mpv :\n{combined_output}")
     except Exception as e:
         logger.info(f"Erreur inattendue lors de la lecture de la vidéo {video_path}: {e}")
