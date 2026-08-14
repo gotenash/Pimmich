@@ -1,6 +1,7 @@
 import os
 import random
 import time
+os.environ["PYGAME_BLEND_ALPHA_SDL2"] = "1"
 import pygame
 import traceback
 import requests
@@ -305,7 +306,13 @@ def parse_color(hex_color):
 # New function to perform a transition between two images
 def perform_transition(screen, old_image_surface, new_image_path, duration, screen_width, screen_height, main_font, config, transition_type):
     clock = pygame.time.Clock()
-    fps = 60 # FPS for the transition
+    fps_config = config.get("transition_fps", "auto")
+    if fps_config == "30":
+        fps = 30
+    elif fps_config == "60":
+        fps = 60
+    else: # "auto"
+        fps = 30 if get_pi_model() == 3 else 60
     num_frames = int(duration * fps)
     if num_frames == 0: # Avoid division by zero if duration is too small
         num_frames = 1
@@ -324,13 +331,16 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
     new_pil_image_scaled = new_pil_image.copy()
     new_pil_image_scaled.thumbnail((screen_width, screen_height), Image.Resampling.LANCZOS)
     
-    new_surface_scaled = pygame.Surface((screen_width, screen_height))
+    # Optimisation majeure : convert() pour aligner le format de pixels sur celui de l'écran
+    new_surface_scaled = pygame.Surface((screen_width, screen_height)).convert()
     new_surface_scaled.fill((0,0,0)) # Black background for new image
     
     img_x = (screen_width - new_pil_image_scaled.width) // 2
     img_y = (screen_height - new_pil_image_scaled.height) // 2
     
-    new_surface_scaled.blit(pygame.image.fromstring(new_pil_image_scaled.tobytes(), new_pil_image_scaled.size, new_pil_image_scaled.mode), (img_x, img_y))
+    # Optimisation majeure : convert() pour aligner le format de pixels de l'image sur celui de l'écran
+    temp_surf = pygame.image.fromstring(new_pil_image_scaled.tobytes(), new_pil_image_scaled.size, new_pil_image_scaled.mode).convert()
+    new_surface_scaled.blit(temp_surf, (img_x, img_y))
 
     # Récupérer les métadonnées pour l'image en cours de transition
     photo_metadata = get_photo_metadata(new_image_path)
@@ -339,15 +349,29 @@ def perform_transition(screen, old_image_surface, new_image_path, duration, scre
     overlay_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
     draw_overlay(overlay_surface, screen_width, screen_height, config, main_font, photo_metadata)
 
+    # Pi 3 downscaling optimization for transitions
+    is_pi3 = (get_pi_model() == 3)
+    if is_pi3:
+        small_width, small_height = screen_width // 2, screen_height // 2
+        old_image_small = pygame.transform.scale(old_image_surface, (small_width, small_height)).convert()
+        new_surface_small = pygame.transform.scale(new_surface_scaled, (small_width, small_height)).convert()
+        temp_surface_small = pygame.Surface((small_width, small_height)).convert()
+
     for i in range(num_frames + 1):
         progress = i / num_frames # 0.0 to 1.0
 
         if transition_type == "fade":
             alpha = int(255 * progress)
-            temp_new_surface_with_alpha = new_surface_scaled.copy()
-            temp_new_surface_with_alpha.set_alpha(alpha)
-            screen.blit(old_image_surface, (0, 0))
-            screen.blit(temp_new_surface_with_alpha, (0, 0))
+            if is_pi3:
+                new_surface_small.set_alpha(alpha)
+                temp_surface_small.blit(old_image_small, (0, 0))
+                temp_surface_small.blit(new_surface_small, (0, 0))
+                pygame.transform.scale(temp_surface_small, (screen_width, screen_height), screen)
+            else:
+                # Optimisation majeure : on modifie l'alpha directement sur la surface d'origine sans faire de copie lourde
+                new_surface_scaled.set_alpha(alpha)
+                screen.blit(old_image_surface, (0, 0))
+                screen.blit(new_surface_scaled, (0, 0))
         elif transition_type.startswith("slide_"):
             # Determine slide direction
             direction = transition_type.split("_")[1]

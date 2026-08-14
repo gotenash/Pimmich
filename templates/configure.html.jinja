@@ -433,6 +433,14 @@
                                 endif %}>{{ _('Glisser depuis le haut') }}</option>
                         </select>
                     </div>
+                    <div class="flex items-center mt-2">
+                        <label for="transition_fps" class="w-52 flex-shrink-0">{{ _("Fréquence d'images (FPS) :") }}</label>
+                        <select name="transition_fps" id="transition_fps">
+                            <option value="auto" {% if config.get('transition_fps') == 'auto' or not config.get('transition_fps') %}selected{% endif %}>{{ _("Automatique (30 FPS sur Pi 3, 60 FPS sinon)") }}</option>
+                            <option value="30" {% if config.get('transition_fps') == '30' %}selected{% endif %}>30 FPS</option>
+                            <option value="60" {% if config.get('transition_fps') == '60' %}selected{% endif %}>60 FPS</option>
+                        </select>
+                    </div>
                     <div style="margin-top: 16px;">
                         <label for="favorite_boost_factor">{{ _("Fréquence des favoris (nombre d'ajouts supplémentaires dans la liste de lecture) :") }}</label>
                         <input type="number" id="favorite_boost_factor" name="favorite_boost_factor"

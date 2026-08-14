@@ -932,6 +932,7 @@ def configure():
             'transition_enabled', # Added transition_enabled
             'transition_type', 'home_assistant_token',
             'transition_duration', # Added transition_duration
+            'transition_fps', # Added transition_fps
             'pan_zoom_factor', 'favorite_boost_factor',
             'immich_update_interval_hours', 'date_format', 
             'weather_api_key', 'weather_city', 'weather_units', 'weather_update_interval_minutes', 'anniversary_boost_factor',

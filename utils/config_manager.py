@@ -22,6 +22,7 @@ def create_default_config():
         "transition_enabled": True,
         "transition_type": "fade",
         "transition_duration": 1.0,
+        "transition_fps": "auto",
         "video_audio_enabled": False,
         "video_audio_output": "auto",
         "video_audio_volume": 100,
