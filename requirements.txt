@@ -3,17 +3,12 @@ requests==2.31.0
 Pillow==10.4.0
 pygame
 psutil
-pillow-heif
 smbprotocol
 werkzeug
 Flask-Babel
 piexif
 qrcode[pil]
-pvporcupine
-vosk
-sounddevice
 numpy
-resampy
 thefuzz
 python-Levenshtein
 deep-translator

@@ -426,18 +426,41 @@ def download_and_extract_album(config):
     photos_folder = os.path.join("static", "photos", "immich")
     prepared_folder = os.path.join("static", "prepared", "immich")
 
-    # Vider les dossiers de destination avant l'import
-    if os.path.exists(photos_folder):
-        shutil.rmtree(photos_folder)
+    # Créer les dossiers de destination s'ils n'existent pas (on ne les supprime plus pour préserver le cache)
     os.makedirs(photos_folder, exist_ok=True)
-
-    if os.path.exists(prepared_folder):
-        shutil.rmtree(prepared_folder)
     os.makedirs(prepared_folder, exist_ok=True)
+
+    # Lire la liste des fichiers contenus dans l'archive zip avant l'extraction
+    import zipfile
+    zip_files_set = set()
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            for name in zip_ref.namelist():
+                zip_files_set.add(os.path.basename(name))
+    except Exception as e:
+        logger.error(f"[Sync] Erreur lors de la lecture de l'archive ZIP : {e}")
 
     try:
         unzip_archive(zip_path, photos_folder)
         clean_archive(zip_path)
+
+        # Nettoyage intelligent : supprimer les fichiers locaux du dossier source
+        # qui ne sont plus présents dans l'album Immich (le fichier zip)
+        if zip_files_set:
+            local_files = os.listdir(photos_folder)
+            deleted_count = 0
+            for local_file in local_files:
+                if os.path.isfile(os.path.join(photos_folder, local_file)):
+                    # Ne vérifier que les fichiers médias correspondants
+                    if local_file.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif', '.mp4', '.mov', '.avi', '.mkv')):
+                        if local_file not in zip_files_set:
+                            try:
+                                os.remove(os.path.join(photos_folder, local_file))
+                                deleted_count += 1
+                            except OSError as e:
+                                logger.error(f"[Sync] Impossible de supprimer le fichier obsolète {local_file} : {e}")
+            if deleted_count > 0:
+                logger.info(f"[Sync] {deleted_count} photo(s) obsolète(s) supprimée(s) du dossier source.")
     except Exception as e:
         yield yield_and_log(
             msg_type="error",

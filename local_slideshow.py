@@ -205,7 +205,8 @@ def reinit_pygame():
     """Quitte et réinitialise complètement Pygame et les ressources associées."""
     logger.debug(f"📸 Réinitialisation complète de Pygame...")
     pygame.quit()
-    pygame.init()
+    pygame.display.init()
+    pygame.font.init()
 
     global _icon_cache
     _icon_cache = {}
@@ -1643,6 +1644,17 @@ def fade_to_black(screen, previous_surface, duration, clock):
         pygame.display.flip()
         clock.tick(60)
 
+def draw_loading_banner(screen, text, width, height, font):
+    """Affiche un écran noir avec un message au centre pour informer l'utilisateur."""
+    try:
+        screen.fill((0, 0, 0))
+        text_surface = font.render(text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(width // 2, height // 2))
+        screen.blit(text_surface, text_rect)
+        pygame.display.flip()
+    except Exception as e:
+        logger.warning(f"Erreur lors du dessin du bandeau : {e}")
+
 def display_video(screen, video_path, screen_width, screen_height, config, main_font, previous_surface, clock):
     """Affiche une vidéo en plein écran en utilisant le lecteur externe mpv."""
     global _current_background_music
@@ -1653,11 +1665,20 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
     hwdec_enabled = config.get("video_hwdec_enabled", True)
     pi_model = get_pi_model()
 
-    # Sur RPi, on quitte totalement Pygame pour libérer les ressources graphiques (CMA)
-    # car Trixie/Sway consomment trop pour avoir deux surfaces plein écran en même temps.
+    # 1. Afficher un bandeau de chargement avant le lancement
+    if main_font:
+        draw_loading_banner(screen, "⏳ Chargement de la vidéo...", screen_width, screen_height, main_font)
+        time.sleep(0.5)
+
+    # Sur tous les Raspberry Pi, au lieu de quitter complètement Pygame (ce qui fait planter le backend Wayland de SDL2),
+    # on réduit temporairement la fenêtre à 1x1 pixel et on la masque avec le drapeau pygame.HIDDEN.
+    # Cela libère immédiatement toute la mémoire graphique (CMA) pour mpv tout en rendant la fenêtre 100% invisible.
     if pi_model in [1, 2, 3, 4, 5]:
-        logger.info(f"📸 [Pi {pi_model}] Quitting Pygame entirely to free resources for video playback.")
-        pygame.quit()
+        logger.info(f"📸 [Pi {pi_model}] Hiding and resizing Pygame window to release CMA memory.")
+        try:
+            pygame.display.set_mode((1, 1), pygame.HIDDEN)
+        except Exception as e:
+            logger.warning(f"Impossible de masquer la surface Pygame : {e}")
     elif audio_enabled:
         if pygame.mixer.get_init(): pygame.mixer.quit()
 
@@ -1679,8 +1700,9 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             '--fs', '--no-osc', '--no-osd-bar', '--loop=no'
         ]
         
-        # On retire impérativement --ontop pour les Pi 1, 2, 3 sur Trixie/Wayland
-        if pi_model not in [1, 2, 3]:
+        # Si on est sur Pi 3, on ne met pas --ontop (bug Wayland). 
+        # Pour tous les autres modèles (Pi 1/2 où Pygame tourne en dessous, ou Pi 4/5), on force --ontop au premier plan.
+        if pi_model != 3:
             command.append('--ontop')
 
         if hwdec_enabled:
@@ -1693,12 +1715,16 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
             elif pi_model in [1, 2, 3]:
                 logger.info(f"[Video Playback] Raspberry Pi {pi_model} détecté. Mode compatibilité optimisé.")
                 command.append('-v') # Mode verbeux pour capturer l'erreur réelle
+                # Utilisation d'un cache disque pour les shaders GPU de mpv afin d'éviter la compilation de 10s à chaque démarrage
+                shader_cache_dir = os.path.join(BASE_DIR, "cache", "mpv_shaders")
+                os.makedirs(shader_cache_dir, exist_ok=True)
                 # Sur Pi 1, 2, 3, on utilise v4l2m2m-copy avec gpu, mais on active des optimisations pour soulager la bande passante mémoire et le GPU
                 command.extend([
                     '--profile=fast',
                     '--hwdec=v4l2m2m-copy',
                     '--vo=gpu',
                     '--gpu-context=wayland',
+                    f'--gpu-shader-cache-dir={shader_cache_dir}',
                     '--scale=bilinear',
                     '--cscale=bilinear',
                     '--dscale=bilinear',
@@ -1735,11 +1761,10 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
              command.append('--no-audio')
 
         
-        # Si on est sur Pi 3 et que l'accélération matérielle est activée, on tente d'abord le mode DMABUF Haute Performance,
-        # puis le mode compatibilité optimisé en cas d'échec.
+        # Tenter d'abord le mode DMABUF Haute Performance (zéro-copie), puis le mode compatibilité en cas d'échec.
+        # Le mode DMABUF est extrêmement fluide sur Pi 1, 2, 3 sous Wayland/Sway car il évite la recopie mémoire.
         commands_to_try = [command]
         if hwdec_enabled and pi_model in [1, 2, 3]:
-            # Construction de la commande DMABUF (similaire au Pi 4/5)
             cmd_high_perf = [
                 'mpv',
                 '--no-config',
@@ -1749,16 +1774,21 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                 '--wayland-app-id=mpv', '--log-file=/tmp/mpv_pimmich.log',
                 video_path
             ]
+            if pi_model != 3:
+                cmd_high_perf.append('--ontop')
             if audio_enabled:
                 cmd_high_perf.extend([f'--volume={audio_volume}', '--no-mute'])
             else:
                 cmd_high_perf.append('--no-audio')
             
-            # La commande actuelle sert de repli
             commands_to_try = [cmd_high_perf, command]
 
         success = False
         last_error = None
+        
+        # Watchdog (timeout de sécurité) fixe de 90 secondes pour éviter de bloquer le diaporama si mpv freeze.
+        # Pas d'appel ffprobe dynamique pour optimiser la réactivité au démarrage.
+        timeout_limit = 90.0
 
         for idx, cmd_to_run in enumerate(commands_to_try):
             logger.info(f"📸 Executing mpv command (try {idx+1}/{len(commands_to_try)}): {' '.join(cmd_to_run)}")
@@ -1772,9 +1802,13 @@ def display_video(screen, video_path, screen_width, screen_height, config, main_
                     env=os.environ.copy(), 
                     stdout=subprocess.PIPE, 
                     stderr=subprocess.STDOUT, 
-                    text=True
+                    text=True,
+                    timeout=timeout_limit
                 )
                 success = True
+                break
+            except subprocess.TimeoutExpired:
+                logger.warning(f"⏱️ Le lecteur vidéo mpv a dépassé la limite de temps de sécurité ({timeout_limit}s). Processus tué.")
                 break
             except subprocess.CalledProcessError as e:
                 last_error = e
@@ -1827,9 +1861,10 @@ def start_slideshow():
         time.sleep(2)
         logger.debug(f"📸 Attente de 2s pour stabilisation ")
         
-        # ✅ NOUVEAU : Initialiser pygame et le module display explicitement
-        pygame.init()
-        logger.debug(f"📸 Pygame initialized.")
+        # ✅ NOUVEAU : Initialiser uniquement les modules d'affichage et de police pour économiser du CPU (éviter d'init le mixer)
+        pygame.display.init()
+        pygame.font.init()
+        logger.debug(f"📸 Pygame display and font modules initialized.")
         
         # ✅ FORCER l'initialisation du module display
         pygame.display.init()
@@ -2197,23 +2232,14 @@ def start_slideshow():
 
                 if is_video:
                     display_video(screen, photo_path, SCREEN_WIDTH, SCREEN_HEIGHT, config, main_font_loaded, previous_photo_surface, pygame.time.Clock())
-                    # Réappliquer le mode plein écran
-                    if pi_model in [1, 2, 3, 4, 5]:
-                        screen, SCREEN_WIDTH, SCREEN_HEIGHT = reinit_pygame()
-                        # Recharger la police car pygame.quit() l'a invalidée
-                        font_path_config = config.get("clock_font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
-                        clock_font_size_config = int(config.get("clock_font_size", 72))
-                        try:
-                            main_font_loaded = pygame.font.Font(font_path_config, clock_font_size_config)
-                        except Exception:
-                            main_font_loaded = pygame.font.SysFont("Arial", clock_font_size_config)
-                        # Relancer la musique si elle était active
-                        if _current_background_music:
-                            play_background_music(_current_background_music)
-                    else:
-                        # Réappliquer le mode plein écran et cacher la souris après la vidéo pour éviter les bordures
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-                        pygame.mouse.set_visible(False)
+                    # Restaurer la fenêtre Pygame en plein écran
+                    logger.info("📸 Restoring Pygame fullscreen window...")
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                    pygame.mouse.set_visible(False)
+                    # Afficher le bandeau de reprise après la lecture de la vidéo
+                    if main_font_loaded:
+                        draw_loading_banner(screen, "🔄 Reprise du diaporama...", SCREEN_WIDTH, SCREEN_HEIGHT, main_font_loaded)
+                        time.sleep(0.5)
                 else: # C'est une image
                     current_pil_image = None # Initialize to None to ensure it's always defined
                     try:

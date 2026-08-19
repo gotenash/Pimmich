@@ -1,6 +1,7 @@
 import subprocess
 import time
 import re
+import os
 
 def get_wifi_status():
     """
@@ -8,6 +9,12 @@ def get_wifi_status():
     Retourne un dictionnaire avec les informations.
     """
     status = {"ssid": "Non connecté", "ip_address": "N/A", "is_connected": False}
+    
+    # Éviter l'appel à nmcli si wlan0 n'existe pas
+    if not os.path.exists("/sys/class/net/wlan0"):
+        status["ssid"] = "N/A (Pas de Wi-Fi)"
+        return status
+
     try:
         # Utiliser nmcli pour obtenir un statut fiable
         cmd = ['/usr/bin/nmcli', '-t', '-f', 'GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS', 'dev', 'show', 'wlan0']

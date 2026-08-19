@@ -1000,10 +1000,21 @@ def configure():
             except (ValueError, TypeError):
                 config['country_flag_opacity'] = 1.0
         
-        # Détecter et sauvegarder la résolution actuelle de l'écran
-        detected_width, detected_height = get_screen_resolution()
-        config['display_width'] = detected_width
-        config['display_height'] = detected_height
+        # Priorité à la résolution soumise manuellement dans le formulaire, sinon détection auto
+        form_width = request.form.get('display_width')
+        form_height = request.form.get('display_height')
+        if form_width and form_height:
+            try:
+                config['display_width'] = int(form_width)
+                config['display_height'] = int(form_height)
+            except (ValueError, TypeError):
+                detected_width, detected_height = get_screen_resolution()
+                config['display_width'] = detected_width
+                config['display_height'] = detected_height
+        else:
+            detected_width, detected_height = get_screen_resolution()
+            config['display_width'] = detected_width
+            config['display_height'] = detected_height
 
         # --- Gestion de l'orientation ---
         # Si l'utilisateur force une orientation, on s'assure que width/height correspondent
@@ -1019,7 +1030,7 @@ def configure():
                 config['display_width'], config['display_height'] = config['display_height'], config['display_width']
                 logger.info(f"Orientation Paysage forcée : dimensions inversées à {config['display_width']}x{config['display_height']}")
 
-        logger.info(f"Résolution d'écran détectée : {detected_width}x{detected_height}. Sauvegarde dans la configuration.")
+        logger.info(f"Résolution d'écran configurée : {config['display_width']}x{config['display_height']}. Sauvegarde dans la configuration.")
         # Gérer la clé display_sources (checkboxes)
         # request.form.getlist() retourne une liste vide si aucune checkbox avec ce nom n'est cochée.
         config['display_sources'] = request.form.getlist('display_sources')
@@ -1130,14 +1141,34 @@ def import_immich():
     config = load_config()
     @stream_with_context
     def generate():
-        def stream_event(data):
-            """Formate les données en événement Server-Sent Event (SSE)."""
-            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-        try:
-            for update in download_and_extract_album(config):
-                yield stream_event(update)
-        except Exception as e:
-            yield stream_event({"type": "error", "message": f"Erreur critique : {str(e)}"})
+        import queue
+        import threading
+        
+        q = queue.Queue()
+        
+        def run_import():
+            try:
+                for update in download_and_extract_album(config):
+                    q.put(update)
+                q.put(None)
+            except Exception as e:
+                q.put({"type": "error", "message": f"Erreur critique : {str(e)}"})
+                q.put(None)
+
+        t = threading.Thread(target=run_import)
+        t.daemon = True
+        t.start()
+
+        while True:
+            try:
+                update = q.get(timeout=10)
+                if update is None:
+                    break
+                yield f"data: {json.dumps(update, ensure_ascii=False)}\n\n"
+                if update.get("type") == "error":
+                    break
+            except queue.Empty:
+                yield ": keep-alive\n\n"
 
     return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
@@ -1151,13 +1182,34 @@ def import_samba():
     config = load_config()
     @stream_with_context
     def generate():
-        def stream_event(data):
-            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-        try:
-            for update in import_samba_photos(config):
-                yield stream_event(update)
-        except Exception as e:
-            yield stream_event({"type": "error", "message": f"Erreur critique : {str(e)}"})
+        import queue
+        import threading
+        
+        q = queue.Queue()
+        
+        def run_import():
+            try:
+                for update in import_samba_photos(config):
+                    q.put(update)
+                q.put(None)
+            except Exception as e:
+                q.put({"type": "error", "message": f"Erreur critique : {str(e)}"})
+                q.put(None)
+
+        t = threading.Thread(target=run_import)
+        t.daemon = True
+        t.start()
+
+        while True:
+            try:
+                update = q.get(timeout=10)
+                if update is None:
+                    break
+                yield f"data: {json.dumps(update, ensure_ascii=False)}\n\n"
+                if update.get("type") == "error":
+                    break
+            except queue.Empty:
+                yield ": keep-alive\n\n"
 
     return Response(generate(), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
@@ -1278,47 +1330,71 @@ def prepare_photos():
         return Response(stream_with_context(error_stream()), mimetype='text/event-stream')
 
     def generate_preparation_stream():
-        """Générateur qui produit les événements de progression."""
-        try:
-            config = load_config()
-            screen_width = config.get('display_width')
-            screen_height = config.get('display_height')
+        """Générateur qui produit les événements de progression avec pings de maintien de connexion (keep-alive)."""
+        import queue
+        import threading
+        
+        q = queue.Queue()
+        
+        def run_preparation():
+            try:
+                config = load_config()
+                screen_width = config.get('display_width')
+                screen_height = config.get('display_height')
 
-            # --- NOUVELLE LOGIQUE DE FUSION DES LÉGENDES ---
-            # On centralise ici la préparation des légendes pour donner la priorité
-            # au texte saisi manuellement dans Pimmich.
+                # 1. Charger les descriptions de base (ex: depuis le cache Immich)
+                base_description_map = {}
+                if source == "immich":
+                    immich_cache_path = Path("cache") / "immich_description_map.json"
+                    if immich_cache_path.exists():
+                        try:
+                            with open(immich_cache_path, 'r', encoding='utf-8') as f:
+                                base_description_map = json.load(f)
+                        except Exception as e:
+                            logger.info(f"[App] Avertissement: Impossible de charger le cache de description Immich: {e}")
 
-            # 1. Charger les descriptions de base (ex: depuis le cache Immich)
-            base_description_map = {}
-            if source == "immich":
-                immich_cache_path = Path("cache") / "immich_description_map.json"
-                if immich_cache_path.exists():
-                    try:
-                        with open(immich_cache_path, 'r', encoding='utf-8') as f:
-                            base_description_map = json.load(f)
-                    except Exception as e:
-                        logger.info(f"[App] Avertissement: Impossible de charger le cache de description Immich: {e}")
+                # 2. Charger les légendes manuelles de Pimmich
+                manual_captions = load_text_states()
 
-            # 2. Charger les légendes manuelles de Pimmich
-            manual_captions = load_text_states()
+                # 3. Fusionner, en donnant la priorité aux légendes manuelles
+                final_caption_map = base_description_map.copy()
+                for path, caption in manual_captions.items():
+                    filename = Path(path).name
+                    final_caption_map[filename] = caption
 
-            # 3. Fusionner, en donnant la priorité aux légendes manuelles
-            final_caption_map = base_description_map.copy()
-            for path, caption in manual_captions.items():
-                # La clé est 'source/fichier.jpg', on extrait juste le nom du fichier
-                filename = Path(path).name
-                final_caption_map[filename] = caption
+                # Lancer la préparation et envoyer les mises à jour dans la queue.
+                for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type=source, description_map=final_caption_map):
+                    q.put(update)
+                q.put(None) # Marqueur de fin
+            except Exception as e:
+                q.put({"type": "error", "message": f"Erreur serveur lors de la préparation : {str(e)}"})
+                q.put(None)
 
-            # Lancer la préparation et streamer les mises à jour.
-            for update in prepare_all_photos_with_progress(screen_width, screen_height, source_type=source, description_map=final_caption_map):
-                # Ajouter le chemin de l'image source à l'événement pour l'affichage en direct
+        # Démarrer le traitement dans un thread d'arrière-plan
+        t = threading.Thread(target=run_preparation)
+        t.daemon = True
+        t.start()
+
+        # Lire la queue et streamer au client avec keep-alive
+        while True:
+            try:
+                # Timeout de 10 secondes pour forcer un keep-alive
+                update = q.get(timeout=10)
+                if update is None:
+                    break
+                
+                # Ajouter l'URL de l'image préparée dans le thread principal (qui dispose du contexte de requêtes Flask actif)
                 if update.get("current_photo_path"):
                     update["current_photo_url"] = url_for('static', filename=f"prepared/{source}/{update['current_photo_path']}")
                 
                 yield f"data: {json.dumps(update, ensure_ascii=False)}\n\n"
-        except Exception as e:
-            error_update = {"type": "error", "message": f"Erreur serveur lors de la préparation : {str(e)}"}
-            yield f"data: {json.dumps(error_update)}\n\n"
+                
+                if update.get("type") == "error":
+                    break
+            except queue.Empty:
+                # Nginx/Proxy et le navigateur ferment les SSE en cas d'inactivité.
+                # On envoie un ping keep-alive (ignoré par l'API EventSource du navigateur)
+                yield ": keep-alive\n\n"
 
     return Response(stream_with_context(generate_preparation_stream()), mimetype='text/event-stream', headers={"Cache-Control": "no-cache", "Connection": "keep-alive"})
 
@@ -2893,6 +2969,12 @@ def get_wifi_status():
     Cette fonction est plus robuste et rapide que de multiples appels à des commandes différentes.
     """
     interface = "wlan0" # On assume que wlan0 est l'interface Wi-Fi
+    
+    # Vérification rapide si l'interface Wi-Fi existe physiquement sur le système
+    # pour éviter de lancer une commande nmcli lourde/bloquante en l'absence de Wi-Fi (ex: Pi 2)
+    if not os.path.exists(f"/sys/class/net/{interface}"):
+        return {"is_connected": False, "ssid": "N/A (Pas de carte Wi-Fi)", "ip_address": "N/A"}
+
     try:
         # Commande optimisée pour récupérer toutes les infos en une fois, de manière concise (-t)
         cmd = ['nmcli', '-t', '-f', 'GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS', 'dev', 'show', interface]

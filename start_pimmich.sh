@@ -39,6 +39,7 @@ cleanup() {
     # Utilisation de pkill -f pour plus de robustesse
     pkill -f "python3 -u app.py" 2>/dev/null || true
     pkill -f "python3 app.py" 2>/dev/null || true
+    pkill -f ffmpeg 2>/dev/null || true
     sleep 1 # Laisser le temps aux processus de se terminer
 }
 

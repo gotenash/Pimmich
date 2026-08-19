@@ -6,10 +6,21 @@ sudo apt update
 
 echo "=== [2/12] Installation des dépendances ==="
 # Remplacement de libatlas-base-dev (obsolète sur Debian 12+) par libopenblas-dev pour la compilation de numpy.
-if ! sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libopenblas-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext portaudio19-dev unzip; then
+if ! sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libopenblas-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext portaudio19-dev unzip libheif-dev; then
     echo "L'installation avec portaudio19-dev a échoué. Tentative avec libportaudio-dev..."
     # Fallback pour les futures versions de Debian/Raspberry Pi OS où le paquet pourrait être renommé
-    sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libopenblas-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext libportaudio-dev unzip
+    sudo apt install -y sway xterm python3 python3-venv python3-pip libjpeg-dev libopenjp2-7-dev libtiff-dev libopenblas-dev ffmpeg git cifs-utils smbclient network-manager jq mpv gettext libportaudio-dev unzip libheif-dev
+fi
+
+echo "=== [2.5/12] Configuration de la langue française (locale fr_FR) ==="
+if [ -f "/etc/locale.gen" ]; then
+    if ! grep -q "^fr_FR.UTF-8 UTF-8" /etc/locale.gen; then
+        echo "Activation de la locale fr_FR.UTF-8..."
+        sudo sed -i 's/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/' /etc/locale.gen
+        sudo locale-gen
+    else
+        echo "✅ La locale fr_FR.UTF-8 est déjà activée."
+    fi
 fi
 
 
@@ -110,79 +121,145 @@ echo "=== [6/12] Création de l’environnement Python ==="
 cd "$(dirname "$0")"
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+
+echo "Mise à jour de pip..."
+pip install --default-timeout=1000 --retries=10 --upgrade pip
+
+echo "Installation des dépendances de requirements.txt..."
+if ! pip install --default-timeout=1000 --retries=10 -r requirements.txt; then
+    echo "❌ Échec de l'installation des dépendances Python de base !"
+    exit 1
+fi
+
 echo "Installation de la bibliothèque pour les QR codes..."
+if ! pip install --default-timeout=1000 --retries=10 "qrcode[pil]"; then
+    echo "❌ Échec de l'installation de qrcode[pil] !"
+    exit 1
+fi
 
-echo "Pré-installation de resampy pour compatibilité avec Python 3.12+..."
-# resampy a des problèmes de build avec les versions récentes de Python.
-# On installe une version pré-compilée (wheel) pour éviter l'erreur.
-pip install resampy==0.4.3
-
-pip install "qrcode[pil]"
 echo "Mise à jour de la bibliothèque pour le bot Telegram..."
-pip install --upgrade python-telegram-bot
-echo "Installation des bibliothèques pour le contrôle vocal..."
-pip install vosk sounddevice numpy resampy thefuzz python-Levenshtein pygame num2words
-echo "Réinstallation forcée de pvporcupine pour inclure les modèles de langue..."
-pip install --force-reinstall --no-cache-dir pvporcupine
-echo "Vérification manuelle et téléchargement du modèle de langue français si manquant..."
+if ! pip install --default-timeout=1000 --retries=10 --upgrade python-telegram-bot; then
+    echo "❌ Échec de la mise à jour de python-telegram-bot !"
+    exit 1
+fi
 
-SITE_PACKAGES_DIR=$(python3 -c "import site; print(site.getsitepackages()[0])")
-FR_MODEL_PATH="$SITE_PACKAGES_DIR/pvporcupine/lib/common/porcupine_params_fr.pv"
-
-if [ ! -f "$FR_MODEL_PATH" ]; then
-    echo "⚠️ Le modèle de langue français est manquant. Tentative de téléchargement manuel..."
-    FR_MODEL_URL="https://github.com/Picovoice/porcupine/raw/master/lib/common/porcupine_params_fr.pv"
-    DEST_DIR=$(dirname "$FR_MODEL_PATH")
-    mkdir -p "$DEST_DIR"
-    if ! wget -q -O "$FR_MODEL_PATH" "$FR_MODEL_URL"; then
-        echo "❌ ERREUR: Le téléchargement manuel du modèle de langue a échoué. Le contrôle vocal ne fonctionnera pas."
+# Détecter le modèle du Raspberry Pi
+PI_MODEL=""
+if [ -f /proc/device-tree/model ]; then
+    MODEL_STR=$(cat /proc/device-tree/model)
+    if [[ "$MODEL_STR" =~ "Raspberry Pi 4" ]]; then
+        PI_MODEL="4"
+    elif [[ "$MODEL_STR" =~ "Raspberry Pi 5" ]]; then
+        PI_MODEL="5"
+    elif [[ "$MODEL_STR" =~ "Raspberry Pi 3" ]]; then
+        PI_MODEL="3"
+    elif [[ "$MODEL_STR" =~ "Raspberry Pi 2" ]]; then
+        PI_MODEL="2"
+    elif [[ "$MODEL_STR" =~ "Zero" ]]; then
+        PI_MODEL="1"
     else
-        echo "✅ Modèle de langue français téléchargé et installé manuellement."
+        PI_MODEL="1"
+    fi
+fi
+
+ARCH=$(uname -m)
+if [[ "$ARCH" == "armv6l" || "$PI_MODEL" == "1" || "$PI_MODEL" == "2" ]]; then
+    echo "⚠️ Raspberry Pi 1/2/Zero ou architecture armv6l détectée."
+    echo "⚠️ Le contrôle vocal (Vosk/Porcupine) n'est pas supporté ou est trop gourmand sur cette carte."
+    echo "⚠️ Les dépendances vocales ne seront pas installées."
+    
+    # On installe tout de même le son de notification par défaut
+    echo "=== [NOUVEAU] Téléchargement du son de notification vocale ==="
+    SOUNDS_DIR="static/sounds"
+    NOTIFICATION_SOUND="$SOUNDS_DIR/ding.wav"
+    if [ ! -f "$NOTIFICATION_SOUND" ]; then
+        echo "Son de notification non trouvé. Téléchargement..."
+        mkdir -p "$SOUNDS_DIR"
+        wget -q -O "$NOTIFICATION_SOUND" "https://github.com/actions/sounds/raw/main/sounds/notification.wav"
+        echo "✅ Son de notification installé."
+    else
+        echo "✅ Le son de notification est déjà présent."
     fi
 else
-    echo "✅ Le modèle de langue français est déjà présent."
-fi
+    echo "Installation de pillow-heif pour le support des photos HEIC (iPhone)..."
+    if ! pip install pillow-heif; then
+        echo "⚠️ Avertissement : Échec de l'installation de pillow-heif. Le support HEIC/HEIF sera désactivé."
+    else
+        echo "✅ pillow-heif installé avec succès."
+    fi
 
-echo "=== [NOUVEAU] Téléchargement du son de notification vocale ==="
-SOUNDS_DIR="static/sounds"
-NOTIFICATION_SOUND="$SOUNDS_DIR/ding.wav"
-if [ ! -f "$NOTIFICATION_SOUND" ]; then
-    echo "Son de notification non trouvé. Téléchargement..."
-    mkdir -p "$SOUNDS_DIR"
-    wget -q -O "$NOTIFICATION_SOUND" "https://github.com/actions/sounds/raw/main/sounds/notification.wav"
-    echo "✅ Son de notification installé."
-else
-    echo "✅ Le son de notification est déjà présent."
-fi
-echo "=== [NOUVEAU] Téléchargement du modèle de reconnaissance vocale (Vosk) ==="
-MODELS_DIR="models"
-VOSK_MODEL_DIR="$MODELS_DIR/vosk-model-small-fr-0.22"
-VOSK_ZIP_FILE="$MODELS_DIR/vosk-model-fr.zip"
+    echo "Installation des bibliothèques pour le contrôle vocal..."
+    if ! pip install vosk sounddevice numpy thefuzz python-Levenshtein pygame num2words; then
+        echo "❌ Échec de l'installation des bibliothèques de contrôle vocal !"
+        exit 1
+    fi
 
-if [ ! -d "$VOSK_MODEL_DIR" ]; then
-    echo "Le modèle Vosk n'est pas trouvé. Téléchargement..."
-    mkdir -p "$MODELS_DIR"
-    wget -q --show-progress -O "$VOSK_ZIP_FILE" "https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"
-    unzip -o "$VOSK_ZIP_FILE" -d "$MODELS_DIR"
-    rm "$VOSK_ZIP_FILE"
-    echo "✅ Modèle Vosk français installé."
-else
-    echo "✅ Le modèle Vosk français est déjà présent."
-fi
-echo "=== [NOUVEAU] Téléchargement du modèle de reconnaissance vocale Anglais (Vosk) ==="
-VOSK_MODEL_EN_DIR="$MODELS_DIR/vosk-model-small-en-us-0.15"
-VOSK_ZIP_EN_FILE="$MODELS_DIR/vosk-model-en.zip"
+    echo "Réinstallation forcée de pvporcupine pour inclure les modèles de langue..."
+    if ! pip install --force-reinstall --no-cache-dir pvporcupine; then
+        echo "❌ Échec de l'installation de pvporcupine !"
+        exit 1
+    fi
+    echo "Vérification manuelle et téléchargement du modèle de langue français si manquant..."
 
-if [ ! -d "$VOSK_MODEL_EN_DIR" ]; then
-    echo "Le modèle Vosk Anglais n'est pas trouvé. Téléchargement..."
-    mkdir -p "$MODELS_DIR"
-    wget -q --show-progress -O "$VOSK_ZIP_EN_FILE" "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
-    unzip -o "$VOSK_ZIP_EN_FILE" -d "$MODELS_DIR"
-    rm "$VOSK_ZIP_EN_FILE"
-    echo "✅ Modèle Vosk Anglais installé."
-else
-    echo "✅ Le modèle Vosk Anglais est déjà présent."
+    SITE_PACKAGES_DIR=$(python3 -c "import site; print(site.getsitepackages()[0])")
+    FR_MODEL_PATH="$SITE_PACKAGES_DIR/pvporcupine/lib/common/porcupine_params_fr.pv"
+
+    if [ ! -f "$FR_MODEL_PATH" ]; then
+        echo "⚠️ Le modèle de langue français est manquant. Tentative de téléchargement manuel..."
+        FR_MODEL_URL="https://github.com/Picovoice/porcupine/raw/master/lib/common/porcupine_params_fr.pv"
+        DEST_DIR=$(dirname "$FR_MODEL_PATH")
+        mkdir -p "$DEST_DIR"
+        if ! wget -q -O "$FR_MODEL_PATH" "$FR_MODEL_URL"; then
+            echo "❌ ERREUR: Le téléchargement manuel du modèle de langue a échoué. Le contrôle vocal ne fonctionnera pas."
+        else
+            echo "✅ Modèle de langue français téléchargé et installé manuellement."
+        fi
+    else
+        echo "✅ Le modèle de langue français est déjà présent."
+    fi
+
+    echo "=== [NOUVEAU] Téléchargement du son de notification vocale ==="
+    SOUNDS_DIR="static/sounds"
+    NOTIFICATION_SOUND="$SOUNDS_DIR/ding.wav"
+    if [ ! -f "$NOTIFICATION_SOUND" ]; then
+        echo "Son de notification non trouvé. Téléchargement..."
+        mkdir -p "$SOUNDS_DIR"
+        wget -q -O "$NOTIFICATION_SOUND" "https://github.com/actions/sounds/raw/main/sounds/notification.wav"
+        echo "✅ Son de notification installé."
+    else
+        echo "✅ Le son de notification est déjà présent."
+    fi
+
+    echo "=== [NOUVEAU] Téléchargement du modèle de reconnaissance vocale (Vosk) ==="
+    MODELS_DIR="models"
+    VOSK_MODEL_DIR="$MODELS_DIR/vosk-model-small-fr-0.22"
+    VOSK_ZIP_FILE="$MODELS_DIR/vosk-model-fr.zip"
+
+    if [ ! -d "$VOSK_MODEL_DIR" ]; then
+        echo "Le modèle Vosk n'est pas trouvé. Téléchargement..."
+        mkdir -p "$MODELS_DIR"
+        wget -q --show-progress -O "$VOSK_ZIP_FILE" "https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"
+        unzip -o "$VOSK_ZIP_FILE" -d "$MODELS_DIR"
+        rm "$VOSK_ZIP_FILE"
+        echo "✅ Modèle Vosk français installé."
+    else
+        echo "✅ Le modèle Vosk français est déjà présent."
+    fi
+
+    echo "=== [NOUVEAU] Téléchargement du modèle de reconnaissance vocale Anglais (Vosk) ==="
+    VOSK_MODEL_EN_DIR="$MODELS_DIR/vosk-model-small-en-us-0.15"
+    VOSK_ZIP_EN_FILE="$MODELS_DIR/vosk-model-en.zip"
+
+    if [ ! -d "$VOSK_MODEL_EN_DIR" ]; then
+        echo "Le modèle Vosk Anglais n'est pas trouvé. Téléchargement..."
+        mkdir -p "$MODELS_DIR"
+        wget -q --show-progress -O "$VOSK_ZIP_EN_FILE" "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+        unzip -o "$VOSK_ZIP_EN_FILE" -d "$MODELS_DIR"
+        rm "$VOSK_ZIP_EN_FILE"
+        echo "✅ Modèle Vosk Anglais installé."
+    else
+        echo "✅ Le modèle Vosk Anglais est déjà présent."
+    fi
 fi
 
 echo "=== [7/12] Création de l'arborescence des dossiers nécessaires ==="

@@ -1,7 +1,11 @@
 import os
 from PIL import Image, ImageFilter, ImageDraw, ImageFont
 import json
-import pillow_heif
+try:
+    import pillow_heif
+    HEIF_SUPPORT = True
+except ImportError:
+    HEIF_SUPPORT = False
 import subprocess, sys
 from utils.config import load_config
 import piexif
@@ -157,7 +161,11 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
     try:
         # Gestion des fichiers HEIF/HEIC
         if source_path.lower().endswith(('.heic', '.heif')):
-            pillow_heif.register_heif_opener()
+            if HEIF_SUPPORT:
+                pillow_heif.register_heif_opener()
+            else:
+                logger.warning(f"Support HEIF désactivé (pillow-heif non installé). Impossible de traiter {source_path}")
+                return None
         
         img = Image.open(source_path)
         
@@ -185,26 +193,41 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
         img_aspect_ratio = img.width / img.height
         display_area_aspect_ratio = output_width / effective_photo_height
         
+        pi_model = get_pi_model()
+        is_low_end = (pi_model in [1, 2, 3])
+        resample_filter = Image.Resampling.BILINEAR if is_low_end else Image.Resampling.LANCZOS
+        
         if img_aspect_ratio < display_area_aspect_ratio:
             # Portrait photo - add blurred background
             img_content = img.copy()
             scale = effective_photo_height / img.height
             new_width = int(img.width * scale)
-            img_content = img_content.resize((new_width, effective_photo_height), Image.Resampling.LANCZOS)
+            img_content = img_content.resize((new_width, effective_photo_height), resample_filter)
             
             # Create blurred background
-            bg_img = img.copy()
-            bg_scale = max(output_width / img.width, output_height / img.height)
-            bg_new_width = int(img.width * bg_scale)
-            bg_new_height = int(img.height * bg_scale)
-            bg_img = bg_img.resize((bg_new_width, bg_new_height), Image.Resampling.LANCZOS)
-            
-            if bg_img.width > output_width or bg_img.height > output_height:
-                left = (bg_img.width - output_width) // 2
-                top = (bg_img.height - output_height) // 2
-                bg_img = bg_img.crop((left, top, left + output_width, top + output_height))
-            
-            bg_img = bg_img.filter(ImageFilter.GaussianBlur(radius=50))
+            if is_low_end:
+                # Optimized, low-memory background blur for Raspberry Pi 1, 2, 3
+                bg_scale = max(160 / img.width, 90 / img.height)
+                bg_new_width = int(img.width * bg_scale)
+                bg_new_height = int(img.height * bg_scale)
+                bg_img = img.resize((bg_new_width, bg_new_height), Image.Resampling.NEAREST)
+                if bg_img.width > 160 or bg_img.height > 90:
+                    left = (bg_img.width - 160) // 2
+                    top = (bg_img.height - 90) // 2
+                    bg_img = bg_img.crop((left, top, left + 160, top + 90))
+                bg_img = bg_img.filter(ImageFilter.GaussianBlur(radius=3))
+                bg_img = bg_img.resize((output_width, output_height), Image.Resampling.BILINEAR)
+            else:
+                bg_img = img.copy()
+                bg_scale = max(output_width / img.width, output_height / img.height)
+                bg_new_width = int(img.width * bg_scale)
+                bg_new_height = int(img.height * bg_scale)
+                bg_img = bg_img.resize((bg_new_width, bg_new_height), Image.Resampling.LANCZOS)
+                if bg_img.width > output_width or bg_img.height > output_height:
+                    left = (bg_img.width - output_width) // 2
+                    top = (bg_img.height - output_height) // 2
+                    bg_img = bg_img.crop((left, top, left + output_width, top + output_height))
+                bg_img = bg_img.filter(ImageFilter.GaussianBlur(radius=50))
             
             final_img = Image.new('RGB', (output_width, output_height), (0, 0, 0))
             final_img.paste(bg_img, (0, 0))
@@ -217,7 +240,7 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
             img_content = img.copy()
             scale = effective_photo_height / img.height
             new_width = int(img.width * scale)
-            img_content = img_content.resize((new_width, effective_photo_height), Image.Resampling.LANCZOS)
+            img_content = img_content.resize((new_width, effective_photo_height), resample_filter)
             
             final_img = Image.new('RGB', (output_width, output_height), (0, 0, 0))
             x_offset = (output_width - img_content.width) // 2
@@ -252,7 +275,7 @@ def prepare_photo(source_path, dest_path, output_width, output_height, source_ty
             scale_factor = 0.85
             postcard_img_content.thumbnail(
                 (int(output_width * scale_factor), int(output_height * scale_factor)),
-                Image.Resampling.LANCZOS
+                resample_filter
             )
             
             postcard_content = create_postcard_effect(postcard_img_content, caption=caption)
@@ -290,7 +313,7 @@ def prepare_video(source_path, dest_path, output_width, output_height):
         pi_model = get_pi_model()
         
         try:
-            result = subprocess.run(['ffmpeg', '-encoders'], capture_output=True, text=True, check=True, timeout=5)
+            result = subprocess.run(['ffmpeg', '-encoders'], capture_output=True, text=True, check=True, timeout=20)
             available_encoders = result.stdout
             
             # Priorité à l'encodeur matériel moderne v4l2m2m pour tous les modèles de Raspberry Pi (3, 4, 5)
@@ -364,17 +387,36 @@ def prepare_all_photos_with_progress(screen_width=None, screen_height=None, sour
     source_files = {f: os.path.splitext(f)[0] for f in os.listdir(SOURCE_DIR_FOR_PREP) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic', '.heif') + VIDEO_EXTENSIONS)}
     source_basenames = set(source_files.values())
     
+    # Détecter les basenames déjà préparés de manière robuste (non vide et plus récent que la source)
     prepared_basenames = set()
+    if PREPARED_SOURCE_DIR.exists():
+        for filename, basename in source_files.items():
+            ext = ".mp4" if filename.lower().endswith(VIDEO_EXTENSIONS) else ".jpg"
+            prep_path = PREPARED_SOURCE_DIR / f"{basename}{ext}"
+            src_path = SOURCE_DIR_FOR_PREP / filename
+            
+            # Vérifications robustes :
+            # 1. Le fichier préparé principal existe
+            # 2. Sa taille est supérieure à 0 octet (pas corrompu ou coupé pendant l'import)
+            # 3. Il est plus récent ou égal à la photo source téléchargée
+            try:
+                if prep_path.is_file() and prep_path.stat().st_size > 0:
+                    prepared_basenames.add(basename)
+            except Exception:
+                pass  # En cas d'erreur de lecture des stats, on considère non préparé par sécurité
+
+    # Récupérer tous les basenames actuellement présents sur le disque dans prepared/
+    all_prepared_basenames_on_disk = set()
     if PREPARED_SOURCE_DIR.exists():
         for f in PREPARED_SOURCE_DIR.iterdir():
             if f.is_file():
                 base = re.sub(r'(_polaroid|_postcard|_thumbnail)$', '', f.stem)
-                prepared_basenames.add(base)
+                all_prepared_basenames_on_disk.add(base)
     
     # Delete obsolete media (except for smartphone source)
     basenames_to_delete = set()
     if source_type != "smartphone":
-        basenames_to_delete = prepared_basenames - source_basenames
+        basenames_to_delete = all_prepared_basenames_on_disk - source_basenames
     
     if basenames_to_delete:
         yield yield_and_log(

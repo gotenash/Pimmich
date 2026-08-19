@@ -115,13 +115,23 @@ def create_default_config():
         "anniversary_boost_factor": 2
     }
 
+_config_cache = None
+_last_config_load = 0
+
 def load_config():
     """Charge la configuration depuis le fichier et la fusionne avec les valeurs par défaut."""
+    global _config_cache, _last_config_load
+    import time
+    if _config_cache is not None and (time.time() - _last_config_load < 2.0):
+        return _config_cache
+
     default_config = create_default_config()
     
     if not os.path.exists(CONFIG_PATH):
         # Si le fichier de config n'existe pas, on le crée avec les valeurs par défaut.
         save_config(default_config)
+        _config_cache = default_config
+        _last_config_load = time.time()
         return default_config
 
     try:
@@ -133,15 +143,23 @@ def load_config():
         # sans écraser les réglages existants de l'utilisateur.
         merged_config = default_config.copy()
         merged_config.update(user_config)
+        _config_cache = merged_config
+        _last_config_load = time.time()
         return merged_config
     except (json.JSONDecodeError, IOError) as e:
         # En cas de fichier corrompu ou illisible, on retourne la config par défaut
         # pour éviter un crash de l'application.
         print(f"Avertissement: Impossible de charger {CONFIG_PATH} ({e}). Utilisation de la configuration par défaut.")
+        _config_cache = default_config
+        _last_config_load = time.time()
         return default_config
 
 def save_config(config):
     """Sauvegarde la configuration dans un fichier JSON."""
+    global _config_cache, _last_config_load
+    import time
     os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
     with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=4, ensure_ascii=False)
+    _config_cache = config
+    _last_config_load = time.time()

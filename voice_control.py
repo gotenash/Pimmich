@@ -10,7 +10,6 @@ import requests
 import sounddevice as sd
 import pvporcupine
 import numpy as np
-import resampy
 import pygame
 from vosk import KaldiRecognizer, Model
 from thefuzz import process
@@ -497,13 +496,17 @@ def main():
                 # Convertir en numpy array pour le ré-échantillonnage
                 audio_np = np.frombuffer(pcm_bytes, dtype=np.int16).astype(np.float32) / 32768.0
 
-                # Ré-échantillonner vers la fréquence cible de Porcupine/Vosk
-                resampled_audio = resampy.resample(
-                    audio_np,
-                    native_samplerate,
-                    TARGET_SAMPLERATE,
-                    filter='kaiser_fast' # Bon compromis performance/qualité
-                )
+                # Ré-échantillonner vers la fréquence cible de Porcupine/Vosk via interpolation linéaire numpy (sans dépendance à resampy/numba)
+                if native_samplerate != TARGET_SAMPLERATE:
+                    duration_s = len(audio_np) / native_samplerate
+                    num_target_samples = int(duration_s * TARGET_SAMPLERATE)
+                    resampled_audio = np.interp(
+                        np.linspace(0, len(audio_np), num_target_samples, endpoint=False),
+                        np.arange(len(audio_np)),
+                        audio_np
+                    )
+                else:
+                    resampled_audio = audio_np
                 
                 # Convertir le résultat en int16
                 frame = (resampled_audio * 32767).astype(np.int16)

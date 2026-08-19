@@ -40,6 +40,16 @@ def start_voice_control():
         print("Le contrôle vocal est déjà en cours.")
         return
 
+    # Vérifier la présence des modules vocaux
+    try:
+        import vosk
+        import pvporcupine
+        import sounddevice
+    except ImportError:
+        print("[VoiceManager] Le contrôle vocal n'est pas disponible (modules manquants sur cette carte).")
+        update_status_file({"status": "disabled", "error": "Modules manquants (non supporté sur ce modèle de Raspberry Pi)"})
+        return
+
     print("Démarrage du service de contrôle vocal...")
     python_executable = sys.executable
     # Ajout du flag -u pour un output non bufferisé, crucial pour les logs en temps réel
